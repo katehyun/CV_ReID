@@ -11,8 +11,17 @@ f.normalization <- function (insig){
   return (outsig)
 }
 
+
+f.signorm <- function (insig){
+  newsig= insig / (max(insig)) 
+                      
+  return (newsig)
+}
+
 # FUNCTION - round
 f.round <- function (insig, no_round){
+  
+ 
   outsig <- insig * no_round
   outsig = round (outsig)
   outsig = outsig / no_round
@@ -44,6 +53,12 @@ f.interpolation_v2 <- function (insig, num, no_round){
   return (outsig)
 }
 
+f.interpolationbytime <- function (insig, num, no_round){ 
+  
+  outsig <- spline(time, insig, num)
+  outsig <- f.round (outsig$y, no_round)
+  return (outsig)
+}
 
 # 
 # # FUNCTION - swift
@@ -265,39 +280,54 @@ f.interpolation_v2 <- function (insig, num, no_round){
 # 
 
 # FUNCTION - swift
-f.swift <- function ( insig, splineDown, swift_coeff, num , no_round){
+f.swift_horizontal <- function ( insig, splineDown, swift_coeff, n , no_round){
   
-  Up_swift <- rep(NA, num)
-  swift_tempmag <- rep(NA, num)
-  swift_magdif <- rep(NA,1)
+#   insig <- splineUp
+  
+#    Up_swift <- rep(NA, n)
+  Up_swift <-matrix(,nrow = length(time), ncol = length(swift_coeff))
+  swift_magdif <-matrix(,nrow = 1, ncol = length(swift_coeff))
+  swift_tempmag <- rep(NA, n)
+#   swift_magdif <- rep(NA,1)
   swiftmagdif2 <- rep(NA,1)
   min_swiftmagdif <- rep(NA,1)
   minvalue <- rep(NA,1)
-
+  time <- f.round(time, no_round)
   
   for (i in 1: length(swift_coeff)){
+   
+    # horizontal
+    swift_temptime <- time + swift_coeff[i] 
+    swift_temptime <- f.round(swift_temptime, no_round)
+    swift_temptime <- f.interpolationbytime (swift_temptime, n, no_round)
     
+    swift_tempmag_init <- insig
+    tempmat <- cbind( swift_temptime, swift_tempmag_init )
+    swift_tempmag <- approx( swift_temptime,   swift_tempmag_init, xout = time)$y
     
-    swift_tempmag<- insig + swift_coeff[i]
+#     swift_tempmag <- swift_tempmag_init [match ( time , swift_temptime )]
+    swift_tempmag [is.na( swift_tempmag )] <- 0
+    #     swift_tempmag <- na.omit(swift_tempmag)
+    #     tempswift  <-  approx ( swift_tempmag, n=num)
+    #     swift_tempmag <-tempswift[[2]] 
+    
+    #     swift_tempmag <- insig + swift_coeff[i] #vertical
+#     swift_tempmag <- f.signorm(swift_tempmag)
+    
 #     Up_swift_time <- f.round(Up_swift_time, no_round) # added
 #     Up_swift_mag <- insig
     
     # LOOKUP!!!!! 
+
+#     splineDown <-  splineDown[seq (1, n , element)]
+#     swift_tempmag <- swift_tempmag[seq (1, n , element)]
     
-    
-    
-#     swift_tempmag <- Up_swift_mag [match ( time ,Up_swift_time )]
-#     swift_tempmag <- na.omit(swift_tempmag)
-#     tempswift  <-  approx ( swift_tempmag, n=num)
-#     swift_tempmag <-tempswift[[2]] 
-    
-  
-    
-    swift_magdif2 <- sum ( abs(splineDown - swift_tempmag ) )
-    swift_magdif <- cbind(swift_magdif2, swift_magdif) 
+    swift_magdif[,i] <- sum ( abs( splineDown - swift_tempmag ) )
+#     swift_magdif[,i] <- t(swift_magdif2) 
+#   cbind(swift_magdif2, swift_magdif) 
     
    
-    Up_swift <- cbind(swift_tempmag, Up_swift)
+    Up_swift[,i] <- t(swift_tempmag)
     
   }
   min_swiftmagdif <- which.min (swift_magdif )
@@ -306,24 +336,97 @@ f.swift <- function ( insig, splineDown, swift_coeff, num , no_round){
   return (list(matrix=Up_swift[,min_swiftmagdif], mv=minvalue))
 }
 
+# 
+# f.swift_vertical <- function ( insig, splineDown, swift_coeff, num , no_round){
+#   
+# #   insig <- splineUp
+#   
+#   Up_swift <- rep(NA, num)
+#   swift_tempmag <- rep(NA, num)
+#   swift_magdif <- rep(NA,1)
+#   swiftmagdif2 <- rep(NA,1)
+#   min_swiftmagdif <- rep(NA,1)
+#   minvalue <- rep(NA,1)
+#   
+#   
+#   for (i in 1: length(swift_coeff)){
+#     
+#     # horizontal
+# #     swift_temptime <- time + swift_coeff[i] 
+# #     swift_temptime <- f.interpolation_v2 (swift_temptime, num, no_round)
+# #     
+# #     swift_tempmag_init <- insig
+# #     swift_tempmag <- swift_tempmag_init [match ( time ,swift_temptime )]
+# #     swift_tempmag [is.na( swift_tempmag )] <- 0
+#     #     swift_tempmag <- na.omit(swift_tempmag)
+#     #     tempswift  <-  approx ( swift_tempmag, n=num)
+#     #     swift_tempmag <-tempswift[[2]] 
+#     
+#         swift_tempmag <- insig + swift_coeff[i] #vertical
+#         swift_tempmag <- f.signorm(swift_tempmag)
+#     
+#     #     Up_swift_time <- f.round(Up_swift_time, no_round) # added
+#     #     Up_swift_mag <- insig
+#     
+#     # LOOKUP!!!!! 
+#     
+#     swift_magdif2 <- sum ( abs(splineDown - swift_tempmag ) )
+#     swift_magdif <- cbind(swift_magdif2, swift_magdif) 
+#     
+#     
+#     Up_swift <- cbind(swift_tempmag, Up_swift)
+#     
+#   }
+#   min_swiftmagdif <- which.min (swift_magdif )
+#   minvalue <- swift_magdif[min_swiftmagdif]
+#   
+#   return (list(matrix=Up_swift[,min_swiftmagdif], mv=minvalue))
+# }
+# 
 
 # FUNCTION - stret
-f.stret <- function (insig, splineDown, stret_coeff, num, no_round ){
-  
-  
-  Up_stret <- rep(NA, num)
-  stret_tempmag  <- rep(NA, num)
+f.stret_horizontal <- function (insig, splineDown, stret_coeff,n, no_round ){
+ 
+  Up_stret <-matrix(,nrow = length(time), ncol = length(stret_coeff))
+  stret_tempmag  <- rep(NA, n)
   stret_magdif2 <- rep(NA, 1)
-  stret_magdif <- rep(NA,1)
+  stret_magdif <- matrix(,nrow = 1, ncol = length(stret_coeff))
   min_stretmagdif <- rep(NA,1) 
   minvalue <- rep(NA,1) 
+  time <- f.round(time, no_round)
   
   for (i in 1: length(stret_coeff)){
     
+    timer <- f.round(time, no_round)
+    stret_temptime <-  timer * stret_coeff[i]
+#     stret_temptime <- f.round(stret_temptime, no_round)
+#     stret_temptime <-  stret_temptime[!duplicated ( stret_temptime)]
+   
+   
+  
+    stret_tempmag_init <- insig
+    tempmat <- cbind( stret_temptime, stret_tempmag_init)
+
+    stret_tempmag <- approx(stret_temptime,  stret_tempmag_init, xout = time)$y
+
+
+#     tempmat <- tempmat[!duplicated ( tempmat[,1]),]
     
-    stret_tempmag <- insig * stret_coeff[i]
+#     idx <- (stret_temptime[length(stret_temptime)] - stret_temptime[1]) * num + 1
+#     idxmat <- t (seq (stret_temptime[1], stret_temptime[length(stret_temptime)], by = 1/num) )
+    
+#     stret_interp <- spline( tempmat[,1], tempmat[,2], n=idx)
+   
+#     mat <- cbind(stret_temptime_interp, stret_tempmag_interp  )
+    
+#     stret_tempmag <- f.interpolationbytime (   stret_temptime, tempmat[,2],  no_round)
+#     f.interpolationbytime (swift_temptime, n, no_round)
+    
+   
+#     stret_tempmag <- stret_interp$y [match ( time,  stret_interp$x  )]
+    stret_tempmag [is.na (stret_tempmag)] <- 0
 #     Up_stret_time <- f.round(Up_stret_time, no_round)
-    
+#     stret_tempmag <- f.signorm(stret_tempmag)
     
     
     # LOOKUP!!!!! 
@@ -335,27 +438,83 @@ f.stret <- function (insig, splineDown, stret_coeff, num, no_round ){
 #     
 #     stret_tempmag <- tempstret [[2]] 
    
-   
-    
-    stret_magdif2 <- sum( abs(splineDown - stret_tempmag ) )
+  
+#     stret_tempmag  <-  stret_tempmag[seq (1, n,element) ]
+    stret_magdif[,i] <- sum( abs(splineDown - stret_tempmag ) )
+
+
+
     #     stret_magdif2 = abs(splineDown2$y - stret_tempmag2$y ) 
     #     stret_magdif3= sum(stret_magdif2)
     
-    stret_magdif <- cbind(stret_magdif2, stret_magdif) 
+#     stret_magdif[,] <- cbind(stret_magdif2, stret_magdif) 
     
     
     
     #     Up_stret <- cbind(strettime[,min_stretmagdif], Up_stret_mag)
-    Up_stret <- cbind(stret_tempmag)
+  
+    Up_stret[,i] <- stret_tempmag
     
     
   }
   
   min_stretmagdif <- which.min (stret_magdif)
   minvalue <- stret_magdif[min_stretmagdif]
-  return (list(matrix=Up_stret, mv=minvalue) )
+  return (list(matrix=Up_stret[,min_stretmagdif], mv=minvalue) )
   
 }
+
+
+# 
+# # FUNCTION - stret
+# f.stret_vertical <- function (insig, splineDown, stret_coeff, num, no_round ){
+#   
+# #   insig <- matrix
+#   Up_stret <- rep(NA, num)
+#   stret_tempmag  <- rep(NA, num)
+#   stret_magdif2 <- rep(NA, 1)
+#   stret_magdif <- rep(NA,1)
+#   min_stretmagdif <- rep(NA,1) 
+#   minvalue <- rep(NA,1) 
+#   
+#   for (i in 1: length(stret_coeff)){
+#     
+#     
+#     stret_tempmag <- insig * stret_coeff[i]
+#     #     Up_stret_time <- f.round(Up_stret_time, no_round)
+#     stret_tempmag <- f.signorm(stret_tempmag)
+#     
+#     
+#     # LOOKUP!!!!! 
+#     
+#     #     
+#     #     stret_tempmag <- insig [match (time, Up_stret_time )]
+#     #     stret_tempmag <- na.omit(stret_tempmag)
+#     #     tempstret  <-  approx ( stret_tempmag,  n=num)
+#     #     
+#     #     stret_tempmag <- tempstret [[2]] 
+#     
+#     
+#     
+#     stret_magdif2 <- sum( abs(splineDown - stret_tempmag ) )
+#     #     stret_magdif2 = abs(splineDown2$y - stret_tempmag2$y ) 
+#     #     stret_magdif3= sum(stret_magdif2)
+#     
+#     stret_magdif <- cbind(stret_magdif2, stret_magdif) 
+#     
+#     
+#     
+#     #     Up_stret <- cbind(strettime[,min_stretmagdif], Up_stret_mag)
+#     Up_stret <- cbind(stret_tempmag,  Up_stret )
+#     
+#     
+#   }
+#   
+#   min_stretmagdif <- which.min (stret_magdif)
+#   minvalue <- stret_magdif[min_stretmagdif]
+#   return (list(matrix=Up_stret[,min_stretmagdif], mv=minvalue) )
+#   
+# }
 
 
 f.ResultNN <- function (threshold_NN,  TargetTable, p ){

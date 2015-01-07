@@ -84,11 +84,14 @@ matching <- subset(matching_SOLC , substr(SO, 3, 13) <  substr(LC, 3, 13))
 LCGTML <- dbGetQuery(con, 
             "SELECT  groundtruthmasterlist.vehid, wimlink.wimid, wimsignaturelink.wimsigid, 
             groundtruthmasterlist.station, groundtruthmasterlist.lane,
-            veh_class, wimrecords.ts,  veh_len, gross_weight, axle_1_2_spacing, axle_2_3_spacing,
-            axle_3_4_spacing, axle_4_5_spacing, 
-            axle_1_rt_weight, axle_1_lt_weight, axle_2_rt_weight, axle_2_lt_weight, axle_3_rt_weight,
-            axle_3_lt_weight, axle_4_rt_weight, 
-            axle_4_lt_weight, axle_5_rt_weight, axle_5_lt_weight
+            veh_class,  num_axles, wimrecords.ts,  veh_len, gross_weight, axle_1_2_spacing, axle_2_3_spacing,
+            axle_3_4_spacing, axle_4_5_spacing,  axle_5_6_spacing, 
+            axle_6_7_spacing, axle_7_8_spacing, axle_8_9_spacing, 
+            axle_1_rt_weight, axle_1_lt_weight, axle_2_rt_weight, axle_2_lt_weight, 
+            axle_3_rt_weight, axle_3_lt_weight, axle_4_rt_weight, axle_4_lt_weight,
+            axle_5_rt_weight, axle_5_lt_weight, axle_6_rt_weight, axle_6_lt_weight,
+            axle_7_rt_weight, axle_7_lt_weight, axle_8_rt_weight, axle_8_lt_weight, 
+            axle_9_rt_weight, axle_9_lt_weight
             FROM  gtsystem.wimlink, gtsystem.wimsignaturelink, gtsystem.wimrecords,gtsystem.groundtruthmasterlist
             where groundtruthmasterlist.vehid = wimlink.vehid 
             and groundtruthmasterlist.vehid = wimsignaturelink.vehid
@@ -97,10 +100,16 @@ LCGTML <- dbGetQuery(con,
             order by wimrecords.ts")
 
 SOGTML <- dbGetQuery(con, 
-                     "SELECT  groundtruthmasterlist.vehid, wimlink.wimid, wimsignaturelink.wimsigid, groundtruthmasterlist.station, groundtruthmasterlist.lane,
-            veh_class, wimrecords.ts,  veh_len, gross_weight, axle_1_2_spacing, axle_2_3_spacing, axle_3_4_spacing, axle_4_5_spacing, 
-            axle_1_rt_weight, axle_1_lt_weight, axle_2_rt_weight, axle_2_lt_weight, axle_3_rt_weight, axle_3_lt_weight, axle_4_rt_weight, 
-            axle_4_lt_weight, axle_5_rt_weight, axle_5_lt_weight
+             "SELECT  groundtruthmasterlist.vehid, wimlink.wimid, wimsignaturelink.wimsigid, 
+          groundtruthmasterlist.station, groundtruthmasterlist.lane,
+            veh_class,  num_axles, wimrecords.ts,  veh_len, gross_weight, axle_1_2_spacing, axle_2_3_spacing, 
+            axle_3_4_spacing, axle_4_5_spacing, axle_5_6_spacing, 
+            axle_6_7_spacing, axle_7_8_spacing, axle_8_9_spacing, 
+            axle_1_rt_weight, axle_1_lt_weight, axle_2_rt_weight, axle_2_lt_weight, 
+            axle_3_rt_weight, axle_3_lt_weight, axle_4_rt_weight, axle_4_lt_weight,
+            axle_5_rt_weight, axle_5_lt_weight, axle_6_rt_weight, axle_6_lt_weight,
+            axle_7_rt_weight, axle_7_lt_weight, axle_8_rt_weight, axle_8_lt_weight, 
+            axle_9_rt_weight, axle_9_lt_weight
             FROM gtsystem.groundtruthmasterlist, gtsystem.wimlink, gtsystem.wimsignaturelink, gtsystem.wimrecords
             where groundtruthmasterlist.vehid = wimlink.vehid 
             and groundtruthmasterlist.vehid = wimsignaturelink.vehid

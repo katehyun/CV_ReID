@@ -8,20 +8,23 @@ load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/a_bas
 load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Upheader_new.RData")
 load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Downheader_new.RData")
 load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/candidate.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/matching.RData")
 
 sigma <- 1
 numoffeatures <- 100
 cat <- list()
 prob <- list()
 
-for (i in 1: length(candidate) ){
+for (i in 1: length(Downheader_new[,1]) ){
 
-  seqcandidate <- seq( from = 1, to = length(candidate[[i]]) )
   if ( ( length(candidate[[i]][1]) == 0)) {
     cat[[i]] <- NA 
-    prob[[i]] <- NA }
+    prob[[i]] <- NA 
+  }
   
   else{
+  seqcandidate <- seq( from = 1, to = length(candidate[[i]]) )
+   
   output <- matrix(unlist( candidate[[i]]), ncol = length(candidate[[i]]))
   output2 <-t( output[seq(1, length(output[,1]), 
                         by = round (1000 / numoffeatures)),] )
@@ -36,9 +39,9 @@ for (i in 1: length(candidate) ){
   cat[[i]] <- candi_guess[[1]][1]
   prob[[i]] <-  candi_guess[[1]][2]
 
-
   }
 }
+# prob[[888]] <- NA
 
 max_pnn_prob<-vector()
 for (i in 1: length(prob)){
@@ -54,7 +57,7 @@ pnn_Upid <- c()
 pnn_Upid_after <- c()
 
 j <- 1
-for (i in 1:length(cat)){
+for (i in 1:length(Downheader_new[,1])){
   
   a <- as.numeric( unlist(cat[i]) )
   if (length(Upsiglist[[j]]) == 0 ){
@@ -87,9 +90,9 @@ Target_pnnanalysis_Jan0910_obj2 <- rep(999, length(pnn_Upid))
 Downheader_ID <- Downheader_new$sigid
 Downtarget <- Downheader_ID
 
-SOLCAllFHWAClass <- read.table("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/RawData/LCJan/LCJan_v1.txt", fill=T)
-SOLCFHWAClass <- SOLCAllFHWAClass[,6] [match (Downtarget, SOLCAllFHWAClass[,3])] 
-
+# SOLCAllFHWAClass <- read.table("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/RawData/LCJan/LCJan_v1.txt", fill=T)
+# SOLCFHWAClass <- SOLCAllFHWAClass[,6] [match (Downtarget, SOLCAllFHWAClass[,3])] 
+SOLCFHWAClass <-Downheader_new[,14]
 Target_pnnanalysis_Jan0910_obj  <- (matching$SO[ match ( Downtarget,  matching$LC )])
 Target_pnnanalysis_Jan0910_obj2 <- Target_pnnanalysis_Jan0910_obj
 
@@ -123,11 +126,11 @@ for (z in 1: length(Class)){
 options(scipen=999)
 
 save(prob, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/prob.RData")
-save(Result_PNN, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Result_NN.RData")
-save(TargetTable_PNN, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Result_NN.RData")
+save(Result_PNN, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Result_PNN.RData")
+save(TargetTable_PNN, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Result_PNN.RData")
 
 rm(TargetTable, output, output2, Down, a, a_Upid, a_Upid_after, b, base_Upid_after, candi_guess, classresult,
    i,j, p, pnn_Upid, pnn_Upid_after, seqcandidate, z)
 
 
-save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/20141125Jan0910.RData") 
+save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/20141215Jan0910.RData") 

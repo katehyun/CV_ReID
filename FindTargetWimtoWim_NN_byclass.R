@@ -1,18 +1,21 @@
 # utils:::menuInstallPkgs() 
-rm(list=ls())
+# rm(list=ls())
 # load functonbook2
 library(pnn)
 setwd("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid") 
-
+options(scipen=999) 
 # load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/shiftandstretch_Jan0910.RData")
 
 load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Upobjout.RData ")
 load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Downobjout.RData ")
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/a_magdif.RData ")
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/a_basemagdif.RData ")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/a_magdif_12102014.RData ")
+# load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/a_magdif.RData ")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/a_basemagdif_12102014.RData ")
+# load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/a_basemagdif.RData ")
 load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Upheader_new.RData")
 load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Downheader_new.RData")
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/candidate.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/candidate_12102014.RData")
+# load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/candidate.RData")
 load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Upsiglist.RData")
 load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/matching.RData")
 
@@ -102,25 +105,29 @@ library( RPostgreSQL)
 drv <- dbDriver("PostgreSQL")
 con <- f.dbinfo (drv)
 
-LCGTML <- dbGetQuery(con, 
-            "SELECT  groundtruthmasterlist.vehid, wimlink.wimid, wimsignaturelink.wimsigid, 
-            groundtruthmasterlist.station, groundtruthmasterlist.lane,
-            veh_class, wimrecords.ts,  veh_len, gross_weight, axle_1_2_spacing, axle_2_3_spacing,
-            axle_3_4_spacing, axle_4_5_spacing, 
-            axle_1_rt_weight, axle_1_lt_weight, axle_2_rt_weight, axle_2_lt_weight, axle_3_rt_weight,
-            axle_3_lt_weight, axle_4_rt_weight, 
-            axle_4_lt_weight, axle_5_rt_weight, axle_5_lt_weight
-            FROM  gtsystem.wimlink, gtsystem.wimsignaturelink, gtsystem.wimrecords,gtsystem.groundtruthmasterlist
-            where groundtruthmasterlist.vehid = wimlink.vehid 
-            and groundtruthmasterlist.vehid = wimsignaturelink.vehid
-            and wimlink.wimid = wimrecords.wim_id
-            and station = 84
-            order by wimrecords.ts")
+# LCGTML = Leucadia data
+# LCGTML <- dbGetQuery(con, 
+#             "SELECT  groundtruthmasterlist.vehid, wimlink.wimid, wimsignaturelink.wimsigid, 
+#             groundtruthmasterlist.station, groundtruthmasterlist.lane,
+#             veh_class, wimrecords.ts,  veh_len, gross_weight, axle_1_2_spacing, axle_2_3_spacing,
+#             axle_3_4_spacing, axle_4_5_spacing, 
+#             axle_1_rt_weight, axle_1_lt_weight, axle_2_rt_weight, axle_2_lt_weight, axle_3_rt_weight,
+#             axle_3_lt_weight, axle_4_rt_weight, 
+#             axle_4_lt_weight, axle_5_rt_weight, axle_5_lt_weight
+#             FROM  gtsystem.wimlink, gtsystem.wimsignaturelink, gtsystem.wimrecords,gtsystem.groundtruthmasterlist
+#             where groundtruthmasterlist.vehid = wimlink.vehid 
+#             and groundtruthmasterlist.vehid = wimsignaturelink.vehid
+#             and wimlink.wimid = wimrecords.wim_id
+#             and station = 84
+#             order by wimrecords.ts")
 
-SOLCFHWAClass <-LCGTML[,6] [match (Downtarget, LCGTML[,3])] 
-dbDisconnect(con)
+
+SOLCFHWAClass <-Downheader_new[,14]
+# dbDisconnect(con)
 # SOLCAllFHWAClass <- read.table("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/RawData/LCJan/LCJan_v1.txt", fill=T)
 # SOLCFHWAClass <- SOLCAllFHWAClass[,6] [match (Downtarget, SOLCAllFHWAClass[,3])] 
+
+
 
 Target_baseanalysis_Jan0910_obj  <- (matching$SO[ match ( Downtarget,  matching$LC )])
 Target_baseanalysis_Jan0910_obj2 <- Target_baseanalysis_Jan0910_obj
