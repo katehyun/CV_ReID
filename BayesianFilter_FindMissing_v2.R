@@ -118,8 +118,8 @@ for (i in 1: length(Upcandidates_test)) {
   }
 }
 
-maxsig_tr_mat <- na.omit(Upcandidates_attribute_test_missing_mat[,31])
-max_sig_tr_mat <- max(maxsig_tr_mat)
+maxsig_te_mat <- na.omit(Upcandidates_attribute_test_missing_mat[,31])
+max_sig_te_mat <- max(maxsig_te_mat)
 
 
 j <- 0
@@ -154,8 +154,8 @@ for (i in 1: length(Upcandidates_test)) {
   }
 }
 
-maxsig_tr_nonmat <- na.omit(Upcandidates_attribute_test_missing_nonmat[,31])
-max_sig_tr_nonmat <- max(maxsig_tr_nonmat)
+maxsig_te_nonmat <- na.omit(Upcandidates_attribute_test_missing_nonmat[,31])
+max_sig_te_nonmat <- max(maxsig_te_nonmat)
 
 
 
@@ -175,20 +175,29 @@ for (i in 1:length(Upcandidates_attribute_train_missing_mat[,1])){
 #  if ( as.numeric (Downtarget_attributes_train [i,2] ) == 9 ) { 
   
   
-  for (m in 1: 30) { 
+  for (m in 1: 31) { 
     
-    if ( m %in% class9idxprob) {
-      jointprob_matching_train[i,m] <- as.numeric ( approx( kernel_mat[[m]]$x, kernel_mat[[m]]$y,
-                                                             Upcandidates_attribute_train_missing_mat[i,m] )$y )
-    }
+    # option 1 - non parametric
+#     if ( m %in% class9idxprob) {
+#       jointprob_matching_train[i,m] <- as.numeric ( approx( kernel_mat[[m]]$x, kernel_mat[[m]]$y,
+#                                                              Upcandidates_attribute_train_missing_mat[i,m] )$y )
+#     }
       
+    # option 2 - parametric
+    if ( m %in% class9idxprob) {
+      jointprob_matching_train[i,m]  <- as.numeric ( approx( kernel_para_mat[[m]]$x, kernel_para_mat[[m]]$y,
+                                                        Upcandidates_attribute_train_missing_mat[i,m] )$y ) 
+    }
+    
     else {
       jointprob_matching_train[i,m] <- 99999
     }
     
   }
   
-  jointprob_matching_train[i,31] <- (Upcandidates_attribute_train_missing_mat[i,31]/max_sig_tr_mat ) * weightSig
+#   jointprob_matching_train[i,31] <- (Upcandidates_attribute_train_missing_mat[i,31]/max_sig_tr_mat ) * weightSig
+
+
   
   jointprob_matching_train [is.na(jointprob_matching_train)] <- buf 
   
@@ -209,11 +218,18 @@ for (i in 1:length(Upcandidates_attribute_test_missing_mat[,1])){
   #  if ( as.numeric (Downtarget_attributes_test [i,2] ) == 9 ) { 
   
   
-  for (m in 1: 30) { 
+  for (m in 1: 31) { 
     
+#     # option 1 - nonparametric
+#     if ( m %in% class9idxprob) {
+#       jointprob_matching_test[i,m] <- as.numeric ( approx( kernel_mat[[m]]$x, kernel_mat[[m]]$y,
+#                                                            Upcandidates_attribute_test_missing_mat[i,m] )$y )
+#     }
+    
+    # option 2 - parametric
     if ( m %in% class9idxprob) {
-      jointprob_matching_test[i,m] <- as.numeric ( approx( kernel_mat[[m]]$x, kernel_mat[[m]]$y,
-                                                           Upcandidates_attribute_test_missing_mat[i,m] )$y )
+      jointprob_matching_test[i,m] <- as.numeric  (approx( kernel_para_mat[[m]]$x, kernel_para_mat[[m]]$y,
+                                                        Upcandidates_attribute_test_missing_mat[i,m] )$y )
     }
     
     else {
@@ -222,7 +238,7 @@ for (i in 1:length(Upcandidates_attribute_test_missing_mat[,1])){
     
   }
   
-  jointprob_matching_test[i,31] <- (Upcandidates_attribute_test_missing_mat[i,31]/max_sig_tr_mat ) * weightSig
+#   jointprob_matching_test[i,31] <- (Upcandidates_attribute_test_missing_mat[i,31]/max_sig_tr_mat ) * weightSig
   
   jointprob_matching_test [is.na(jointprob_matching_test)] <- buf 
   
@@ -243,11 +259,18 @@ for (i in 1:length(Upcandidates_attribute_train_missing_nonmat[,1])){
   #  if ( as.numeric (Downtarget_attributes_train [i,2] ) == 9 ) { 
   
   
-  for (m in 1: 30) { 
+  for (m in 1: 31) { 
     
+#     # option 1 - nonparametric
+#     if ( m %in% class9idxprob) {
+#       jointprob_missing_train[i,m] <- as.numeric ( approx( kernel_nonmat[[m]]$x, kernel_nonmat[[m]]$y,
+#                                                            Upcandidates_attribute_train_missing_nonmat[i,m] )$y )
+#     }
+    
+    # option 2 - parametric
     if ( m %in% class9idxprob) {
-      jointprob_missing_train[i,m] <- as.numeric ( approx( kernel_nonmat[[m]]$x, kernel_nonmat[[m]]$y,
-                                                           Upcandidates_attribute_train_missing_nonmat[i,m] )$y )
+      jointprob_missing_train[i,m]  <- as.numeric  (approx( kernel_para_nonmat[[m]]$x, kernel_para_nonmat[[m]]$y,
+                                                             Upcandidates_attribute_train_missing_nonmat[i,m] )$y )
     }
     
     else {
@@ -256,7 +279,7 @@ for (i in 1:length(Upcandidates_attribute_train_missing_nonmat[,1])){
     
   }
   
-  jointprob_missing_train[i,31] <- (Upcandidates_attribute_train_missing_nonmat[i,31]/max_sig_tr_nonmat ) * weightSig
+#   jointprob_missing_train[i,31] <- (Upcandidates_attribute_train_missing_nonmat[i,31]/max_sig_tr_nonmat ) * weightSig
   
   jointprob_missing_train [is.na(jointprob_missing_train)] <- buf 
   
@@ -277,11 +300,19 @@ for (i in 1:length(Upcandidates_attribute_test_missing_nonmat[,1])){
   #  if ( as.numeric (Downtarget_attributes_test [i,2] ) == 9 ) { 
   
   
-  for (m in 1: 30) { 
+  for (m in 1: 31) { 
     
+    # option 1 - nonparametric
+#     if ( m %in% class9idxprob) {
+#       jointprob_missing_test[i,m] <- as.numeric ( approx( kernel_nonmat[[m]]$x, kernel_nonmat[[m]]$y,
+#                                                           Upcandidates_attribute_test_missing_nonmat[i,m] )$y )
+#     }
+    
+    
+    # option 2 - parametric
     if ( m %in% class9idxprob) {
-      jointprob_missing_test[i,m] <- as.numeric ( approx( kernel_nonmat[[m]]$x, kernel_nonmat[[m]]$y,
-                                                          Upcandidates_attribute_test_missing_nonmat[i,m] )$y )
+      jointprob_missing_test[i,m]  <- as.numeric (approx( kernel_para_nonmat[[m]]$x, kernel_para_nonmat[[m]]$y,
+                                                            Upcandidates_attribute_test_missing_nonmat[i,m] )$y )
     }
     
     else {
@@ -290,7 +321,7 @@ for (i in 1:length(Upcandidates_attribute_test_missing_nonmat[,1])){
     
   }
   
-  jointprob_missing_test[i,31] <- (Upcandidates_attribute_test_missing_nonmat[i,31]/max_sig_tr_nonmat ) * weightSig
+#   jointprob_missing_test[i,31] <- (Upcandidates_attribute_test_missing_nonmat[i,31]/max_sig_tr_nonmat ) * weightSig
   
   jointprob_missing_test [is.na(jointprob_missing_test)] <- buf 
   

@@ -1,5 +1,7 @@
 rm(list=ls())
 load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/20141215Jan0910.RData") 
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Upheader_new_nonN.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Downheader_new_nonN.RData")
 ## kernel estimation 
 rm(sub_matching, sub_nonmatching, sub_all, sub_all_train, sub_all_test, sub_matching_train, sub_matching_test, 
    sub_nonmatching_train, sub_nonmatching_test)
@@ -11,6 +13,11 @@ utcbd <- 1357804800000
 
 ### kernal estimation based on NN
 # class 9
+
+# USING NON-NORMALIZED data
+Downheader_new <- Downheader_new_nonN
+Upheader_new <- Upheader_new_nonN
+
 sub_all <- TargetTable_NN[[5]][,1:4]
 sub_all <- cbind(sub_all,TargetTable_NN[[5]][,6],TargetTable_NN[[5]][,8])
 sub_all <- cbind( sub_all ,      
@@ -25,12 +32,12 @@ sub_all <- na.omit(sub_all)
 
 
 
-colnames(sub_all)[5:7] <- c("objup", "upsig")
+colnames(sub_all)[5:6] <- c("objup", "upsig")
 colnames(sub_all)[7:39] <- c( "downsig", "class", "numax", "utc", "length", "gvw", 
-                             "ax12sp", "ax23sp", "ax34sp", "ax45sp",  "ax56sp", "ax67sp", "ax78sp", "ax89sp", #8
-                             "ax1lwt", "ax1rwt", "ax2lwt", "ax2rwt", "ax3lwt", "ax3rwt", "ax4lwt", "ax4rwt", 
-                             "ax5lwt", "ax5rwt", "ax6lwt", "ax6rwt", "ax7lwt", "ax7rwt", "ax8lwt", "ax8rwt",
-                             "ax9lwt", "ax9rwt",  "duration")
+                              "ax12sp", "ax23sp", "ax34sp", "ax45sp",  "ax56sp", "ax67sp", "ax78sp", "ax89sp", #8
+                              "ax1lwt", "ax1rwt", "ax2lwt", "ax2rwt", "ax3lwt", "ax3rwt", "ax4lwt", "ax4rwt", 
+                              "ax5lwt", "ax5rwt", "ax6lwt", "ax6rwt", "ax7lwt", "ax7rwt", "ax8lwt", "ax8rwt",
+                              "ax9lwt", "ax9rwt",  "duration")
 
 colnames(sub_all)[40:72] <- c("upsig", "class", "numax", "utc", "length", "gvw", 
                               "ax12sp", "ax23sp", "ax34sp", "ax45sp",  "ax56sp", "ax67sp", "ax78sp", "ax89sp",
@@ -40,9 +47,10 @@ colnames(sub_all)[40:72] <- c("upsig", "class", "numax", "utc", "length", "gvw",
 
 
 # WIM data calibration
+# get difference
 matchingonly <- data.frame()
 matchingonly <- subset(sub_all , sub_all$objup == sub_all$upsig )
-matching_highest20_a_magdif <- sort(matchingonly$min_a_magdif)[1:(length(matchingonly)/5)]  
+matching_highest20_a_magdif <- sort(matchingonly$min_a_magdif)[1:(length(matchingonly)/2)]  
 matching_highest20_wim <- subset( matchingonly, matchingonly$min_a_magdif < max (matching_highest20_a_magdif)  )
 matching_highest20_wim_diff <- cbind( (matching_highest20_wim $length - matching_highest20_wim $length.1 ), 
                                       (matching_highest20_wim $gvw - matching_highest20_wim $gvw.1 ),  
@@ -72,12 +80,39 @@ matching_highest20_wim_diff <- cbind( (matching_highest20_wim $length - matching
                                       (matching_highest20_wim $ax8rwt - matching_highest20_wim $ax8rwt.1 ),
                                       (matching_highest20_wim $ax9lwt - matching_highest20_wim $ax9lwt.1 ),
                                       (matching_highest20_wim $ax9rwt - matching_highest20_wim $ax9rwt.1 )                         
-                                      )
+)
 
-hist( matching_highest20_wim_diff [,1])
-mean( matching_highest20_wim_diff [,1])
-median( matching_highest20_wim_diff [,1])
+matching_highest20_wim_diff_median <- data.frame()
+matching_highest20_wim_diff_median <- t( apply(matching_highest20_wim_diff, 2, FUN = median)  )
+matching_highest20_wim_diff_median <- round(matching_highest20_wim_diff_median, digits = 1)
+colnames(matching_highest20_wim_diff_median)[1:28] <- c( "length", "gvw", 
+                              "ax12sp", "ax23sp", "ax34sp", "ax45sp",  "ax56sp", "ax67sp", "ax78sp", "ax89sp", #8
+                              "ax1lwt", "ax1rwt", "ax2lwt", "ax2rwt", "ax3lwt", "ax3rwt", "ax4lwt", "ax4rwt", 
+                              "ax5lwt", "ax5rwt", "ax6lwt", "ax6rwt", "ax7lwt", "ax7rwt", "ax8lwt", "ax8rwt",
+                              "ax9lwt", "ax9rwt")
 
+hist( matching_highest20_wim_diff [,2])
+mean( matching_highest20_wim_diff [,2])
+median( matching_highest20_wim_diff [,2])
+
+# calibrate wim (Up)
+Upheader_new_cl <-  Upheader_new
+for (i in 1: length( Upheader_new[,1])){
+  for (j in 1: length(matching_highest20_wim_diff_median)){
+    Upheader_new_cl[i,j+16] <- Upheader_new_cl [i,j+16] + matching_highest20_wim_diff_median[1,j]
+  }
+}
+
+
+Upheader_new <- Upheader_new_cl
+sub_all <- data.frame()
+sub_all <- TargetTable_NN[[5]][,1:4]
+sub_all <- cbind(sub_all,TargetTable_NN[[5]][,6],TargetTable_NN[[5]][,8])
+sub_all <- cbind( sub_all ,      
+                  Downheader_new[ match( sub_all[,4], as.numeric(Downheader_new[,13])),13:44] ,
+                  Downheader_new[ match( sub_all[,4], as.numeric(Downheader_new[,13])),7] ,
+                  Upheader_new_cl[ match( sub_all[,6], as.numeric(Upheader_new_cl[,13])),13:44] , # should be 6?
+                  Upheader_new_cl[ match( sub_all[,6], as.numeric(Upheader_new_cl[,13])),7] )
 
 
 # install.packages("stringr")
@@ -111,20 +146,31 @@ sub_nonmatching_test <- subset(sub_all_test , as.numeric (sub_all_test [,5]) != 
 
 
 
-# Difference (train) 
+# Difference (train, test) 
 Diff_mat_train <- list()
 Diff_nonmat_train <- list()
+Diff_mat_test <- list()
+Diff_nonmat_test <- list()
 # Diff_mat_train[[1]] <- na.omit (  abs(sub_matching_train [,3]  )) 
 # Diff_nonmat_train[[1]] <- na.omit (  abs(sub_nonmatching_train [,3]  )) 
 
 for ( i in 1:30 )
 {
-  Diff_mat_train[[i]] <- na.omit ( abs(sub_matching_train [,9+i] - sub_matching_train[,42+i]) ) 
-  Diff_nonmat_train[[i]] <- na.omit ( abs(sub_nonmatching_train [,9+i] - sub_nonmatching_train[,42+i]) )  
+  Diff_mat_train[[i]] <- na.omit ( (sub_matching_train [,9+i] - sub_matching_train[,42+i]) ) # no abs
+  Diff_nonmat_train[[i]] <- na.omit ( (sub_nonmatching_train [,9+i] - sub_nonmatching_train[,42+i]) )  
 }
 
-Diff_mat_train[[31]] <- na.omit (  abs(sub_matching_train [,3]  )) 
-Diff_nonmat_train[[31]] <- na.omit (  abs(sub_nonmatching_train [,3]  )) 
+Diff_mat_train[[31]] <- na.omit (  (sub_matching_train [,3]  )) 
+Diff_nonmat_train[[31]] <- na.omit ( (sub_nonmatching_train [,3]  )) 
+
+for ( i in 1:30 )
+{
+  Diff_mat_test[[i]] <- na.omit ( (sub_matching_test [,9+i] - sub_matching_test[,42+i]) ) # no abs
+  Diff_nonmat_test[[i]] <- na.omit ( (sub_nonmatching_test [,9+i] - sub_nonmatching_test[,42+i]) )  
+}
+
+Diff_mat_test[[31]] <- na.omit (  (sub_matching_test [,3]  )) 
+Diff_nonmat_test[[31]] <- na.omit ( (sub_nonmatching_test [,3]  )) 
 
 
 # remove outliers
@@ -161,34 +207,52 @@ for ( i in 1:30 )
 
 mzscoresIndex_mat <- list()
 mzscoresIndex_nonmat <- list()
-mzscoresIndex_mat[[1]] <- rbind (which ( unlist (mzscores_mat[[1]] ) > 3.5) , which( unlist (mzscores_mat[[1]] ) < -3.5  ) )
-mzscoresIndex_nonmat[[1]] <- rbind (which ( unlist (mzscores_nonmat[[1]] ) > 3.5) , which( unlist (mzscores_nonmat[[1]] ) < -3.5  ) )
+
+mzscoresIndex_mat[[1]] <- which ( ( unlist (mzscores_mat[[1]]) < 3.5) & (unlist (mzscores_mat[[1]] ) > -3.5  ) ) 
+mzscoresIndex_nonmat[[1]] <- which ( ( unlist (mzscores_nonmat[[1]]) < 3.5) & (unlist (mzscores_nonmat[[1]] ) > -3.5  ) )
+
+# mzscoresIndex_mat[[1]] <- rbind (which ( unlist (mzscores_mat[[1]] ) > 3.5) , which( unlist (mzscores_mat[[1]] ) < -3.5  ) )
+# mzscoresIndex_nonmat[[1]] <- rbind (which ( unlist (mzscores_nonmat[[1]] ) > 3.5) , which( unlist (mzscores_nonmat[[1]] ) < -3.5  ) )
+
+ 
+
+
+
 
 for ( i in 1:30 )
 {
+ 
   mzscoresIndex_mat[[i+1]] <- 
-    rbind (which ( unlist (mzscores_mat[[i+1]] ) > 3.5) , which( unlist (mzscores_mat[[i+1]] ) < -3.5  ) )
+   which ( ( unlist (mzscores_mat[[i+1]]) < 3.5) & ( unlist (mzscores_mat[[i+1]] ) > -3.5  ) )
   mzscoresIndex_nonmat[[i+1]] <- 
-    rbind (which ( unlist (mzscores_nonmat[[i+1]] ) > 3.5) , which( unlist (mzscores_nonmat[[i+1]] ) < -3.5  ) )
+   which ( ( unlist (mzscores_nonmat[[i+1]]) < 3.5) & ( unlist (mzscores_nonmat[[i+1]] ) > -3.5  ) )
+  
+#   mzscoresIndex_mat[[i+1]] <- 
+#     which ( ( unlist (mzscores_mat[[i+1]]) < 3.5) & (unlist (mzscores_mat[[i+1]] ) > -3.5  ) ) 
+#   mzscoresIndex_nonmat[[i+1]] <- 
+#     rbind (which ( unlist (mzscores_nonmat[[i+1]] ) > 3.5) , which( unlist (mzscores_nonmat[[i+1]] ) < -3.5  ) )
+  
+  
 }
 
-# collect only clean data
+
+
+# collect only clean data - Non-normalized data
 Diff_mat_train_c <- list()
 Diff_nonmat_train_c <- list()
-Diff_mat_train_c[[1]] <- Diff_mat_train[[1]][ , c(mzscoresIndex_mat[[1]] )]
 
-hsb2.small[, c(1, 7, 8)])
-Diff_nonmat_train_c[[1]] <- Diff_nonmat_train[[1]][ !Diff_nonmat_train[[1]] %in% mzscoresIndex_nonmat[[1]]]
+Diff_mat_train_c[[1]] <- Diff_mat_train[[1]][ mzscoresIndex_mat[[1]] ]
+Diff_nonmat_train_c[[1]] <- Diff_nonmat_train[[1]][  mzscoresIndex_nonmat[[1]] ]
 
 for ( i in 1:30 )
 { 
-  Diff_mat_train_c[[i+1]] <- Diff_mat_train[[i+1]][ !Diff_mat_train[[i+1]] %in% mzscoresIndex_mat[[i+1]]]
-  Diff_nonmat_train_c[[i+1]] <- Diff_nonmat_train[[i+1]][ !Diff_nonmat_train[[i+1]] %in% mzscoresIndex_nonmat[[i+1]]]
+  Diff_mat_train_c[[i+1]] <- Diff_mat_train[[i+1]][  mzscoresIndex_mat[[i+1]] ]
+  Diff_nonmat_train_c[[i+1]] <- Diff_nonmat_train[[i+1]][ mzscoresIndex_nonmat[[i+1]] ]
 }
-  
+
+
+
 # Normalized Difference (train) 
-
-
 max_train_mat <- vector()
 min_train_mat <- vector()
 max_train_nonmat <- vector()
@@ -210,16 +274,16 @@ for ( i in 1:30 )
 Diff_mat_train_n <- list()
 Diff_nonmat_train_n <- list()
 Diff_mat_train_n[[1]] <- na.omit ( ( Diff_mat_train_c[[1]]  - min_train_mat[1] ) / 
-                                    ( max_train_mat[1] - min_train_mat[1] )  )
+                                     ( max_train_mat[1] - min_train_mat[1] )  )
 Diff_nonmat_train_n[[1]] <- na.omit (  ( Diff_nonmat_train_c[[1]] - min_train_nonmat[1] ) / 
-                                    ( max_train_nonmat[1] - min_train_nonmat[1] )  )
+                                         ( max_train_nonmat[1] - min_train_nonmat[1] )  )
 
 for ( i in 1:30 )
 {
   Diff_mat_train_n[[i+1]] <- na.omit ( ( Diff_mat_train_c[[1+i]] - min_train_mat[1+i] ) /  
                                          ( max_train_mat[1+i] - min_train_mat[1+i] )  )
   Diff_nonmat_train_n[[i+1]] <- na.omit ( ( Diff_nonmat_train_c[[1+i]] -  min_train_nonmat[1+i] ) /  
-                                         ( max_train_nonmat[1+i] - min_train_nonmat[1+i] )  ) 
+                                            ( max_train_nonmat[1+i] - min_train_nonmat[1+i] )  ) 
 }
 
 
@@ -258,7 +322,7 @@ for ( i in 1:30 )
 # 
 
 
-# kernel : wigh normalized differences
+# kernel (nonparametric) : normalized differences
 kernel_mat <- list()
 kernel_nonmat <- list()
 
@@ -266,9 +330,9 @@ kernel_nonmat <- list()
 for ( i in 1: 31 )
 {
   if (sum ( Diff_mat_train_n[[i]]) != 0) {
-     
-   kernel_mat[[i]] <- density(Diff_mat_train_n[[i]])
-   kernel_nonmat[[i]] <- density(Diff_nonmat_train_n[[i]])
+    
+    kernel_mat[[i]] <- density(Diff_mat_train_n[[i]])
+    kernel_nonmat[[i]] <- density(Diff_nonmat_train_n[[i]])
   }
   
   else
@@ -278,45 +342,58 @@ for ( i in 1: 31 )
     kernel_nonmat$x[[i]] <-  NA
     kernel_nonmat$y[[i]] <-  NA
   }
-
+  
 }
 
-# 
-# for ( i in 13: 22 )
-# {
-#   kernel_mat[[k]] <- density(Diff_mat_train_n[[i]])
-#   kernel_nonmat[[k]] <- density(Diff_nonmat_train_n[[i]]) 
-#   k <- k+1
-# }
-# 
-# for ( i in 31: 32 )
-# {
-#   kernel_mat[[k]] <- density(Diff_mat_train_n[[i]])
-#   kernel_nonmat[[k]] <- density(Diff_nonmat_train_n[[i]]) 
-#   k <- k+1
-# }
-
-## fitting to the distribution
 
 
-
-# utils:::menuInstallPkgs() 
-# library(Hmisc)
-# 
-# testimpute <- with(Diff_nonmat_train_n[[2]], impute(Diff_nonmat_train_n[[2]]), mean)
-# 
-# approxExtrap(1:3,1:3,xout=c(0,4))
-# 
-# testimpute <- approx ( Diff_mat_train_n[[2]], n=1000)
 
 install.packages("fitdistrplus")
 library(fitdistrplus)
 
-# to make non-zero data
-minval <- 0.00001
 
+
+# to make non-zero data
+minval <- 0
+
+#non-normalized data
+
+for (i in 1: length( Diff_mat_train_c) ){
+  for (j in 1: length( Diff_mat_train_c[[i]] ) ){
+    
+    if ( length( Diff_mat_train_c[[i]])  > 0 ){
+      
+#       if (Diff_mat_train_c[[i]][j] == 0 ){
+#         Diff_mat_train_c[[i]][j]  <- minval
+#       }
+      if (Diff_mat_train_c[[i]][j] == 99999 ){
+        Diff_mat_train_c[[i]][j] <- NA
+      }
+    }
+  }
+}
+
+
+
+for (i in 1: length( Diff_nonmat_train_c) ){
+  for (j in 1:length( Diff_nonmat_train_c[[i]] ) ){
+    
+    if ( length( Diff_nonmat_train_c[[i]])  > 0 ){
+     
+#       if (Diff_nonmat_train_c[[i]][j] == 0 ){
+#         Diff_nonmat_train_c[[i]][j] <- minval
+#       }
+      if ( (Diff_nonmat_train_c[[i]][j] == 99999 ) ||  (Diff_nonmat_train_c[[i]][j] == NA )) {
+        Diff_nonmat_train_c[[i]][j] <- NA
+      }
+    }
+  }
+}
+
+
+#normalized data
 for (i in 1: length( Diff_mat_train ) ){
-  for (j in 1: length( Diff_mat_train[[1]] ) ){
+  for (j in 1: length( Diff_mat_train[[i]] ) ){
     
     if ( length( Diff_mat_train_n[[i]])  > 0 ){
       
@@ -327,10 +404,10 @@ for (i in 1: length( Diff_mat_train ) ){
   }
 }
 
-for (i in 1: length( Diff_nonmat_train ) ){
-  for (j in 1:length( Diff_nonmat_train[[1]] ) ){
+for (i in 1: length( Diff_nonmat_train_n ) ){
+  for (j in 1:length( Diff_nonmat_train_n[[i]] ) ){
     
-    if ( length( Diff_mat_train_n[[i]])  > 0 ){
+    if ( length( Diff_nonmat_train_n[[i]])  > 0 ){
       if (Diff_nonmat_train_n[[i]][j] == 0 ){
         Diff_nonmat_train_n[[i]][j] <- minval
       }
@@ -338,9 +415,110 @@ for (i in 1: length( Diff_nonmat_train ) ){
   }
 }
 
+#histogram
+
+library(plyr)
+
+hist_mat <- list()
+hist_nonmat <- list()
+histdensity <- list()
 
 
-# param kernel
+for ( i in 1 : length( Diff_mat_train_c)  ){
+    
+    if (i == 1){ # utc
+      interval_utc <- 200000
+      min <- round_any (min(Diff_nonmat_train_c[[i]]) , interval_utc, f= floor)
+      max <- round_any (max(Diff_nonmat_train_c[[i]]) , interval_utc, f= ceiling)
+      hist_mat[[i]] <- hist(Diff_mat_train_c[[i]], freq=FALSE, breaks=seq(min ,max, by=interval_utc), plot=FALSE)
+      hist_nonmat[[i]] <- hist(Diff_nonmat_train_c[[i]], freq=FALSE, breaks=seq(min,max,by=interval_utc) ,  plot=FALSE)
+      histdensity[[i]] <- cbind(hist_mat[[i]]$mids - interval_utc/2, hist_mat[[i]]$mids + interval_utc/2 , 
+                                hist_mat[[i]]$density ,  hist_nonmat[[i]]$density) 
+     }
+    
+    if (i == 2){ # length
+      interval_len <- 1
+      min <- round_any (min(Diff_nonmat_train_c[[i]]) , interval_len, f= floor)
+      max <- round_any (max(Diff_nonmat_train_c[[i]]) , interval_len, f= ceiling)
+      hist_mat[[i]] <- hist(Diff_mat_train_c[[i]], freq=FALSE, breaks=seq(min ,max, by=interval_len) , plot=FALSE)
+      hist_nonmat[[i]] <- hist(Diff_nonmat_train_c[[i]], freq=FALSE, breaks=seq(min,max,by=interval_len) ,  plot=FALSE)
+      histdensity[[i]] <- cbind(hist_mat[[i]]$mids - interval_len/2, hist_mat[[i]]$mids   + interval_len/2,  
+                                hist_mat[[i]]$density , hist_nonmat[[i]]$density)      
+    }
+    
+    if (i == 3){ # gvw
+      interval_gvw <- 1
+      min <- round_any (min(Diff_nonmat_train_c[[i]]) , interval_gvw, f= floor)
+      max <- round_any (max(Diff_nonmat_train_c[[i]]) , interval_gvw, f= ceiling)
+      hist_mat[[i]] <- hist(Diff_mat_train_c[[i]], freq=FALSE, breaks=seq(min ,max, by=interval_gvw) , plot=FALSE)
+      hist_nonmat[[i]] <- hist(Diff_nonmat_train_c[[i]], freq=FALSE, breaks=seq(min,max,by=interval_gvw) ,  plot=FALSE)
+      histdensity[[i]] <- cbind(hist_mat[[i]]$mids - interval_gvw/2, hist_mat[[i]]$mids   + interval_gvw/2, 
+                                hist_mat[[i]]$density,  hist_nonmat[[i]]$density)      
+    }
+    
+    if (i > 3) {
+   
+        if ( i %in% c (4,5,6,7,12,13,14,15,16,17,18,19,20,21,30)  ){
+          
+          interval_others <- 0.1 # others
+          min <- min ( round_any (min(Diff_mat_train_c[[i]]) , interval_others, f= floor)  , 
+                      round_any (min(Diff_nonmat_train_c[[i]]) , interval_others, f= floor) )
+          max <- max (round_any (max(Diff_mat_train_c[[i]]) , interval_others, f= ceiling) ,
+                      round_any (max(Diff_nonmat_train_c[[i]]) , interval_others, f= ceiling) )
+          hist_mat[[i]] <- hist(Diff_mat_train_c[[i]], freq=FALSE, breaks=seq(min ,max, by=interval_others), plot=FALSE)
+          hist_nonmat[[i]] <- hist(Diff_nonmat_train_c[[i]], freq=FALSE, breaks=seq(min,max,by=interval_others), plot=FALSE)
+          histdensity[[i]] <- cbind( round_any (hist_mat[[i]]$mids - interval_others/2, interval_others),
+                                     round_any (hist_mat[[i]]$mids + interval_others/2 ,interval_others), 
+                                     hist_mat[[i]]$density,  hist_nonmat[[i]]$density)    
+        }
+        
+        if (i == 31){
+          
+          interval_dur <- 10 #duration
+          min <- min ( round_any (min(Diff_mat_train_c[[i]]) , interval_dur, f= floor)  , 
+                       round_any (min(Diff_nonmat_train_c[[i]]) , interval_dur, f= floor) )
+          max <- max (round_any (max(Diff_mat_train_c[[i]]) , interval_dur, f= ceiling) ,
+                      round_any (max(Diff_nonmat_train_c[[i]]) , interval_dur, f= ceiling) )
+          hist_mat[[i]] <- hist(Diff_mat_train_c[[i]], freq=FALSE, breaks=seq(min ,max, by=interval_dur), plot=FALSE)
+          hist_nonmat[[i]] <- hist(Diff_nonmat_train_c[[i]], freq=FALSE, breaks=seq(min,max,by=interval_dur), plot=FALSE)
+          histdensity[[i]] <- cbind(hist_mat[[i]]$mids - interval_dur/2, hist_mat[[i]]$mids   + interval_dur/2, 
+                                    hist_mat[[i]]$density,  hist_nonmat[[i]]$density)  
+          
+          
+        }
+        
+        if ( i %in% c (8,9,10, 11, 22,23,24,25,26,27,28,29)  ){
+          hist_mat[[i]] <- NA
+          hist_nonmat[[i]] <- NA
+          histdensity[[i]] <- NA
+        }
+     
+  } 
+}
+
+
+
+# plot
+k <- 2
+plot( hist_nonmat[[k]], col = "red", 
+      xlim = c(min ( round_any (min(Diff_mat_train_c[[k]]) , interval_dur, f= floor)  , 
+                     round_any (min(Diff_nonmat_train_c[[k]]) , interval_dur, f= floor) ) ,
+               max ( round_any (max(Diff_mat_train_c[[k]]) , interval_dur, f= ceiling) ,
+                     round_any (max(Diff_nonmat_train_c[[k]]) , interval_dur, f= ceiling) )),
+      ylim= c(0,max(hist_mat[[k]]$densit )), freq=FALSE,
+      xlab = 'GVW Difference', ylab = 'Density', main = 'Histogram of GVW Difference')
+
+plot( hist_mat[[k]], col = rgb(0,1,0,0.5), freq=FALSE, add=T)
+
+# if want to make gamma dist.
+# curve(dgamma(x, shape = mean(Diff_mat_train_c[[3]])^2/var(Diff_mat_train_c[[3]]),
+#              scale = var(Diff_mat_train_c[[3]])/mean (Diff_mat_train_c[[3]]) ) , add=T )
+
+
+
+
+
+# param kernel : normalized differences
 bicall_mat <- data.frame(0,0,0,0,0)
 bicall_nonmat <- data.frame(0,0,0,0,0)
 j <- 0
@@ -350,37 +528,37 @@ for (i in 1: length(Diff_mat_train_n))
 {
   if (sum ( Diff_mat_train_n[[i]]) != 0) {
     
-#     j<-j+1
+    #     j<-j+1
     set.seed(123)
     y <- Diff_mat_train_n[[i]]
-    fitw_mat <- fitdist(y, "weibull")
-    fitg_mat <- fitdist(y, "gamma")
-    fitln_mat <- fitdist(y, "lnorm")
+    fitw_mat <- fitdist(y, "weibull", method="qme", probs=c(0.25, 0.75))
+    fitg_mat <- fitdist(y, "gamma", method="mge",gof="CvM")
+#     fitln_mat <- fitdist(y, "lnorm")
     fite_mat <- fitdist(y, "exp")
     bicall_mat[i,] <- c(fitw_mat$bic, fitg_mat$bic, fitln_mat$bic, fite_mat$bic, 0)
     bicall_mat[i,5] <- which.min(bicall_mat[i,1:4])
     
-#     k<-k+1
+    #     k<-k+1
     set.seed(123)
     y <- Diff_nonmat_train_n[[i]]
-    fitw_nonmat <- fitdist(y, "weibull")
-    fitg_nonmat <- fitdist(y, "gamma")
-    fitln_nonmat <- fitdist(y, "lnorm")
+    fitw_nonmat <- fitdist(y, "weibull", method="qme", probs=c(0.25, 0.75))
+    fitg_nonmat <- fitdist(y, "gamma",method="mge",gof="CvM")
+#     fitln_nonmat <- fitdist(y, "lnorm")
     fite_nonmat <- fitdist(y, "exp")
     bicall_nonmat[i,] <- c(fitw_nonmat$bic, fitg_nonmat$bic, fitln_nonmat$bic, fite_nonmat$bic, 0)
     bicall_nonmat[i,5] <- which.min(bicall_nonmat[i,1:4])
   }
-    else
-    {
-      bicall_mat[i,] <- NA
-      bicall_nonmat[i,] <- NA
-    }
+  else
+  {
+    bicall_mat[i,] <- NA
+    bicall_nonmat[i,] <- NA
+  }
 }
 
 print(fitw_mat)
 
 
-# make kernel : with normalized differences
+# make kernel mat (normalized differences)
 kernel_para_mat <- list()
 kernel_para_nonmat <- list()
 j <- 0
@@ -388,8 +566,8 @@ j <- 0
 for ( i in 1: 31 )
 {
   if (sum ( Diff_mat_train_n[[i]]) != 0) {
-   
-   
+    
+    
     
     if (bicall_mat[i,5] == 1 ){
       y <- Diff_mat_train_n[[i]]
@@ -421,17 +599,19 @@ for ( i in 1: 31 )
   {
     kernel_para_mat$x[[i]] <- NA
     kernel_para_mat$y[[i]] <- NA
-   
+    
   }
-
+  
 }
 
+
+# make kernel nonmat (normalized differences)
 j <- 0
 for ( i in 1: 31 )
 {
   if (sum ( Diff_nonmat_train_n[[i]]) != 0) {
     
-#     j <- j+1
+    #     j <- j+1
     
     if (bicall_nonmat[i,5] == 1 ){
       y <- Diff_nonmat_train_n[[i]]
@@ -466,6 +646,140 @@ for ( i in 1: 31 )
   }
 }
 
+
+
+### NON-Normalized data
+
+# param kernel : normalized differences
+bicall_mat <- data.frame(0,0,0,0,0)
+bicall_nonmat <- data.frame(0,0,0,0,0)
+j <- 0
+k <- 0
+
+for (i in 1: length(Diff_mat_train_c))
+{
+  if (sum ( Diff_mat_train_c[[i]]) != 0) {
+    
+    #     j<-j+1
+    set.seed(123)
+    y <- Diff_mat_train_c[[i]]
+    fitw_mat <- fitdist(y, "weibull", method="qme", probs=c(0.25, 0.75))
+    fitg_mat <- fitdist(y, "gamma", method="mge",gof="CvM")
+    fitln_mat <- fitdist(y, "lnorm")
+    fite_mat <- fitdist(y, "exp")
+    bicall_mat[i,] <- c(fitw_mat$bic, fitg_mat$bic, fitln_mat$bic, fite_mat$bic, 0)
+    bicall_mat[i,5] <- which.min(bicall_mat[i,1:4])
+    
+    #     k<-k+1
+    set.seed(123)
+    y <- Diff_nonmat_train_c[[i]]
+    fitw_nonmat <- fitdist(y, "weibull", method="qme", probs=c(0.25, 0.75))
+    fitg_nonmat <- fitdist(y, "gamma",method="mge",gof="CvM")
+    fitln_nonmat <- fitdist(y, "lnorm")
+    fite_nonmat <- fitdist(y, "exp")
+    bicall_nonmat[i,] <- c(fitw_nonmat$bic, fitg_nonmat$bic, fitln_nonmat$bic, fite_nonmat$bic, 0)
+    bicall_nonmat[i,5] <- which.min(bicall_nonmat[i,1:4])
+  }
+  else
+  {
+    bicall_mat[i,] <- NA
+    bicall_nonmat[i,] <- NA
+  }
+}
+
+print(fitw_mat)
+
+
+# make kernel mat (normalized differences)
+kernel_para_mat <- list()
+kernel_para_nonmat <- list()
+j <- 0
+
+for ( i in 1: 31 )
+{
+  if (sum ( Diff_mat_train_c[[i]]) != 0) {
+    
+    
+    
+    if (bicall_mat[i,5] == 1 ){
+      y <- Diff_mat_train_c[[i]]
+      fitw_mat <- fitdist(y, "weibull")
+      kernel_para_mat[[i]] <- curve( dweibull(x, shape = fitw_mat$estimate[[1]] , scale = fitw_mat$estimate[[2]] ) )
+    }
+    
+    else if (bicall_mat[i,5] == 2 ){
+      y <- Diff_mat_train_c[[i]]
+      fitg_mat <- fitdist(y, "gamma")
+      kernel_para_mat[[i]] <- curve( dgamma(x, shape = fitg_mat$estimate[[1]] , rate = fitg_mat$estimate[[2]] ) )
+    }
+    
+    else if (bicall_mat[i,5] == 3 ){
+      y <- Diff_mat_train_c[[i]]
+      fitl_mat <- fitdist(y, "lnorm")
+      kernel_para_mat[[i]] <- curve( dlnorm(x, meanlog = fitl_mat$estimate[[1]] , sdlog = fitg_mat$estimate[[2]] ) )
+    }
+    
+    else if (bicall_mat[i,5] == 4 ){
+      y <- Diff_mat_train_c[[i]]
+      fite_mat <- fitdist(y, "exp")
+      kernel_para_mat[[i]] <- curve( dexp(x, rate = fite_mat$estimate[[1]]  ) )
+    }
+    kernel_para_mat[[i]]$y[is.infinite(kernel_para_mat[[i]]$y)] <- 10  
+  }
+  
+  else
+  {
+    kernel_para_mat$x[[i]] <- NA
+    kernel_para_mat$y[[i]] <- NA
+    
+  }
+  
+}
+
+
+# make kernel nonmat (normalized differences)
+j <- 0
+for ( i in 1: 31 )
+{
+  if (sum ( Diff_nonmat_train_c[[i]]) != 0) {
+    
+    #     j <- j+1
+    
+    if (bicall_nonmat[i,5] == 1 ){
+      y <- Diff_nonmat_train_c[[i]]
+      fitw_nonmat <- fitdist(y, "weibull")
+      kernel_para_nonmat[[i]] <- curve( dweibull(x, shape = fitw_nonmat$estimate[[1]] , scale = fitw_nonmat$estimate[[2]] ) )
+    }
+    
+    else if (bicall_nonmat[i,5] == 2 ){
+      y <- Diff_nonmat_train_c[[i]]
+      fitg_nonmat <- fitdist(y, "gamma")
+      kernel_para_nonmat[[i]] <- curve( dgamma(x, shape = fitg_nonmat$estimate[[1]] , rate = fitg_nonmat$estimate[[2]] ) )
+    }
+    
+    else if (bicall_nonmat[i,5] == 3 ){
+      y <- Diff_nonmat_train_c[[i]]
+      fitl_nonmat <- fitdist(y, "lnorm")
+      kernel_para_nonmat[[i]] <- curve( dlnorm(x, meanlog = fitl_nonmat$estimate[[1]] , sdlog = fitg_nonmat$estimate[[2]] ) )
+    }
+    
+    else if (bicall_nonmat[i,5] == 4 ){
+      y <- Diff_nonmat_train_c[[i]]
+      fite_nonmat <- fitdist(y, "exp")
+      kernel_para_nonmat[[i]] <- curve( dexp(x, rate = fite_nonmat$estimate[[1]]  ) )
+    }
+    kernel_para_nonmat[[i]]$y[is.infinite(kernel_para_nonmat[[i]]$y)] <- 10
+  }
+  
+  else
+  {
+    kernel_para_nonmat$x[[i]] <- NA
+    kernel_para_nonmat$y[[i]] <- NA    
+  }
+}
+
+
+
 # compare kernel and histogram
 kernel_para_mat_g <- list()
 kernel_para_nonmat_g <- list()
@@ -481,7 +795,7 @@ for ( i in  k)
     
     
     hist(Diff_mat_train_n[[i]] , prob=TRUE)
-
+    
     
     if (bicall_mat[i,5] == 1 ){
       y <- Diff_mat_train_n[[i]]
@@ -516,7 +830,7 @@ for ( i in  k)
   
   else
   {
-#     kernel_para_mat$x[[i]] <- NA
+    #     kernel_para_mat$x[[i]] <- NA
     kernel_para_mat_g[[i]] <- NA
     
   }
@@ -529,7 +843,7 @@ for ( i in k )
 {
   if (sum ( Diff_nonmat_train_n[[i]]) != 0) {
     
-     hist(Diff_nonmat_train_n[[i]], prob=TRUE )
+    hist(Diff_nonmat_train_n[[i]], prob=TRUE )
     
     if (bicall_nonmat[i,5] == 1 ){
       y <- Diff_nonmat_train_n[[i]]
@@ -563,7 +877,7 @@ for ( i in k )
   
   else
   {
-#     kernel_para_nonmat$x[[i]] <- NA
+    #     kernel_para_nonmat$x[[i]] <- NA
     kernel_para_nonmat_g[[i]] <- NA    
   }
 }
@@ -581,11 +895,11 @@ for ( i in 1: length(Diff_mat_train_n) ){
   {
     kstestresult[i] <- ks.test( kernel_para_mat[[i]]$y,  kernel_para_nonmat[[i]]$y  )[[2]]
   } 
-
+  
 }
 
 
-save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Kernel_12152014")
+save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Kernel_02112015")
 ## end
 
 op <- options(digits = 3)
@@ -596,7 +910,7 @@ hist(Diff_nonmat_train_n[[2]])
 fitdistr(Diff_nonmat_train_n[[2]], "gamma")
 tes <- curve(dgamma(x, scale=0.0587, shape=0.2723),from=0, to=1, main="Gamma distribution")
 
-  
+
 set.seed(123)
 fitdistr(Diff_nonmat_train_n[[2]],densfun=dweibull,start=list(scale=1,shape=2))
 set.seed(123)
@@ -985,6 +1299,5 @@ qqcomp(list(fitw,fln,f1),legendtext=c("Weibull","normal","gamma"),
 # kernel_nonmat[[8]] <- density(Diff_nonmat_train[[8]])
 # kernel_mat[[9]] <- density(Diff_mat_train[[9]])
 # kernel_nonmat[[9]] <- density(Diff_nonmat_train[[9]])
-
 
 

@@ -95,8 +95,11 @@ whichidxUp <- which(idxUp > 0)
 if ( length(whichidxUp ) > 0 ) { 
   Upheader_new <- Upheder_new[-whichidxUp,]
 }
-     
 
+# non-normalized
+Upheader_new_nonN <-  Upheader_new
+save(Upheader_new_nonN, file="./ProcessedData/Jan0910/Upheader_new_nonN.RData")
+# normalized
 for (i in 1:length(Upheader_new[,1])){
   sp <- Upheader_new[i,20] 
   wt <- Upheader_new[i,27] 
@@ -175,7 +178,11 @@ if ( length(whichidxDown) > 0 ) {
   Downheader_new <- Downheder_new[-whichidxDown,]
 }
 
+# non-normalized
+Downheader_new_nonN <- Downheader_new
+save(Downheader_new_nonN, file="./ProcessedData/Jan0910/Downheader_new_nonN.RData")
 
+# normalized
 for (i in 1:length(Downheader_new[,1])){
   sp <- Downheader_new[i,20] 
   wt <- Downheader_new[i,27] 
@@ -194,6 +201,9 @@ for (i in 1:length(Downheader_new[,1])){
   }
   
 }
+
+
+
 # Downheader[,14] <- LCJan_v1[,6][match( Downheader$sigid, LCJan_v1[,3])]
 # Downheader[,15] <- LCJan_v1[,8][match( Downheader$sigid, LCJan_v1[,3])]
 # Downheader[,16] <- LCJan_v1[,9][match( Downheader$sigid, LCJan_v1[,3])]

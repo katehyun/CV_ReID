@@ -4,19 +4,6 @@ load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/20141
 rm(sub_matching, sub_nonmatching, sub_all)
 
 
-### kernal estimation based on NN
-
-sub_all <- TargetTable_NN[[5]][,1:4]
-sub_all <- cbind(sub_all,TargetTable_NN[[5]][,6],TargetTable_NN[[5]][,8])
-sub_all <- cbind( sub_all ,      
-                  Downheader_new[ match( sub_all[,4], as.numeric(Downheader_new[,13])),13:20] ,
-                  Downheader_new[ match( sub_all[,4], as.numeric(Downheader_new[,13])),7] ,
-                  Downheader_new[ match( sub_all[,4], as.numeric(Downheader_new[,13])),12] ,
-                  Upheader_new[ match( sub_all[,6], as.numeric(Upheader_new[,13])),13:20] , # should be 6?
-                  Upheader_new[ match( sub_all[,6], as.numeric(Upheader_new[,13])),7] ,
-                  Upheader_new[ match( sub_all[,6], as.numeric(Upheader_new[,13])),12] ) 
-sub_all <- na.omit(sub_all)
-
 # install.packages("stringr")
 library(stringr)
 
