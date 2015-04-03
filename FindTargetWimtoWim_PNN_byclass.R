@@ -11,7 +11,7 @@ load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/candi
 load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/matching.RData")
 
 sigma <- 1
-numoffeatures <- 100
+numoffeatures <- 300
 cat <- list()
 prob <- list()
 
@@ -41,7 +41,7 @@ for (i in 1: length(Downheader_new[,1]) ){
 
   }
 }
-# prob[[888]] <- NA
+ prob[[888]] <- NA
 
 max_pnn_prob<-vector()
 for (i in 1: length(prob)){

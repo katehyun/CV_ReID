@@ -1,7 +1,7 @@
 # utils:::menuInstallPkgs() 
-# rm(list=ls())
+rm(list=ls())
 # load functonbook2
-library(pnn)
+# library(pnn)
 setwd("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid") 
 options(scipen=999) 
 # load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/shiftandstretch_Jan0910.RData")
@@ -150,8 +150,90 @@ Class <- sort(unique(Target_baseanalysis_Jan0910_table[,1]))
 p <- 9
 
 # by class
+options(scipen=999)
+Result_tmp_NN <- list()
 Result_NN <- list()
+TargetTable_tmp_NN <- list()
 TargetTable_NN <- list()
+# 
+# # first module (very bad performance)
+# duplicateindex_archive <- vector()
+# duplicateindex <- vector()
+# 
+# for (z in 2: length(Target_baseanalysis_Jan0910_table[,1])){
+#   
+#  
+#   duplicatenumbers_temp <-  unique(Target_baseanalysis_Jan0910_table[1:z,8] [ duplicated(Target_baseanalysis_Jan0910_table[1:z,8] )])
+#   remove <- c(999)
+#   duplicatenumbers <-duplicatenumbers_temp [! duplicatenumbers_temp %in% remove]
+#   duplicateindex <- t( which( Target_baseanalysis_Jan0910_table[1:z,8]  %in%   duplicatenumbers ) )
+#   
+#   if (length(duplicateindex) > 0) {
+#     duplicateindex_archive <- cbind(duplicatenumbers, duplicateindex_archive  )
+#     duplicateindex_archive_table <- as.data.frame ( table ( duplicateindex_archive ) )
+#   }
+#                            
+#   
+#   if (length(duplicateindex) > 0) {
+#   
+#           while ( length(duplicateindex) != 0 ){
+#             
+#             
+#             if (Target_baseanalysis_Jan0910_table[duplicateindex[1] ,3] < Target_baseanalysis_Jan0910_table[duplicateindex[2] ,3] )
+#             {
+#               frequency <- duplicateindex_archive_table [ which ( duplicateindex_archive_table$duplicateindex_archive == 
+#                                                                     Target_baseanalysis_Jan0910_table[duplicateindex[2] ,8] ) , 2] + 1
+#               
+#               if ( frequency < length (a_magdif[[ duplicateindex[2] ]] )) {
+#                   secondbigidx <- which (a_magdif[[ duplicateindex[2] ]] == sort( a_magdif[[ duplicateindex[2] ]], partial= 2)[frequency] ) 
+#                   Target_baseanalysis_Jan0910_table[duplicateindex[2], 8 ] <- Upsiglist[[duplicateindex[2]]][secondbigidx]
+#                   Target_baseanalysis_Jan0910_table[duplicateindex[2], 3 ] <- a_magdif[[ duplicateindex[2] ]][secondbigidx]
+# #                   Target_baseanalysis_Jan0910_table[duplicateindex[2], 2 ] <- a_basemagdif[[ duplicateindex[2] ]][secondbigidx]
+#               }
+#               
+#               else {
+#                 Target_baseanalysis_Jan0910_table[duplicateindex[2], 8 ] <- 999
+#                 Target_baseanalysis_Jan0910_table[duplicateindex[2], 3 ] <- 999
+#                 Target_baseanalysis_Jan0910_table[duplicateindex[2], 2 ] <- 999
+#               }
+#             }
+#                 
+# 
+#             else
+#             {
+#               frequency <- duplicateindex_archive_table [ which ( duplicateindex_archive_table$duplicateindex_archive == 
+#                                                                     Target_baseanalysis_Jan0910_table[duplicateindex[1] ,8] ) , 2] + 1
+#               
+#               if ( frequency < length (a_magdif[[ duplicateindex[1] ]] )) {
+#                     secondbigidx <- which (a_magdif[[ duplicateindex[1] ]] == sort( a_magdif[[ duplicateindex[1] ]], partial= 2)[frequency] )
+#                     Target_baseanalysis_Jan0910_table[duplicateindex[1], 8 ] <- Upsiglist[[duplicateindex[1]]][secondbigidx]
+#                     Target_baseanalysis_Jan0910_table[duplicateindex[1], 3 ] <- a_magdif[[ duplicateindex[1] ]][secondbigidx]
+# #                     Target_baseanalysis_Jan0910_table[duplicateindex[1], 2 ] <- a_basemagdif[[ duplicateindex[1] ]][secondbigidx]
+#               }
+#               
+#               else {
+#                 Target_baseanalysis_Jan0910_table[duplicateindex[1], 8 ] <- 999
+#                 Target_baseanalysis_Jan0910_table[duplicateindex[1], 3 ] <- 999
+#                 Target_baseanalysis_Jan0910_table[duplicateindex[1], 2 ] <- 999
+#               }
+#                 
+#               }
+#               
+#                           
+#             
+#             duplicatenumbers_temp <-  unique(Target_baseanalysis_Jan0910_table[1:z,8] [ duplicated(Target_baseanalysis_Jan0910_table[1:z,8] )])
+#             remove <- c(999)
+#             duplicatenumbers <-duplicatenumbers_temp [! duplicatenumbers_temp %in% remove]
+#             duplicateindex <- which( Target_baseanalysis_Jan0910_table[1:z,8]  %in%   duplicatenumbers )
+#                         
+#             duplicateindex_archive <- cbind(duplicatenumbers, duplicateindex_archive  )
+#             duplicateindex_archive_table <- as.data.frame ( table ( duplicateindex_archive ) )
+#             
+#           }
+#   }
+# }
+
+# second module
 
 for (z in 1: length(Class)){
 
@@ -161,15 +243,15 @@ for (z in 1: length(Class)){
   Result_NN[[z]] <- classresult$resultnn
   TargetTable_NN[[z]] <- classresult$tt
  
-#   classresult <- list()
-#   assign(paste("Result_NN",Class[z],sep=""), classresult$resultnn)
-#   assign(paste("TargetTable_NN",Class[z], sep=""),classresult$tt )
+  
+  #   classresult <- list()
+  #   assign(paste("Result_NN",Class[z],sep=""), classresult$resultnn)
+  #   assign(paste("TargetTable_NN",Class[z], sep=""),classresult$tt )
   #write.table(classresult$tt, paste("TargetTable",Class[z], (".txt"), sep=""), sep="\t",row.names=FALSE)
   #write.table(classresult$resultnn, paste("Result_NN",Class[z], (".txt"), sep=""), sep="\t",row.names=FALSE)
-
 }
 
-options(scipen=999)
+
 
 # write.table(TargetTable9, "./TargetTable9.txt", sep="\t",row.names=FALSE)
  write.table(Result_NN[5], "./Result_NN_Class9.txt", sep="\t",row.names=FALSE)

@@ -274,18 +274,18 @@ for (i in 1:length(Upcandidates_train)){
                            
           for (m in 1: 31) {
             
-#               # option 1 - non parametric
-#               if ( m %in% class9idxprob) {
-#                jointprobtemp_train[j,m] <- as.numeric ( (approx( kernel_mat[[m]]$x, kernel_mat[[m]]$y,
-#                                                      Attribute_diff_train_mat[[i]][[j]][m]) )$y )
-#               }
-              
-              # option 2 - parametric
+              # option 1 - non parametric
               if ( m %in% class9idxprob) {
-                jointprobtemp_train[j,m] <- as.numeric ( (approx( kernel_para_mat[[m]]$x, kernel_para_mat[[m]]$y,
-                                                                  Attribute_diff_train_mat[[i]][[j]][m]) )$y )
+               jointprobtemp_train[j,m] <- as.numeric ( (approx( kernel_mat[[m]]$x, kernel_mat[[m]]$y,
+                                                     Attribute_diff_train_mat[[i]][[j]][m]) )$y )
               }
               
+#               # option 2 - parametric
+#               if ( m %in% class9idxprob) {
+#                 jointprobtemp_train[j,m] <- as.numeric ( (approx( kernel_para_mat[[m]]$x, kernel_para_mat[[m]]$y,
+#                                                                   Attribute_diff_train_mat[[i]][[j]][m]) )$y )
+#               }
+#               
               
               else {
                 jointprobtemp_train[j,m] <- 99999
@@ -294,7 +294,7 @@ for (i in 1:length(Upcandidates_train)){
           }
          
 #           jointprobtemp_train[j,31] <- Attribute_diff_train_mat[[i]][[j]][31]
-                             
+          jointprobtemp_train[j,31] <- 1 /  Attribute_diff_train_mat[[i]][[j]][31]   
           jointprobtemp_train [is.na(jointprobtemp_train )] <- buf 
 
          
@@ -312,12 +312,20 @@ for (i in 1:length(Upcandidates_train)){
 
           # option 2
          
+#           jointprobtemp_train[j,32] <-  log10(jointprobtemp_train[j,1]) +  log10(jointprobtemp_train[j,2]) +
+#             log10(jointprobtemp_train[j,3])  + 
+#             log10(jointprobtemp_train[j,6])  + log10(jointprobtemp_train[j,7]) + 
+#             log10(jointprobtemp_train[j,14]) + log10(jointprobtemp_train[j,16]) +
+#             log10(jointprobtemp_train[j,18]) + log10(jointprobtemp_train[j,20]) +
+#             log10(jointprobtemp_train[j,30]) +
+#             (log10(jointprobtemp_train[j,31])  * weightSig)
+
           jointprobtemp_train[j,32] <-  log10(jointprobtemp_train[j,1]) +  log10(jointprobtemp_train[j,2]) +
-            log10(jointprobtemp_train[j,3])  + 
-            log10(jointprobtemp_train[j,6])  + log10(jointprobtemp_train[j,7]) + 
-            log10(jointprobtemp_train[j,14]) + log10(jointprobtemp_train[j,16]) +
-            log10(jointprobtemp_train[j,18]) + log10(jointprobtemp_train[j,20]) +
-            log10(jointprobtemp_train[j,30]) +
+            log10(jointprobtemp_train[j,3])  + log10(jointprobtemp_train[j,4]) + log10(jointprobtemp_train[j,5])
+          log10(jointprobtemp_train[j,6])  + log10(jointprobtemp_train[j,7]) + 
+            log10(jointprobtemp_train[j,14]) + log10(jointprobtemp_train[j,15]) + log10(jointprobtemp_train[j,16]) +
+            log10(jointprobtemp_train[j,17]) + log10(jointprobtemp_train[j,18]) + log10(jointprobtemp_train[j,19]) + 
+            log10(jointprobtemp_train[j,20]) + log10(jointprobtemp_train[j,30]) +
             (log10(jointprobtemp_train[j,31])  * weightSig)
 
           jointprobtemp_train[j,33] <-  Upcandidates_train[[i]][j]   
@@ -381,17 +389,17 @@ for (i in 1:length(Upcandidates_test)){
         for (m in 1: 31) {
           
 #           # option 1
-#           if ( m %in% class9idxprob) {
-#             jointprobtemp_test[j,m] <- as.numeric ( (approx( kernel_mat[[m]]$x, kernel_mat[[m]]$y,
-#                                                              Attribute_diff_test_mat[[i]][[j]][m]) )$y )
-#           }
+          if ( m %in% class9idxprob) {
+            jointprobtemp_test[j,m] <- as.numeric ( (approx( kernel_mat[[m]]$x, kernel_mat[[m]]$y,
+                                                             Attribute_diff_test_mat[[i]][[j]][m]) )$y )
+          }
           
-           # option 2
-            if ( m %in% class9idxprob) {
-              jointprobtemp_test[j,m] <- as.numeric ( (approx( kernel_para_mat[[m]]$x, kernel_para_mat[[m]]$y,
-                                                                       Attribute_diff_test_mat[[i]][[j]][m]) )$y )
-              }
-          
+#            # option 2
+#             if ( m %in% class9idxprob) {
+#               jointprobtemp_test[j,m] <- as.numeric ( (approx( kernel_para_mat[[m]]$x, kernel_para_mat[[m]]$y,
+#                                                                        Attribute_diff_test_mat[[i]][[j]][m]) )$y )
+#               }
+#           
           
           else {
             jointprobtemp_test[j,m] <- 99999
@@ -400,15 +408,23 @@ for (i in 1:length(Upcandidates_test)){
         }
         
 #         jointprobtemp_test[j,31] <- Attribute_diff_test_mat[[i]][[j]][31]
-        
+        jointprobtemp_test[j,31] <- 1 /  Attribute_diff_test_mat[[i]][[j]][31]   
         jointprobtemp_test [is.na(jointprobtemp_test )] <- buf 
+
+        jointprobtemp_test[j,32] <-  log10(jointprobtemp_test[j,1]) +  log10(jointprobtemp_test[j,2]) +
+          log10(jointprobtemp_test[j,3])  + log10(jointprobtemp_test[j,4]) + log10(jointprobtemp_test[j,5])
+        log10(jointprobtemp_test[j,6])  + log10(jointprobtemp_test[j,7]) + 
+          log10(jointprobtemp_test[j,14]) + log10(jointprobtemp_test[j,15]) + log10(jointprobtemp_test[j,16]) +
+          log10(jointprobtemp_test[j,17]) + log10(jointprobtemp_test[j,18]) + log10(jointprobtemp_test[j,19]) + 
+          log10(jointprobtemp_test[j,20]) + log10(jointprobtemp_test[j,30]) +
+          (log10(jointprobtemp_test[j,31])  * weightSig)
         
-        jointprobtemp_test[j,32] <-  jointprobtemp_test[j,1] * jointprobtemp_test[j,2] * jointprobtemp_test[j,3] *  
-          jointprobtemp_test[j,6] * jointprobtemp_test[j,7] *  
-          jointprobtemp_test[j,14] *  jointprobtemp_test[j,16] *
-          jointprobtemp_test[j,18] *  jointprobtemp_test[j,20] *
-          jointprobtemp_test[j,30]  *
-          jointprobtemp_test[j,31]
+#         jointprobtemp_test[j,32] <-  jointprobtemp_test[j,1] * jointprobtemp_test[j,2] * jointprobtemp_test[j,3] *  
+#           jointprobtemp_test[j,6] * jointprobtemp_test[j,7] *  
+#           jointprobtemp_test[j,14] *  jointprobtemp_test[j,16] *
+#           jointprobtemp_test[j,18] *  jointprobtemp_test[j,20] *
+#           jointprobtemp_test[j,30]  *
+#           jointprobtemp_test[j,31]
 #           ( 1 /jointprobtemp_test[j,31] * weightSig )
         
         jointprobtemp_test[j,33] <-  Upcandidates_test[[i]][j]   
