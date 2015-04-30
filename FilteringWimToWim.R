@@ -16,40 +16,6 @@ for (j in 1: 31){
 Upheader[,a+j] <- SOJan_v1[,5+j][match( Upheader$sigid, SOJan_v1[,3])] # numaxle
 }
 
-#   
-# Upheader[,a]   <- SOJan_v1[,b  ][match( Upheader$sigid, SOJan_v1[,3])] # FHWA class
-# Upheader[,a+1] <- SOJan_v1[,b+1][match( Upheader$sigid, SOJan_v1[,3])] # numaxle
-# Upheader[,a+2] <- SOJan_v1[,b+2][match( Upheader$sigid, SOJan_v1[,3])] # utc
-# Upheader[,a+3] <- SOJan_v1[,b+3][match( Upheader$sigid, SOJan_v1[,3])] # length
-# Upheader[,a+4] <- SOJan_v1[,b+4][match( Upheader$sigid, SOJan_v1[,3])] # gvw
-# 
-# Upheader[,a+5] <- SOJan_v1[,b+5][match( Upheader$sigid, SOJan_v1[,3])] # axle spacing 1-2
-# Upheader[,a+6] <- SOJan_v1[,b+6][match( Upheader$sigid, SOJan_v1[,3])] # axle spacing 2-3
-# Upheader[,a+7] <- SOJan_v1[,b+7][match( Upheader$sigid, SOJan_v1[,3])] # axle spacing 3-4
-# Upheader[,a+8] <- SOJan_v1[,b+8][match( Upheader$sigid, SOJan_v1[,3])] # axle spacing 4-5
-# Upheader[,a+9] <- SOJan_v1[,b+9][match( Upheader$sigid, SOJan_v1[,3])] # axle spacing 5-6
-# Upheader[,a+10] <- SOJan_v1[,b+10][match( Upheader$sigid, SOJan_v1[,3])] # axle spacing 6-7
-# Upheader[,a+11] <- SOJan_v1[,b+11][match( Upheader$sigid, SOJan_v1[,3])] # axle spacing 7-8
-# Upheader[,a+12] <- SOJan_v1[,b+12][match( Upheader$sigid, SOJan_v1[,3])] # axle spacing 8-9
-# 
-# Upheader[,a+13] <- SOJan_v1[,14][match( Upheader$sigid, SOJan_v1[,3])] # axle weight 1 left
-# Upheader[,a+14] <- SOJan_v1[,15][match( Upheader$sigid, SOJan_v1[,3])] # axle weight 1 right
-# Upheader[,a+15] <- SOJan_v1[,16][match( Upheader$sigid, SOJan_v1[,3])] # axle weight 2 left
-# Upheader[,a+16] <- SOJan_v1[,17][match( Upheader$sigid, SOJan_v1[,3])] # axle weight 2 right
-# Upheader[,a+17] <- SOJan_v1[,18][match( Upheader$sigid, SOJan_v1[,3])] # axle weight 3 left
-# Upheader[,a+18] <- SOJan_v1[,19][match( Upheader$sigid, SOJan_v1[,3])] # axle weight 3 right
-# Upheader[,a+19] <- SOJan_v1[,20][match( Upheader$sigid, SOJan_v1[,3])] # axle weight 4 left
-# Upheader[,a+20] <- SOJan_v1[,21][match( Upheader$sigid, SOJan_v1[,3])] # axle weight 4 right
-# Upheader[,a+21] <- SOJan_v1[,22][match( Upheader$sigid, SOJan_v1[,3])] # axle weight 5 left
-# Upheader[,a+22] <- SOJan_v1[,23][match( Upheader$sigid, SOJan_v1[,3])] # axle weight 5 right
-# Upheader[,a+23] <- SOJan_v1[,22][match( Upheader$sigid, SOJan_v1[,3])] # axle weight 6 left
-# Upheader[,a+24] <- SOJan_v1[,23][match( Upheader$sigid, SOJan_v1[,3])] # axle weight 6 right
-# Upheader[,a+25] <- SOJan_v1[,22][match( Upheader$sigid, SOJan_v1[,3])] # axle weight 7 left
-# Upheader[,a+26] <- SOJan_v1[,23][match( Upheader$sigid, SOJan_v1[,3])] # axle weight 7 right
-# Upheader[,a+27] <- SOJan_v1[,22][match( Upheader$sigid, SOJan_v1[,3])] # axle weight 8 left
-# Upheader[,a+28] <- SOJan_v1[,23][match( Upheader$sigid, SOJan_v1[,3])] # axle weight 8 right
-# Upheader[,a+29] <- SOJan_v1[,22][match( Upheader$sigid, SOJan_v1[,3])] # axle weight 9 left
-# Upheader[,a+30] <- SOJan_v1[,23][match( Upheader$sigid, SOJan_v1[,3])] # axle weight 9 right
 
 # up cleaning
 idx <- vector()
@@ -57,68 +23,78 @@ Upheader_new <-subset(Upheader, Upheader[,8] > 100) # samplecount
 Upheader_new <-subset(Upheader_new, Upheader_new[,14] > 3)
 Upheader_new <-subset(Upheader_new, Upheader_new[,14] < 15)
 
+# wim data > 0 
+
+Upheader_new <-subset(Upheader_new, Upheader_new[,7] >= 0.0 ) # new line
+# Upheader_new <-subset(Upheader_new, Upheader_new[,27:44] >= 0.0 ) # new line
 
 
-for (i in 1: length(Upheader_new[,1])  ){
+
+for (i in 1: nrow(Upheader_new)  ){
   if (Upheader_new[i,15] == 2 ) {
-      idx[i] <- rowSums(Upheader_new [i, c(20:26) ] )
-      idx[i] <- idx[i] + rowSums(Upheader_new [i, c(31:44) ] ) 
+    idx[i] <- any(Upheader_new[i,19]<=0)
+    idx[i] <- idx[i] + any(Upheader_new[i,27:30]<=0)
   }  
   else if (Upheader_new[i,15] == 3 ) {
-    idx[i] <- rowSums(Upheader_new [i, c(21:26) ] )
-    idx[i] <- idx[i] + rowSums(Upheader_new [i, c(33:44) ] )   
+    idx[i] <- any(Upheader_new[i,19:20]<=0)
+    idx[i] <- idx[i] + any(Upheader_new[i,27:32]<=0)
   }
   else if (Upheader_new[i,15] == 4 ) {
-    idx[i] <- rowSums(Upheader_new [i, c(22:26) ] )
-    idx[i] <- idx[i] + rowSums(Upheader_new [i, c(35:44) ] )       
+    idx[i] <- any(Upheader_new[i,19:21]<=0)
+    idx[i] <- idx[i] + any(Upheader_new[i,27:34]<=0)
   }
  else if (Upheader_new[i,15] == 5 ) {
-    idx[i] <- rowSums(Upheader_new [i, c(23:26) ] )
-    idx[i] <- idx[i] + rowSums(Upheader_new [i, c(37:44) ] )      
+   idx[i] <- any(Upheader_new[i,19:22]<=0)
+   idx[i] <- idx[i] + any(Upheader_new[i,27:36]<=0)
   }
  else if (Upheader_new[i,15] == 6 ) {
-   idx[i] <- rowSums(Upheader_new [i, c(24:26) ] )
-   idx[i] <- idx[i] + rowSums(Upheader_new [i, c(39:44) ] )      
+   idx[i] <- any(Upheader_new[i,19:23]<=0)
+   idx[i] <- idx[i] + any(Upheader_new[i,27:38]<=0)
  }
  else if (Upheader_new[i,15] == 7 ) {
-   idx[i] <- rowSums(Upheader_new [i, c(25:26) ] )
-   idx[i] <- idx[i] + rowSums(Upheader_new [i, c(41:44) ] )      
+   idx[i] <- any(Upheader_new[i,19:24]<=0)
+   idx[i] <- idx[i] + any(Upheader_new[i,27:40]<=0)
  }
  else if (Upheader_new[i,15] == 8 ) {
-   idx[i] <- rowSums(Upheader_new [i, c(26) ] )
-   idx[i] <- idx[i] + rowSums(Upheader_new [i, c(43:44) ] )      
+   idx[i] <- any(Upheader_new[i,19:25]<=0)
+   idx[i] <- idx[i] + any(Upheader_new[i,27:42]<=0)
+ }
+else if (Upheader_new[i,15] == 9) {
+   idx[i] <- any(Upheader_new[i,19:26]<=0)
+   idx[i] <- idx[i] + any(Upheader_new[i,27:44]<=0)
  }
 }
 
 idxUp <- idx
 whichidxUp <- which(idxUp > 0)
 if ( length(whichidxUp ) > 0 ) { 
-  Upheader_new <- Upheder_new[-whichidxUp,]
+  Upheader_new <- Upheader_new[-whichidxUp,]
 }
 
 # non-normalized
 Upheader_new_nonN <-  Upheader_new
 save(Upheader_new_nonN, file="./ProcessedData/Jan0910/Upheader_new_nonN.RData")
+
 # normalized
-for (i in 1:length(Upheader_new[,1])){
-  sp <- Upheader_new[i,20] 
-  wt <- Upheader_new[i,27] 
-  
-  if (Upheader_new[i,14] == 9) {
-      for ( j in 1:8){
-        
-        Upheader_new[i,j+18] <- Upheader_new[i,j+18] / sp
-      }
-      
-      for ( k in 1:18){
-        Upheader_new[i,k+26] <- Upheader_new[i,k+26] / wt
-      }
-      Upheader_new[i, 17] <- Upheader_new[i,17] / sp
-      Upheader_new[i, 18] <- Upheader_new[i,18] / wt
-  }
-  
-  
-}
+# for (i in 1:length(Upheader_new[,1])){
+#   sp <- Upheader_new[i,20] 
+#   wt <- Upheader_new[i,27] 
+#   
+#   if (Upheader_new[i,14] == 9) {
+#       for ( j in 1:8){
+#         
+#         Upheader_new[i,j+18] <- Upheader_new[i,j+18] / sp
+#       }
+#       
+#       for ( k in 1:18){
+#         Upheader_new[i,k+26] <- Upheader_new[i,k+26] / wt
+#       }
+#       Upheader_new[i, 17] <- Upheader_new[i,17] / sp
+#       Upheader_new[i, 18] <- Upheader_new[i,18] / wt
+#   }
+#   
+#   
+# }
 
 
 
@@ -140,128 +116,117 @@ Downheader_new <-subset(Downheader, Downheader[,8] > 100) # samplecount
 Downheader_new <-subset(Downheader, Downheader[,14] > 3)
 Downheader_new <-subset(Downheader_new, Downheader_new[,14] < 15)
 
+# wim data > 0 
 
+Downheader_new <-subset(Downheader_new, Downheader_new[,7] >= 0.0 ) # new line
 
-for (i in 1: length(Downheader_new[,1])  ){
+for (i in 1: nrow(Downheader_new)  ){
   if (Downheader_new[i,15] == 2 ) {
-    idx[i] <- rowSums(Downheader_new [i, c(20:26) ] )
-    idx[i] <- idx[i] + rowSums(Downheader_new [i, c(31:44) ] ) 
+    idx[i] <- any(Downheader_new[i,19]<=0)
+    idx[i] <- idx[i] + any(Downheader_new[i,27:30]<=0)
   }  
   else if (Downheader_new[i,15] == 3 ) {
-    idx[i] <- rowSums(Downheader_new [i, c(21:26) ] )
-    idx[i] <- idx[i] + rowSums(Downheader_new [i, c(33:44) ] )   
+    idx[i] <- any(Downheader_new[i,19:20]<=0)
+    idx[i] <- idx[i] + any(Downheader_new[i,27:32]<=0)
   }
   else if (Downheader_new[i,15] == 4 ) {
-    idx[i] <- rowSums(Downheader_new [i, c(22:26) ] )
-    idx[i] <- idx[i] + rowSums(Downheader_new [i, c(35:44) ] )       
+    idx[i] <- any(Downheader_new[i,19:21]<=0)
+    idx[i] <- idx[i] + any(Downheader_new[i,27:34]<=0)
   }
   else if (Downheader_new[i,15] == 5 ) {
-    idx[i] <- rowSums(Downheader_new [i, c(23:26) ] )
-    idx[i] <- idx[i] + rowSums(Downheader_new [i, c(37:44) ] )      
+    idx[i] <- any(Downheader_new[i,19:22]<=0)
+    idx[i] <- idx[i] + any(Downheader_new[i,27:36]<=0)
   }
   else if (Downheader_new[i,15] == 6 ) {
-    idx[i] <- rowSums(Downheader_new [i, c(24:26) ] )
-    idx[i] <- idx[i] + rowSums(Downheader_new [i, c(39:44) ] )      
+    idx[i] <- any(Downheader_new[i,19:23]<=0)
+    idx[i] <- idx[i] + any(Downheader_new[i,27:38]<=0)
   }
   else if (Downheader_new[i,15] == 7 ) {
-    idx[i] <- rowSums(Downheader_new [i, c(25:26) ] )
-    idx[i] <- idx[i] + rowSums(Downheader_new [i, c(41:44) ] )      
+    idx[i] <- any(Downheader_new[i,19:24]<=0)
+    idx[i] <- idx[i] + any(Downheader_new[i,27:40]<=0)
   }
   else if (Downheader_new[i,15] == 8 ) {
-    idx[i] <- rowSums(Downheader_new [i, c(26) ] )
-    idx[i] <- idx[i] + rowSums(Downheader_new [i, c(43:44) ] )      
+    idx[i] <- any(Downheader_new[i,19:25]<=0)
+    idx[i] <- idx[i] + any(Downheader_new[i,27:42]<=0)
+  }
+  else if (Downheader_new[i,15] == 9) {
+    idx[i] <- any(Downheader_new[i,19:26]<=0)
+    idx[i] <- idx[i] + any(Downheader_new[i,27:44]<=0)
   }
 }
+
 idxDown <- idx
 whichidxDown <- which(idxDown > 0)
 if ( length(whichidxDown) > 0 ) { 
-  Downheader_new <- Downheder_new[-whichidxDown,]
+  Downheader_new <- Downheader_new[-whichidxDown,]
 }
 
 # non-normalized
 Downheader_new_nonN <- Downheader_new
 save(Downheader_new_nonN, file="./ProcessedData/Jan0910/Downheader_new_nonN.RData")
 
+
+# matching
+
+matching <- matching[-which(!matching$SO %in% Upheader_new$sigid),]
+matching <- matching[-which(!matching$LC %in% Downheader_new$sigid),]
+
 # normalized
-for (i in 1:length(Downheader_new[,1])){
-  sp <- Downheader_new[i,20] 
-  wt <- Downheader_new[i,27] 
-  if (Downheader_new[i,14] == 9) {
-      
-      for ( j in 1:8){
-        
-        Downheader_new[i,j+18] <- Downheader_new[i,j+18] / sp
-      }
-      
-      for ( k in 1:18){
-        Downheader_new[i,k+26] <- Downheader_new[i,k+26] / wt
-      }
-      Downheader_new[i, 17] <- Downheader_new[i,17] / sp
-      Downheader_new[i, 18] <-  Downheader_new[i,18] / wt
-  }
-  
-}
-
-
-
-# Downheader[,14] <- LCJan_v1[,6][match( Downheader$sigid, LCJan_v1[,3])]
-# Downheader[,15] <- LCJan_v1[,8][match( Downheader$sigid, LCJan_v1[,3])]
-# Downheader[,16] <- LCJan_v1[,9][match( Downheader$sigid, LCJan_v1[,3])]
-# 
-# Downheader[,17] <- LCJan_v1[,10][match( Downheader$sigid, LCJan_v1[,3])]
-# Downheader[,18] <- LCJan_v1[,11][match( Downheader$sigid, LCJan_v1[,3])]
-# Downheader[,19] <- LCJan_v1[,12][match( Downheader$sigid, LCJan_v1[,3])]
-# Downheader[,20] <- LCJan_v1[,13][match( Downheader$sigid, LCJan_v1[,3])]
-# 
-# Downheader[,21] <- LCJan_v1[,14][match( Downheader$sigid, LCJan_v1[,3])]
-# Downheader[,22] <- LCJan_v1[,15][match( Downheader$sigid, LCJan_v1[,3])]
-# Downheader[,23] <- LCJan_v1[,16][match( Downheader$sigid, LCJan_v1[,3])]
-# Downheader[,24] <- LCJan_v1[,17][match( Downheader$sigid, LCJan_v1[,3])]
-# Downheader[,25] <- LCJan_v1[,18][match( Downheader$sigid, LCJan_v1[,3])]
-# Downheader[,26] <- LCJan_v1[,19][match( Downheader$sigid, LCJan_v1[,3])]
-# Downheader[,27] <- LCJan_v1[,20][match( Downheader$sigid, LCJan_v1[,3])]
-# Downheader[,28] <- LCJan_v1[,21][match( Downheader$sigid, LCJan_v1[,3])]
-# Downheader[,29] <- LCJan_v1[,22][match( Downheader$sigid, LCJan_v1[,3])]
-# Downheader[,30] <- LCJan_v1[,23][match( Downheader$sigid, LCJan_v1[,3])]
-# Downheader[,31] <- LCJan_v1[,24][match( Downheader$sigid, LCJan_v1[,3])]
-
+# for (i in 1:length(Downheader_new[,1])){
+#   sp <- Downheader_new[i,20] 
+#   wt <- Downheader_new[i,27] 
+#   if (Downheader_new[i,14] == 9) {
+#       
+#       for ( j in 1:8){
+#         
+#         Downheader_new[i,j+18] <- Downheader_new[i,j+18] / sp
+#       }
+#       
+#       for ( k in 1:18){
+#         Downheader_new[i,k+26] <- Downheader_new[i,k+26] / wt
+#       }
+#       Downheader_new[i, 17] <- Downheader_new[i,17] / sp
+#       Downheader_new[i, 18] <-  Downheader_new[i,18] / wt
+#   }
+#   
+# }
 
 
 
 
 # look traffic condition
-buffertimewindow=60; # min (WIM-WIM case)
-bufferduration = 0.4; # 0.2 min
-buffernumpnt = 800
+buffertimewindow=120; # min (WIM-WIM case)
+bufferduration = 0.6; # 0.2 min
+# buffernumpnt = 800
 bufferlen = 12
 bufferaspacing12 = 8
 bufferaspacing23 = 5
 bufferaspacing34 = 5
-bufferaspacing45 = 5
+bufferaspacing45 = 6
 bufferaspacing56 = 5
 bufferaspacing67 = 5
 bufferaspacing78 = 5
 bufferaspacing89 = 5
 buffergvw = 40
 
-bufferaweightl1 = 4
-bufferaweightr1 = 4
-bufferaweightl2 = 4
-bufferaweightr2 = 4
-bufferaweightl3 = 4
-bufferaweightr3 = 4
-bufferaweightl4 = 4
-bufferaweightr4 = 4
-bufferaweightl5 = 4
-bufferaweightr5 = 4
-bufferaweightl6 = 4
-bufferaweightr6 = 4
-bufferaweightl7 = 4
-bufferaweightr7 = 4
-bufferaweightl8 = 4
-bufferaweightr8 = 4
-bufferaweightl9 = 4
-bufferaweightr9 = 4
+bufferaweightl1 = 5
+bufferaweightr1 = 5
+bufferaweightl2 = 5
+bufferaweightr2 = 5
+bufferaweightl3 = 5
+bufferaweightr3 = 5
+bufferaweightl4 = 5
+bufferaweightr4 = 5
+bufferaweightl5 = 5
+bufferaweightr5 = 5
+bufferaweightl6 = 5
+bufferaweightr6 = 5
+bufferaweightl7 = 5
+bufferaweightr7 = 5
+bufferaweightl8 = 5
+bufferaweightr8 = 5
+bufferaweightl9 = 5
+bufferaweightr9 = 5
 
 # set buffer
 Downheader_ID=(Downheader_new$sigid)
@@ -490,20 +455,20 @@ for (j in 1: length(Downheader_ID)){
   
   Upsiglist[j] <- list(subset(Upheader_new$sigid,  Upheader_new$utc > lb[j] &  Upheader_new$utc <= settime[j]
                               & Upheader_new[,7] > ld[j] & Upheader_new[,7] < ud[j]
-                              & Upheader_new[,8] > lp[j] & Upheader_new[,8] < up[j]
+#                               & Upheader_new[,8] > lp[j] & Upheader_new[,8] < up[j]
                               & Upheader_new[,14] == Downheader_new[j,14] 
                               
                               & Upheader_new[,17] > ll[j] & Upheader_new[,17] < ul[j]
                               & Upheader_new[,18] > lg[j] & Upheader_new[,18] < ug[j]
                               
-                              & Upheader_new[,19] > la12[j] & Upheader_new[,19] < ua12[j]
-                              & Upheader_new[,20] > la23[j] & Upheader_new[,20] < ua23[j]
+#                               & Upheader_new[,19] > la12[j] & Upheader_new[,19] < ua12[j]
+#                               & Upheader_new[,20] > la23[j] & Upheader_new[,20] < ua23[j]
                               & Upheader_new[,21] > la34[j] & Upheader_new[,21] < ua34[j]
                               & Upheader_new[,22] > la45[j] & Upheader_new[,22] < ua45[j]
-                              & Upheader_new[,23] > la45[j] & Upheader_new[,23] < ua56[j]
-                              & Upheader_new[,24] > la45[j] & Upheader_new[,24] < ua67[j]
-                              & Upheader_new[,25] > la45[j] & Upheader_new[,25] < ua78[j]
-                              & Upheader_new[,26] > la45[j] & Upheader_new[,26] < ua89[j]
+                              & Upheader_new[,23] > la56[j] & Upheader_new[,23] < ua56[j]
+                              & Upheader_new[,24] > la67[j] & Upheader_new[,24] < ua67[j]
+                              & Upheader_new[,25] > la78[j] & Upheader_new[,25] < ua78[j]
+                              & Upheader_new[,26] > la89[j] & Upheader_new[,26] < ua89[j]
                               
                               & Upheader_new[,27] > lwl1[j] & Upheader_new[,27] < uwl1[j]
                               & Upheader_new[,28] > lwr1[j] & Upheader_new[,28] < uwr1[j]
@@ -529,8 +494,8 @@ for (j in 1: length(Downheader_ID)){
 
 ### input files - DOWN
 
-num <- 1000
-no_round <- 1000
+num <- 50
+no_round <- 100
 
 # find index for potential matching
 Downsig = LC.Jan0910sig
@@ -585,7 +550,7 @@ Upsig_IM=subset(Upsig, select=c(id,mag,sigid))
 
 Upidx <- match ( Upheader_new$sigid, Upsig_IM$sigid ) 
 
-UpheaderID <-Upsig_IM[Upidx,3]
+Upheader_ID <-Upsig_IM[Upidx,3]
 Upindex <- c()
 Upobjout <- c()
 UpsigID <- vector()
@@ -631,7 +596,7 @@ save(Upsiglist, file="./ProcessedData/Jan0910/Upsiglist.RData")
 save(UpsigID, file="./ProcessedData/Jan0910/UpsigID.RData")
 save(DownsigID, file="./ProcessedData/Jan0910/DownsigID.RData")
 
-save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/12152014Jan0910.RData")  # for Jan 0910
+save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/04172015Jan0910.RData")  # for Jan 0910
 #0925 : 50 features
 #0808 : 1000 features
 

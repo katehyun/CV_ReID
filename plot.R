@@ -15,15 +15,17 @@ n2=3
 Upplot <- f.drawUpsignature (n1,n2)
 
 
-
-Downsigid <- 531357775430643
+q=16
+Downsigid <- 531357775856057
+Downsigid <- matchingonly[q,4]
 Downplot <- f.Downdraw (Downsigid)
 
-Upsigid <- 941357773870388
+# Upsigid <- 941357772169808
+Upsigid <- matchingonly[q,5]
 Upplot <- f.Updraw (Upsigid)
-Errorplot <- f.ErrorDraw ( Upsigid, Downsigid ) 
+Errorplot <- f.ErrorDraw ( as.numeric(Upsigid), as.numeric(Downsigid) ) 
 
-Upsigid <- 941357772466203
+Upsigid <- 941357773993704
 Upplot <- f.Updraw (Upsigid)
 Errorplot <- f.ErrorDraw ( Upsigid, Downsigid ) 
 
@@ -37,9 +39,9 @@ n1=6
 n2=2
 UpplotAfterSS <- f.UpdrawAfterSS(n1,n2)
 
-
-Upsigid <- 941357775815254
-Downsigid <- 531357777730247
+num <- 1000
+Upsigid <- 931357850800950
+Downsigid <- 531357852462433
 Errorplot <- f.ErrorDraw ( Upsigid, Downsigid ) 
 
 library(pracma)

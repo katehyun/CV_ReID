@@ -33,7 +33,7 @@ write.table(matching_Mar20, "./ProcessedData/matching_Mar20.txt", sep="\t")
 
 ### import matching id - Jan 0910 (SO-LC)
 # from query (v1)
-rm(LCLP)
+rm(LCLP, SOLP)
 options(scipen=999)
 install.packages("RPostgreSQL")
 library( RPostgreSQL)
@@ -60,9 +60,13 @@ SOLP <- dbGetQuery(con,
 
 
 LCLP <- LCLP[order (LCLP[,1]),]
+LCLP <- LCLP[!LCLP[,2]=="",]
 SOLP <- SOLP[order (SOLP[,1]),]
+SOLP <- SOLP[!SOLP[,2]=="",]
 LCLP[,2] <- as.character(LCLP[,2])
 SOLP[,2] <- as.character(SOLP[,2])
+
+
 
 
 LCLP <- cbind( SOLP[,2][match(LCLP[,2], SOLP[,2])], SOLP[,1][match(LCLP[,2], SOLP[,2])], LCLP )
@@ -77,8 +81,11 @@ matching_SOLC <- format(matching_SOLC, scientific=FALSE)
 
 # matching subset (ts)
 matching <- subset(matching_SOLC , substr(SO, 3, 13) <  substr(LC, 3, 13))
+anyDuplicated(matching[,1])
+anyDuplicated(matching[,2])
+# which(matching[,1] == 941357774694098)
 
-
+save(matching, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/matching.RData")
 #gt masterlist
 
 LCGTML <- dbGetQuery(con, 

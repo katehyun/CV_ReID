@@ -7,6 +7,10 @@ rm(sub_matching, sub_nonmatching, sub_all, sub_all_train, sub_all_test, sub_matc
    sub_nonmatching_train, sub_nonmatching_test)
 options(scipen=999) # non scientific notation
 
+library(MASS)
+library(plyr)
+library(ggplot2)
+library(stringr)
 #WHAT TO CHAGE
 utcbd <- 1357804800000
 
@@ -15,8 +19,8 @@ utcbd <- 1357804800000
 
 
 # USING NON-NORMALIZED data
-Downheader_new <- Downheader_new_nonN
-Upheader_new <- Upheader_new_nonN
+# Downheader_new <- Downheader_new_nonN
+# Upheader_new <- Upheader_new_nonN
 
 # class 9
 sub_all <- TargetTable_NN[[5]][,1:4]
@@ -92,9 +96,9 @@ colnames(matching_highest20_wim_diff_median)[1:28] <- c( "length", "gvw",
                               "ax5lwt", "ax5rwt", "ax6lwt", "ax6rwt", "ax7lwt", "ax7rwt", "ax8lwt", "ax8rwt",
                               "ax9lwt", "ax9rwt")
 
-hist( matching_highest20_wim_diff [,2])
-mean( matching_highest20_wim_diff [,2])
-median( matching_highest20_wim_diff [,2])
+# hist( matching_highest20_wim_diff [,2])
+# mean( matching_highest20_wim_diff [,2])
+# median( matching_highest20_wim_diff [,2])
 
 # calibrate wim (Up)
 Upheader_new_cl <-  Upheader_new
@@ -118,7 +122,15 @@ sub_all <- cbind( sub_all ,
 
 
 # install.packages("stringr")
-library(stringr)
+# signature feature 
+
+sig_selected <- list()
+for (i in 1:length(a_magdif)){
+  
+  a <- unlist(idx_magdif[i])
+  sig_selected[i] <- sigfeature[[i]][a] 
+  
+}
 
 
 # train (01/09)
@@ -126,27 +138,36 @@ DownheaderTrainIdx <- which (Downheader_new[,12] > utcbd )
 DownheaderTestIdx <- which (Downheader_new[,12] < utcbd )
 Upsiglist_train <- Upsiglist[DownheaderTrainIdx]
 Upsiglist_test <- Upsiglist[DownheaderTestIdx]
-prob_train <- prob [ DownheaderTrainIdx]
-prob_test <- prob [ DownheaderTestIdx]
+sigfeature_train <- sig_selected[DownheaderTrainIdx]
+sigfeature_test <- sig_selected[DownheaderTestIdx]
 
 
+# prob_train <- prob [ DownheaderTrainIdx]
+# prob_test <- prob [ DownheaderTestIdx]
+
+# train set
 sub_all_train <- subset(sub_all, as.numeric (str_sub (sub_all [,4],-13,-1) ) > utcbd    ) 
-rm(sub_nonmatching_train)
 sub_matching_train <- subset(sub_all_train  , as.numeric (sub_all_train  [,5]) == as.numeric(sub_all_train  [,6]) &
                                as.numeric (sub_all_train [,5]) != 999)
 sub_nonmatching_train <- subset(sub_all_train , as.numeric (sub_all_train [,5]) != as.numeric( sub_all_train [,6]) )
 
+# train index
+suballtrainIdx <- which ( as.numeric (str_sub (sub_all [,4],-13,-1) ) > utcbd  )
+submatching_train_Idx <- which (  as.numeric (sub_all_train  [,5]) == as.numeric(sub_all_train  [,6]) &
+                                          as.numeric (sub_all_train [,5]) != 999 )
+subnonmatching_train_Idx <- which ( as.numeric (sub_all_train [,5]) != as.numeric( sub_all_train [,6]) )
 
-
-
-# test
+# test set
 sub_all_test  <- subset(sub_all, as.numeric (str_sub (sub_all [,4],-13,-1) ) <= utcbd     ) 
 sub_matching_test <- subset(sub_all_test  , as.numeric (sub_all_test  [,5]) == as.numeric(sub_all_test  [,6]) &
                               as.numeric (sub_all_test [,5]) != 999)
 sub_nonmatching_test <- subset(sub_all_test , as.numeric (sub_all_test [,5]) != as.numeric( sub_all_test [,6]) )
 
-
-
+# test index
+suballtestIdx <- which ( as.numeric (str_sub (sub_all [,4],-13,-1) ) <= utcbd     )
+submatching_test_Idx <- which ( as.numeric (sub_all_test  [,5]) == as.numeric(sub_all_test  [,6]) &
+                                   as.numeric (sub_all_test [,5]) != 999)
+subnonmatching_test_Idx <- which ( as.numeric (sub_all_test [,5]) != as.numeric( sub_all_test [,6]) )
 
 # Difference (train, test) 
 Diff_mat_train <- list()
@@ -173,6 +194,34 @@ for ( i in 1:30 )
 
 Diff_mat_test[[31]] <- na.omit (  (sub_matching_test [,3]  )) 
 Diff_nonmat_test[[31]] <- na.omit ( (sub_nonmatching_test [,3]  )) 
+
+# signature
+sig_mat_train   <- sigfeature_train[submatching_train_Idx]
+sig_nonmat_train <- sigfeature_train[subnonmatching_train_Idx]
+sig_mat_test <- sigfeature_test[submatching_test_Idx]
+sig_nonmat_test <- sigfeature_test[subnonmatching_test_Idx]
+
+Diff_sig_mat_train <- list()
+Diff_sig_nonmat_train <- list()
+Diff_sig_mat_test <- list()
+Diff_sig_nonmat_test <- list()
+
+
+for ( i in 1: length( sig_mat_train [[1]] ) ) {
+   Diff_sig_mat_train[[i]] <- do.call(rbind, sig_mat_train)[,i]
+}
+
+for ( i in 1: length( sig_nonmat_train [[1]] ) ) {
+  Diff_sig_nonmat_train[[i]] <- do.call(rbind, sig_nonmat_train)[,i]
+}
+
+for ( i in 1: length( sig_mat_test [[1]] ) ) {
+  Diff_sig_mat_test[[i]] <- do.call(rbind, sig_mat_test)[,i]
+}
+
+for ( i in 1: length( sig_nonmat_test [[1]] ) ) {
+  Diff_sig_nonmat_test[[i]] <- do.call(rbind, sig_nonmat_test)[,i]
+}
 
 
 # remove outliers
@@ -449,6 +498,7 @@ for (i in 1: length( Diff_nonmat_train_n ) ){
   }
 }
 
+
 Diff_mat_train_c[[1]] <- na.omit (  Diff_mat_train_c[[1]]  )
 Diff_nonmat_train_c[[1]] <- na.omit (  Diff_nonmat_train_c[[1]]  ) 
 for ( i in 1:30 )
@@ -565,7 +615,7 @@ for ( i in 1:30 )
 
 ###################### kerdel design
 
-# kernel (nonparametric) : non-normalized differences
+# kernel (nonparametric) : non-normalized differences - WIM
 kernel_mat_c <- list()
 kernel_nonmat_c <- list()
 
@@ -575,6 +625,7 @@ for ( i in 1: 31 )
   if (sum ( Diff_mat_train_n[[i]]) != 0) {
     
     kernel_mat_c[[i]] <- density(Diff_mat_train_c[[i]], kernel = "epanechnikov", bw=5)
+  
     kernel_nonmat_c[[i]] <- density(Diff_nonmat_train_c[[i]], kernel = "epanechnikov", bw=5)
   }
   
@@ -587,6 +638,29 @@ for ( i in 1: 31 )
   }
   
 }
+
+
+# kernel (nonparametric) : non-normalized differences - SIG
+kernel_sig_mat_c <- list()
+kernel_sig_nonmat_c <- list()
+
+for ( i in 1: 50 )
+{
+  if (sum ( Diff_sig_mat_train[[i]]) != 0) {
+    
+    kernel_sig_mat_c[[i]] <- density(Diff_sig_mat_train[[i]], kernel = "epanechnikov")   
+    kernel_sig_nonmat_c[[i]] <- density(Diff_sig_nonmat_train[[i]], kernel = "epanechnikov")
+  }
+  
+  else
+  {
+    kernel_sig_mat_c$x[[i]] <- NA
+    kernel_sig_mat_c$y[[i]] <- NA
+    kernel_sig_nonmat_c$x[[i]] <-  NA
+    kernel_sig_nonmat_c$y[[i]] <-  NA
+  }
+}
+
 
 # kernel (nonparametric) : normalized differences
 kernel_mat_n <- list()
@@ -638,15 +712,15 @@ for ( i in 1: 31 )
 
 plot(kernel_nonmat_cs[[1]]$x, kernel_nonmat_cs[[1]]$y, type="l", col="red" )
 par(new=TRUE)
-plot(kernel_mat_cs[[1]]$x, kernel_mat_cs[[1]]$y , type="l", col="green", add=true )
-library(ggplot2) 
-qplot(mpg, data=mtcars, geom="density", fill=gear, alpha=I(.5), 
-      main="Distribution of Gas Milage", xlab="Miles Per Gallon", 
-      ylab="Density")
+plot(kernel_mat_cs[[1]]$x, kernel_mat_cs[[1]]$y , type="l", col="green", add=TRUE )
 
+q=13
+plot(kernel_sig_mat_c[[q]]$x, kernel_sig_mat_c[[q]]$y, type="l", col="red" )
+par(new=TRUE)
+plot(kernel_sig_nonmat_c[[q]]$x, kernel_sig_nonmat_c[[q]]$y , type="l", col="green", add=TRUE )
 ###histogram with non_normalized data
 
-library(plyr)
+
 
 hist_mat_c <- list()
 hist_nonmat_c <- list()
@@ -658,240 +732,352 @@ density_smooth_hist_mat_c <- list()
 multiplier_hist_nonmat_c <- list()
 density_hist_nonmat_c <- list()
 density_smooth_hist_nonmat_c <- list()
+ 
+min <- vector()
+max <- vector()
 
-myhist <- hist(Diff_mat_train_c[[3]] )
-multiplier <- (myhist$counts / sum(myhist$counts) ) / myhist$density
-mydensity <- density(Diff_mat_train_c[[3]])
-mydensity$y <- mydensity$y * multiplier[1]
+diffseq_mat_c <- list ()   
+normal_mat_c <- list()
+diffseq_nonmat_c <- list ()   
+normal_nonmat_c <- list()
 
-myhist$density <- myhist$counts  / sum(myhist$counts)
+# #test
+# myhist <- hist(Diff_mat_train_c[[3]] )
+# multiplier <- (myhist$counts / sum(myhist$counts) ) / myhist$density
+# mydensity <- density(Diff_mat_train_c[[3]])
+# mydensity$y <- mydensity$y * multiplier[1]
+# 
+# myhist$density <- myhist$counts  / sum(myhist$counts)
+# 
+# plot(myhist , freq=FALSE)
+# lines(mydensity)
 
-plot(myhist , freq=FALSE)
-lines(mydensity)
+interval  <- c(200000, 1, 1, 0.5, 0.5, 0.5, 0.5,  NA, NA, NA, NA, 0.5, 0.5, 0.5, 0.5, 0.5, 0.5,0.5, 0.5, 0.5, 0.5,
+               NA, NA, NA, NA, NA, NA, NA, NA, 0.5, 1 )
 
-for ( i in 1 : length( Diff_mat_train_c)  ){
-    
-    if (i == 1){ # utc
-      interval_utc <- 200000
-      min <- round_any (min(Diff_nonmat_train_c[[i]]) , interval_utc, f= floor)
-      max <- round_any (max(Diff_nonmat_train_c[[i]]) , interval_utc, f= ceiling)
-#       hist_mat[[i]] <- hist(Diff_mat_train_c[[i]], freq=FALSE, breaks=seq(min ,max, by=interval_utc), plot=FALSE)
-#       hist_nonmat[[i]] <- hist(Diff_nonmat_train_c[[i]], freq=FALSE, breaks=seq(min,max,by=interval_utc) ,  plot=FALSE)
-#       histdensity[[i]] <- cbind(hist_mat[[i]]$mids - interval_utc/2, hist_mat[[i]]$mids + interval_utc/2 , 
-#                                 hist_mat[[i]]$density ,  hist_nonmat[[i]]$density) 
+for ( i in 1 : length(Diff_mat_train_c)  ){
 
-    hist_mat_c[[i]] <- hist(Diff_mat_train_c[[i]],  breaks=seq(min ,max, by=interval_utc), plot=FALSE)
+    if (i %in% c(1,2,3,4,5,6,7,12,13,14,15,16,17,18,19,20,21,30,31) ){ # utc
+
+      min[i] <- round_any (min(Diff_nonmat_train_c[[i]] , Diff_mat_train_c[[i]]) , interval[i], f= floor)
+      max[i] <- round_any (max(Diff_nonmat_train_c[[i]] , Diff_mat_train_c[[i]]) , interval[i], f= ceiling)
+
+    # non parametric
+    hist_mat_c[[i]] <- hist(Diff_mat_train_c[[i]],  breaks=seq(min[i] ,max[i], by=interval[i]), plot=FALSE)
     multiplier_hist_mat_c[[i]] <- ( hist_mat_c[[i]]$counts / sum( hist_mat_c[[i]]$counts)) / hist_mat_c[[i]]$density
     density_hist_mat_c[[i]] <- density (Diff_mat_train_c[[i]]) 
     density_hist_mat_c[[i]]$y <- density_hist_mat_c[[i]]$y *
                    multiplier_hist_mat_c[[i]][ which.min(is.na( multiplier_hist_mat_c[[i]] ) ) ]
-    hist_mat_c[[i]]$density <-  hist_mat_c[[i]]$counts / sum(hist_mat_c[[i]]$counts )
-    plot(range( Diff_nonmat_train_c[[i]]), range(density_hist_mat_c[[i]]$y))
-    lines(density_hist_mat_c[[i]] )
-
+    hist_mat_c[[i]]$density <-  hist_mat_c[[i]]$counts / sum(hist_mat_c[[i]]$counts )   
     density_smooth_hist_mat_c[[i]] <-  smooth.spline(density_hist_mat_c[[i]]$x, density_hist_mat_c[[i]]$y,spar=0.8)
-    lines(density_smooth_hist_mat_c[[i]])
-    plot(density_smooth_hist_mat_c[[i]]$x, density_smooth_hist_mat_c[[i]]$y)
-    plot(density_smooth_hist_mat_c[[i]]$data$x, density_smooth_hist_mat_c[[i]]$data$y)
+    density_smooth_hist_mat_c[[i]]$y [density_smooth_hist_mat_c[[i]]$y < 0] <- 0
+   
 
-    hist_nonmat_c[[i]] <- hist(Diff_nonmat_train_c[[i]],  breaks=seq(min,max,by=interval_utc) ,  plot=FALSE)
+    hist_nonmat_c[[i]] <- hist(Diff_nonmat_train_c[[i]],  breaks=seq(min[i],max[i],by=interval[i]) ,  plot=FALSE)
     multiplier_hist_nonmat_c[[i]] <- ( hist_nonmat_c[[i]]$counts / sum( hist_nonmat_c[[i]]$counts)) / hist_nonmat_c[[i]]$density
     density_hist_nonmat_c[[i]] <- density (Diff_nonmat_train_c[[i]]) 
     density_hist_nonmat_c[[i]]$y <- density_hist_nonmat_c[[i]]$y *
         multiplier_hist_nonmat_c[[i]][ which.min(is.na( multiplier_hist_nonmat_c[[i]] ) ) ]
     hist_nonmat_c[[i]]$density <-  hist_nonmat_c[[i]]$counts / sum(hist_nonmat_c[[i]]$counts )
-    lines(density_hist_nonmat_c[[i]] )
-
     density_smooth_hist_nonmat_c[[i]] <-  smooth.spline(density_hist_nonmat_c[[i]]$x, density_hist_nonmat_c[[i]]$y,spar=0.8)
-    plot(density_smooth_hist_nonmat_c[[i]]$x, density_smooth_hist_nonmat_c[[i]]$y)
-    plot(density_smooth_hist_nonmat_c[[i]]$data$x, density_smooth_hist_nonmat_c[[i]]$data$y)
-
+    density_smooth_hist_nonmat_c[[i]]$y [density_smooth_hist_nonmat_c[[i]]$y < 0] <- 0 
     
-    histdensity_c[[i]] <- cbind(hist_mat_c[[i]]$mids - interval_utc/2, hist_mat_c[[i]]$mids + interval_utc/2 , 
+    # normal distribution
+    diffseq_mat_c[[i]] <- seq(min (Diff_nonmat_train_c[[i]] ) , max( Diff_nonmat_train_c[[i]]) , length.out=100)  
+    diffseq_nonmat_c[[i]] <- seq(min (Diff_nonmat_train_c[[i]] ) , max( Diff_nonmat_train_c[[i]]) , length.out=100)  
+    normal_mat_c[[i]] <- dnorm (x=diffseq_mat_c[[i]] , mean= mean (Diff_mat_train_c[[i]]) , sd = sd(Diff_mat_train_c[[i]]) )
+    normal_nonmat_c[[i]] <- dnorm (x=diffseq_nonmat_c[[i]] , mean= mean (Diff_nonmat_train_c[[i]]) , sd = sd(Diff_nonmat_train_c[[i]]) )
+ 
+
+    #histogram
+    histdensity_c[[i]] <- cbind(hist_mat_c[[i]]$mids - interval[i]/2, hist_mat_c[[i]]$mids + interval[i]/2 , 
                               hist_mat_c[[i]]$counts / sum(hist_mat_c[[i]]$counts) ,  
                               hist_nonmat_c[[i]]$counts / sum(hist_nonmat_c[[i]]$counts) ) 
 
     hist_mat_c[[i]]$counts <-  hist_mat_c[[i]]$counts / sum ( hist_mat_c[[i]]$counts)
     hist_nonmat_c[[i]]$counts <-  hist_nonmat_c[[i]]$counts / sum ( hist_nonmat_c[[i]]$counts)
-     }
-    
-    if (i == 2){ # length
-      interval_len <- 1
-      min <- round_any (min(Diff_nonmat_train_c[[i]]) , interval_len, f= floor)
-      max <- round_any (max(Diff_nonmat_train_c[[i]]) , interval_len, f= ceiling)
-#       hist_mat[[i]] <- hist(Diff_mat_train_c[[i]], freq=FALSE, breaks=seq(min ,max, by=interval_len) , plot=FALSE)
-#       hist_nonmat[[i]] <- hist(Diff_nonmat_train_c[[i]], freq=FALSE, breaks=seq(min,max,by=interval_len) ,  plot=FALSE)
-#       histdensity[[i]] <- cbind(hist_mat[[i]]$mids - interval_len/2, hist_mat[[i]]$mids   + interval_len/2,  
-#                                 hist_mat[[i]]$density , hist_nonmat[[i]]$density)      
-      hist_mat_c[[i]] <- hist(Diff_mat_train_c[[i]],  breaks=seq(min ,max, by=interval_len) , plot=FALSE)
-      hist_nonmat_c[[i]] <- hist(Diff_nonmat_train_c[[i]],  breaks=seq(min,max,by=interval_len) ,  plot=FALSE)
-      histdensity_c[[i]] <- cbind(hist_mat_c[[i]]$mids - interval_len/2, hist_mat_c[[i]]$mids   + interval_len/2,  
-                                hist_mat_c[[i]]$counts / sum(hist_mat_c[[i]]$counts), 
-                                hist_nonmat_c[[i]]$counts / sum(hist_nonmat_c[[i]]$counts))  
 
-      hist_mat_c[[i]]$counts <-  hist_mat_c[[i]]$counts / sum ( hist_mat_c[[i]]$counts)
-      hist_nonmat_c[[i]]$counts <-  hist_nonmat_c[[i]]$counts / sum ( hist_nonmat_c[[i]]$counts)
     }
-
-    
-    if (i == 3){ # gvw
-      interval_gvw <- 1
-      min <- round_any (min(Diff_nonmat_train_c[[i]]) , interval_gvw, f= floor)
-      max <- round_any (max(Diff_nonmat_train_c[[i]]) , interval_gvw, f= ceiling)
-#       hist_mat[[i]] <- hist(Diff_mat_train_c[[i]], freq=FALSE, breaks=seq(min ,max, by=interval_gvw) , plot=FALSE)
-#       hist_nonmat[[i]] <- hist(Diff_nonmat_train_c[[i]], freq=FALSE, breaks=seq(min,max,by=interval_gvw) ,  plot=FALSE)
-#       histdensity[[i]] <- cbind(hist_mat[[i]]$mids - interval_gvw/2, hist_mat[[i]]$mids   + interval_gvw/2, 
-#                                 hist_mat[[i]]$density,  hist_nonmat[[i]]$density)      
-      hist_mat_c[[i]] <- hist(Diff_mat_train_c[[i]], breaks=seq(min ,max, by=interval_gvw) , plot=FALSE)
-      hist_nonmat_c[[i]] <- hist(Diff_nonmat_train_c[[i]],  breaks=seq(min,max,by=interval_gvw) ,  plot=FALSE)
-      histdensity_c[[i]] <- cbind(hist_mat_c[[i]]$mids - interval_gvw/2, hist_mat_c[[i]]$mids   + interval_gvw/2, 
-                                hist_mat_c[[i]]$counts / sum(hist_mat_c[[i]]$counts), 
-                                hist_nonmat_c[[i]]$counts / sum(hist_nonmat_c[[i]]$counts))  
-
-      hist_mat_c[[i]]$counts <-  hist_mat_c[[i]]$counts / sum ( hist_mat_c[[i]]$counts)
-      hist_nonmat_c[[i]]$counts <-  hist_nonmat_c[[i]]$counts / sum ( hist_nonmat_c[[i]]$counts)
-    }
-    
-    if (i > 3) {
-   
-        if ( i %in% c (4,5,6,7,12,13,14,15,16,17,18,19,20,21,30)  ){
-          
-          interval_others <- 0.5 # others
-          min <- min ( round_any (min(Diff_mat_train_c[[i]]) , interval_others, f= floor)  , 
-                      round_any (min(Diff_nonmat_train_c[[i]]) , interval_others, f= floor) )
-          max <- max (round_any (max(Diff_mat_train_c[[i]]) , interval_others, f= ceiling) ,
-                      round_any (max(Diff_nonmat_train_c[[i]]) , interval_others, f= ceiling) )
-#           hist_mat[[i]] <- hist(Diff_mat_train_c[[i]], freq=FALSE, breaks=seq(min ,max, by=interval_others), plot=FALSE)
-#           hist_nonmat[[i]] <- hist(Diff_nonmat_train_c[[i]], freq=FALSE, breaks=seq(min,max,by=interval_others), plot=FALSE)
-#           histdensity[[i]] <- cbind( round_any (hist_mat[[i]]$mids - interval_others/2, interval_others),
-#                                      round_any (hist_mat[[i]]$mids + interval_others/2 ,interval_others), 
-#                                      hist_mat[[i]]$density,  hist_nonmat[[i]]$density)  
-          hist_mat_c[[i]] <- hist(Diff_mat_train_c[[i]], breaks=seq(min ,max, by=interval_others), plot=FALSE)
-          hist_nonmat_c[[i]] <- hist(Diff_nonmat_train_c[[i]],breaks=seq(min,max,by=interval_others), plot=FALSE)
-          histdensity_c[[i]] <- cbind( round_any (hist_mat_c[[i]]$mids - interval_others/2, interval_others),
-                                     round_any (hist_mat_c[[i]]$mids + interval_others/2 ,interval_others), 
-                                     hist_mat_c[[i]]$counts / sum( hist_mat_c[[i]]$counts ), 
-                                     hist_nonmat_c[[i]]$counts / sum( hist_nonmat_c[[i]]$counts ))    
-
-          hist_mat_c[[i]]$counts <-  hist_mat_c[[i]]$counts / sum ( hist_mat_c[[i]]$counts)
-          hist_nonmat_c[[i]]$counts <-  hist_nonmat_c[[i]]$counts / sum ( hist_nonmat_c[[i]]$counts)
-        }
-        
-        if (i == 31){
-          
-          interval_dur <- 10 #duration
-          min <- min ( round_any (min(Diff_mat_train_c[[i]]) , interval_dur, f= floor)  , 
-                       round_any (min(Diff_nonmat_train_c[[i]]) , interval_dur, f= floor) )
-          max <- max (round_any (max(Diff_mat_train_c[[i]]) , interval_dur, f= ceiling) ,
-                      round_any (max(Diff_nonmat_train_c[[i]]) , interval_dur, f= ceiling) )
-#           hist_mat[[i]] <- hist(Diff_mat_train_c[[i]], freq=FALSE, breaks=seq(min ,max, by=interval_dur), plot=FALSE)
-#           hist_nonmat[[i]] <- hist(Diff_nonmat_train_c[[i]], freq=FALSE, breaks=seq(min,max,by=interval_dur), plot=FALSE)
-#           histdensity[[i]] <- cbind(hist_mat[[i]]$mids - interval_dur/2, hist_mat[[i]]$mids   + interval_dur/2, 
-#                                     hist_mat[[i]]$density,  hist_nonmat[[i]]$density)  
-          hist_mat_c[[i]] <- hist(Diff_mat_train_c[[i]],  breaks=seq(min ,max, by=interval_dur), plot=FALSE)
-          hist_nonmat_c[[i]] <- hist(Diff_nonmat_train_c[[i]],  breaks=seq(min,max,by=interval_dur), plot=FALSE)
-          histdensity_c[[i]] <- cbind(hist_mat_c[[i]]$mids - interval_dur/2, hist_mat_c[[i]]$mids   + interval_dur/2, 
-                                    hist_mat_c[[i]]$counts / sum( hist_mat_c[[i]]$counts  ),  
-                                    hist_nonmat_c[[i]]$counts / sum( hist_nonmat_c[[i]]$counts ))  
-          
-          hist_mat_c[[i]]$counts <-  hist_mat_c[[i]]$counts / sum ( hist_mat_c[[i]]$counts)
-          hist_nonmat_c[[i]]$counts <-  hist_nonmat_c[[i]]$counts / sum ( hist_nonmat_c[[i]]$counts)
-        }
-        
-        if ( i %in% c (8,9,10, 11, 22,23,24,25,26,27,28,29)  ){
+ 
+        else if ( i %in% c(8,9,10, 11, 22,23,24,25,26,27,28,29)  ){
           hist_mat_c[[i]] <- NA
           hist_nonmat_c[[i]] <- NA
           histdensity_c[[i]] <- NA
         }
      
-  } 
+}
+
+
+# signature
+
+for ( i in 1: 50 )
+{
+  if (sum ( Diff_sig_mat_train[[i]]) != 0) {
+    
+    kernel_sig_mat_c[[i]] <- density(Diff_sig_mat_train[[i]], kernel = "epanechnikov")   
+    kernel_sig_nonmat_c[[i]] <- density(Diff_sig_nonmat_train[[i]], kernel = "epanechnikov")
+  }
+  
+  else
+  {
+    kernel_sig_mat_c$x[[i]] <- NA
+    kernel_sig_mat_c$y[[i]] <- NA
+    kernel_sig_nonmat_c$x[[i]] <-  NA
+    kernel_sig_nonmat_c$y[[i]] <-  NA
+  }
 }
 
 
 
-# plot v1
-k <- 1
+sigweight  <- rep(0.01, 50)
+
+min_sig <- vector()
+max_sig <- vector()
+
+hist_mat_c_sig <- list()
+hist_nonmat_c_sig <- list()
+histdensity_c_sig <- list()
+multiplier_hist_mat_c_sig <- list()
+density_hist_mat_c_sig <- list()
+density_smooth_hist_mat_c_sig <- list()
+
+multiplier_hist_nonmat_c_sig <- list()
+density_hist_nonmat_c_sig <- list()
+density_smooth_hist_nonmat_c_sig <- list()
+
+
+diffseq_mat_c_sig <- list ()   
+normal_mat_c_sig <- list()
+diffseq_nonmat_c_sig <- list ()   
+normal_nonmat_c_sig <- list()
+
+for ( i in 1 : length(sigweight )  ){
+  
+ 
+    min_sig[i] <- round_any (min( Diff_sig_mat_train[[i]] ,  Diff_sig_nonmat_train[[i]] ) , sigweight[i], f= floor)
+    max_sig[i] <- round_any (max( Diff_sig_mat_train[[i]] ,  Diff_sig_nonmat_train[[i]] ) , sigweight[i], f= ceiling)
+    
+    # non parametric
+    hist_mat_c_sig[[i]] <- hist(Diff_sig_mat_train[[i]],  breaks=seq(min_sig[i] ,max_sig[i], by=sigweight[i]), plot=FALSE)
+    multiplier_hist_mat_c_sig[[i]] <- ( hist_mat_c_sig[[i]]$counts / sum( hist_mat_c_sig[[i]]$counts)) / hist_mat_c_sig[[i]]$density
+    density_hist_mat_c_sig[[i]] <- density (Diff_sig_mat_train[[i]]) 
+    density_hist_mat_c_sig[[i]]$y <- density_hist_mat_c_sig[[i]]$y *
+      multiplier_hist_mat_c_sig[[i]][ which.min(is.na( multiplier_hist_mat_c_sig[[i]] ) ) ]
+    hist_mat_c_sig[[i]]$density <-  hist_mat_c_sig[[i]]$counts / sum(hist_mat_c_sig[[i]]$counts )   
+    density_smooth_hist_mat_c_sig[[i]] <-  smooth.spline(density_hist_mat_c_sig[[i]]$x, density_hist_mat_c_sig[[i]]$y,spar=0.8)
+    density_smooth_hist_mat_c_sig[[i]]$y [density_smooth_hist_mat_c_sig[[i]]$y < 0] <- 0
+    
+    
+    hist_nonmat_c_sig[[i]] <- hist(Diff_sig_nonmat_train[[i]],  breaks=seq(min_sig[i],max_sig[i],by=sigweight[i]) ,  plot=FALSE)
+    multiplier_hist_nonmat_c_sig[[i]] <- ( hist_nonmat_c_sig[[i]]$counts / sum( hist_nonmat_c_sig[[i]]$counts)) / hist_nonmat_c_sig[[i]]$density
+    density_hist_nonmat_c_sig[[i]] <- density (Diff_sig_nonmat_train[[i]]) 
+    density_hist_nonmat_c_sig[[i]]$y <- density_hist_nonmat_c_sig[[i]]$y *
+      multiplier_hist_nonmat_c_sig[[i]][ which.min(is.na( multiplier_hist_nonmat_c_sig[[i]] ) ) ]
+    hist_nonmat_c_sig[[i]]$density <-  hist_nonmat_c_sig[[i]]$counts / sum(hist_nonmat_c_sig[[i]]$counts )
+    density_smooth_hist_nonmat_c_sig[[i]] <-  smooth.spline(density_hist_nonmat_c_sig[[i]]$x, density_hist_nonmat_c_sig[[i]]$y,spar=0.8)
+    density_smooth_hist_nonmat_c_sig[[i]]$y [density_smooth_hist_nonmat_c_sig[[i]]$y < 0] <- 0 
+    
+    # normal distribution
+    diffseq_mat_c_sig[[i]] <- seq(min (Diff_sig_nonmat_train[[i]] , Diff_sig_mat_train[[i]] ) , max( Diff_sig_nonmat_train[[i]], Diff_sig_mat_train[[i]]) , length.out=100)  
+    diffseq_nonmat_c_sig[[i]] <- seq(min (Diff_sig_nonmat_train[[i]], Diff_sig_mat_train[[i]] ) , max( Diff_sig_nonmat_train[[i]], Diff_sig_mat_train[[i]]) , length.out=100)  
+    normal_mat_c_sig[[i]] <- dnorm (x=diffseq_mat_c_sig[[i]] , mean= mean (Diff_sig_mat_train[[i]]) , sd = sd(Diff_sig_mat_train[[i]]) )
+    normal_nonmat_c_sig[[i]] <- dnorm (x=diffseq_nonmat_c_sig[[i]] , mean= mean (Diff_sig_nonmat_train[[i]]) , sd = sd(Diff_sig_nonmat_train[[i]]) )
+    
+    
+    #histogram
+    histdensity_c_sig[[i]] <- cbind(hist_mat_c_sig[[i]]$mids - sigweight[i]/2, hist_mat_c_sig[[i]]$mids + sigweight[i]/2 , 
+                                hist_mat_c_sig[[i]]$counts / sum(hist_mat_c_sig[[i]]$counts) ,  
+                                hist_nonmat_c_sig[[i]]$counts / sum(hist_nonmat_c_sig[[i]]$counts) ) 
+    
+    hist_mat_c_sig[[i]]$counts <-  hist_mat_c_sig[[i]]$counts / sum ( hist_mat_c_sig[[i]]$counts)
+    hist_nonmat_c_sig[[i]]$counts <-  hist_nonmat_c_sig[[i]]$counts / sum ( hist_nonmat_c_sig[[i]]$counts)
+    
+
+}
+
+
+#sample plot
+# library(ggplot2)
+i=31
+plot(range(min[i], max[i]), range(density_hist_mat_c[[i]]$y))
+lines(density_hist_mat_c[[i]] )
+lines(density_smooth_hist_mat_c[[i]], col="blue")
+plot(density_smooth_hist_mat_c[[i]]$x, density_smooth_hist_mat_c[[i]]$y)
+plot(density_smooth_hist_mat_c[[i]]$data$x, density_smooth_hist_mat_c[[i]]$data$y)
+
+plot(range(min[i], max[i]), range(density_hist_mat_c[[i]]$y))
+lines(density_hist_nonmat_c[[i]] )
+lines(density_smooth_hist_nonmat_c[[i]], col="blue")
+plot(density_smooth_hist_nonmat_c[[i]]$x, density_smooth_hist_nonmat_c[[i]]$y)
+plot(density_smooth_hist_nonmat_c[[i]]$data$x, density_smooth_hist_nonmat_c[[i]]$data$y)
+
+
+
+#plot a = non-parametric but smoothing data
+a_mat <- data.frame(density_smooth_hist_mat_c[[i]]$x , density_smooth_hist_mat_c[[i]]$y )
+a_nonmat <- data.frame(density_smooth_hist_nonmat_c[[i]]$x, density_smooth_hist_nonmat_c[[i]]$y)
+ggplot() +
+  geom_line(data=a_mat, aes(x=a_mat[,1] , y=a_mat[,2]) , color='green') + 
+  geom_line(data=a_nonmat, aes(x=a_nonmat[,1] , y=a_nonmat[,2]) , color='red') 
+
+# plot( diffseq_mat_c[[i]] ,
+#       normal_mat_c[[i]]  * multiplier_hist_mat_c[[i]][ which.min(is.na( multiplier_hist_mat_c[[i]] ) ) ] , 
+#       xlim=range(min[i] , max[i]), col="red") 
+# 
+# lines( diffseq_nonmat_c[[i]] ,
+#       normal_nonmat_c[[i]]  * multiplier_hist_nonmat_c[[i]][ which.min(is.na( multiplier_hist_nonmat_c[[i]] ) ) ] ,
+#       xlim=range(min[i] , max[i]), col="green" ) 
+
+#plot b = parametric , Gaussian fitting data
+b_mat <- data.frame(diffseq_mat_c[[i]], 
+                    normal_mat_c[[i]]  * multiplier_hist_mat_c[[i]][ which.min(is.na( multiplier_hist_mat_c[[i]] ) ) ]  )
+b_nonmat <- data.frame( diffseq_nonmat_c[[i]], 
+                       normal_nonmat_c[[i]]  * multiplier_hist_nonmat_c[[i]][ which.min(is.na( multiplier_hist_nonmat_c[[i]] ) ) ]  )
+ggplot() + 
+  geom_line(data=b_mat, aes ( x=b_mat[,1] , y=b_mat[,2]  ) , color='green') + 
+  geom_line(data=b_nonmat, aes ( x=b_nonmat[,1] , y=b_nonmat[,2]  ) , color='red')
+
+
+ggplot() +
+  geom_line(data=a_mat, aes ( x=a_mat[,1] , y=a_mat[,2]  ) , color='blue') + 
+  geom_line(data=b_mat, aes ( x=b_mat[,1] , y=b_mat[,2]  ) , color='black') 
+  
+head(b_mat)
+
+# plot histogram
+k <- 31
 plot( hist_nonmat_c[[k]], col = "red", 
-      xlim = c(min ( round_any (min(Diff_mat_train_c[[k]]) , interval_utc, f= floor)  , 
-                     round_any (min(Diff_nonmat_train_c[[k]]) , interval_utc, f= floor) ) ,
-               max ( round_any (max(Diff_mat_train_c[[k]]) , interval_utc, f= ceiling) ,
-                     round_any (max(Diff_nonmat_train_c[[k]]) , interval_utc, f= ceiling) )),
+      xlim = c(min ( round_any (min(Diff_mat_train_c[[k]]) , interval[k], f= floor)  , 
+                     round_any (min(Diff_nonmat_train_c[[k]]) , interval[k], f= floor) ) ,
+               max ( round_any (max(Diff_mat_train_c[[k]]) , interval[k], f= ceiling) ,
+                     round_any (max(Diff_nonmat_train_c[[k]]) , interval[k], f= ceiling) )),
       ylim= c(0,max(hist_mat_c[[k]]$count )),
       freq=TRUE,
       xlab = 'GVW Difference', ylab = 'Density', main = 'Histogram of GVW Difference - Nonnormalized data')
 
 plot( hist_mat_c[[k]], col = rgb(0,1,0,0.5), freq=TRUE, add=T)
 
-hist_nonmat_c[[k]]$density <- hist_nonmat_c[[k]]$counts
-hist_mat_c[[k]]$density <- hist_mat_c[[k]]$counts
+## sig plot
+
+#sig
+plot(range(min_sig[i], max_sig[i]), range(density_hist_mat_c_sig[[i]]$y))
+lines(density_hist_mat_c_sig[[i]] )
+lines(density_smooth_hist_mat_c_sig[[i]], col="blue")
+plot(density_smooth_hist_mat_c_sig[[i]]$x, density_smooth_hist_mat_c_sig[[i]]$y)
+plot(density_smooth_hist_mat_c_sig[[i]]$data$x, density_smooth_hist_mat_c_sig[[i]]$data$y)
+
+plot(range(min_sig[i], max_sig[i]), range(density_hist_mat_c_sig[[i]]$y))
+lines(density_hist_nonmat_c_sig[[i]] )
+lines(density_smooth_hist_nonmat_c_sig[[i]], col="blue")
+plot(density_smooth_hist_nonmat_c_sig[[i]]$x, density_smooth_hist_nonmat_c_sig[[i]]$y)
+plot(density_smooth_hist_nonmat_c_sig[[i]]$data$x, density_smooth_hist_nonmat_c_sig[[i]]$data$y)
 
 
-lines(hist_mat_c[[k]]$density)
+#plot a = non-parametric but smoothing data
+i=25
+a_mat_sig <- data.frame(density_smooth_hist_mat_c_sig[[i]]$x , density_smooth_hist_mat_c_sig[[i]]$y )
+a_nonmat_sig <- data.frame(density_smooth_hist_nonmat_c_sig[[i]]$x, density_smooth_hist_nonmat_c_sig[[i]]$y)
+ggplot() +
+  geom_line(data=a_mat_sig, aes(x=a_mat_sig[,1] , y=a_mat_sig[,2]) , color='green') + 
+  geom_line(data=a_nonmat_sig, aes(x=a_nonmat_sig[,1] , y=a_nonmat_sig[,2]) , color='red') 
+
+
+#plot b = parametric , Gaussian fitting data
+b_mat_sig <- data.frame(diffseq_mat_c_sig[[i]], 
+                    normal_mat_c_sig[[i]]  * multiplier_hist_mat_c_sig[[i]][ which.min(is.na( multiplier_hist_mat_c_sig[[i]] ) ) ]  )
+b_nonmat_sig <- data.frame( diffseq_nonmat_c_sig[[i]], 
+                        normal_nonmat_c_sig[[i]]  * multiplier_hist_nonmat_c_sig[[i]][ which.min(is.na( multiplier_hist_nonmat_c_sig[[i]] ) ) ]  )
+ggplot() + 
+  geom_line(data=b_mat_sig, aes ( x=b_mat_sig[,1] , y=b_mat_sig[,2]  ) , color='green') + 
+  geom_line(data=b_nonmat_sig, aes ( x=b_nonmat_sig[,1] , y=b_nonmat_sig[,2]  ) , color='red')
+
+
+ggplot() +
+  geom_line(data=a_mat_sig, aes ( x=a_mat_sig[,1] , y=a_mat_sig[,2]  ) , color='blue') + 
+  geom_line(data=b_mat_sig, aes ( x=b_mat_sig[,1] , y=b_mat_sig[,2]  ) , color='black') 
+
+
+# plot histogram
+k <- 35
+plot( hist_nonmat_c_sig[[k]], col = "red", 
+      xlim = c(min ( round_any (min(Diff_sig_mat_train[[k]]) , sigweight[k], f= floor)  , 
+                     round_any (min(Diff_sig_nonmat_train[[k]]) , sigweight[k], f= floor) ) ,
+               max ( round_any (max(Diff_sig_mat_train[[k]]) , sigweight[k], f= ceiling) ,
+                     round_any (max(Diff_sig_nonmat_train[[k]]) , sigweight[k], f= ceiling) )),
+      ylim= c(0,max(hist_mat_c_sig[[k]]$count )),
+      freq=TRUE,
+      xlab = 'sigfeature diff', ylab = 'Density', main = 'Histogram of Sig Feature Difference')
+
+plot( hist_mat_c_sig[[k]], col = rgb(0,1,0,0.5), freq=TRUE, add=T)
+
 # http://stackoverflow.com/questions/20078107/overlay-normal-curve-to-histogram-in-r
+save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Kernel_04272015")
+#############################################################################################
+# end
 
-
-myhist <- hist(Diff_mat_train_c[[3]] )
-multiplier <- (myhist$counts / sum(myhist$counts) ) / myhist$density
-mydensity <- density(Diff_mat_train_c[[3]])
-mydensity$y <- mydensity$y * multiplier[1]
-
-myhist$density <- myhist$counts  / sum(myhist$counts)
-
-plot(myhist , freq=FALSE)
-lines(mydensity)
-density_smooth <-  smooth.spline(mydensity$x, mydensity$y,spar=0.8)
-plot(density_smooth$x, density_smooth$y)
-plot(density_smooth$data$x, density_smooth$data$y)
-
-# plot v2
-k <- 21
-barplot ( histdensity_c[[k]][,3],  names.arg = histdensity_c[[k]][,1],
-          xlim = c( min (histdensity_c[[k]][,1]) , max (histdensity_c[[k]][,1] ) ),  col="red", 
-          xlab = 'GVW Difference', ylab = 'Frequency', main = 'Histogram of GVW Difference - Nonnormalized data' ) #matching
-barplot(histdensity_c[[k]][,4], col = rgb(0,1,0,0.5), add=TRUE)
-
-normalfit <- dnorm (Diff_mat_train_c[[k]] ) 
-plot ( Diff_mat_train_c[[k]] , normalfit , add=TRUE )
-lines ( Diff_mat_train_c[[k]] , normalfit )
-curve ( dnorm ( x , mean=mean ( Diff_mat_train_c[[k]] ), sd=sd( Diff_mat_train_c[[k]]) )  ,               
-        min ( Diff_mat_train_c[[k]] , Diff_nonmat_train_c[[k]]) ,
-        max ( Diff_mat_train_c[[k]] , Diff_nonmat_train_c[[k]]) ,
-        col = "blue", lwd = 2 , add=TRUE ) 
-
-curve ( dnorm ( x , mean=mean ( Diff_mat_train_c[[k]] ), sd=sd( Diff_mat_train_c[[k]]) )  ,                     
-        col = "blue", lwd = 2 , add=TRUE , yaxt="n") 
-
-histogram (Diff_mat_train_c[[k]])
-histogram (Diff_nonmat_train_c[[k]], add= TRUE)
-
-h_mat <- hist( Diff_mat_train_c[[k]], plot=F)
-h_mat$counts <- h_mat$counts / sum (h_mat$counts)
-plot ( h_mat, col="red",
-        xlim = c(min ( round_any (min(Diff_mat_train_c[[k]]) , interval_utc, f= floor)  , 
-                       round_any (min(Diff_nonmat_train_c[[k]]) , interval_utc, f= floor) ) ,
-                 max ( round_any (max(Diff_mat_train_c[[k]]) , interval_utc, f= ceiling) ,
-                       round_any (max(Diff_nonmat_train_c[[k]]) , interval_utc, f= ceiling) )),
-        ylim= c(0,max(h_mat$counts)), freq=TRUE,
-        xlab = 'GVW Difference', ylab = 'Density', main = 'Histogram of GVW Difference - Nonnormalized data')
-
-
-h_nonmat <- hist( Diff_nonmat_train_c[[k]], plot=F)
-h_nonmat$counts <- h_nonmat$counts / sum (h_nonmat$counts)
-plot( h_nonmat, col = rgb(0,1,0,0.5), freq=FALSE, add=T)
-
-
-curve ( dnorm(x, mean=mean ( Diff_mat_train_cs[[k]] ), sd= sd( Diff_mat_train_cs[[k]]) )  , 
-        col = "blue", lwd = 2 ) 
-
-curve ( dnorm ( x , mean=mean ( Diff_mat_train_c[[k]] ), sd=sd( Diff_mat_train_c[[k]]) )  ,               
-        min ( Diff_mat_train_c[[k]] , Diff_nonmat_train_c[[k]]) ,
-        max ( Diff_mat_train_c[[k]] , Diff_nonmat_train_c[[k]]) ,
-        col = "blue", lwd = 2 , add=TRUE ) 
-
-barplot ( histdensity_c[[k]][,3],  xlim = c(0, 100)), col="red",
-          xlab = 'GVW Difference', ylab = 'Frequency', main = 'Histogram of GVW Difference - Nonnormalized data' ) #matching
-barplot(histdensity_c[[k]][,4], col = rgb(0,1,0,0.5), add=TRUE)
-# if want to make gamma dist.
+# example
+# myhist <- hist(Diff_mat_train_c[[3]] )
+# multiplier <- (myhist$counts / sum(myhist$counts) ) / myhist$density
+# mydensity <- density(Diff_mat_train_c[[3]])
+# mydensity$y <- mydensity$y * multiplier[1]
+# 
+# myhist$density <- myhist$counts  / sum(myhist$counts)
+# 
+# plot(myhist , freq=FALSE)
+# lines(mydensity)
+# density_smooth <-  smooth.spline(mydensity$x, mydensity$y,spar=0.8)
+# plot(density_smooth$x, density_smooth$y)
+# plot(density_smooth$data$x, density_smooth$data$y)
+# 
+# # plot v2
+# k <- 21
+# barplot ( histdensity_c[[k]][,3],  names.arg = histdensity_c[[k]][,1],
+#           xlim = c( min (histdensity_c[[k]][,1]) , max (histdensity_c[[k]][,1] ) ),  col="red", 
+#           xlab = 'GVW Difference', ylab = 'Frequency', main = 'Histogram of GVW Difference - Nonnormalized data' ) #matching
+# barplot(histdensity_c[[k]][,4], col = rgb(0,1,0,0.5), add=TRUE)
+# 
+# normalfit <- dnorm (Diff_mat_train_c[[k]] ) 
+# plot ( Diff_mat_train_c[[k]] , normalfit , add=TRUE )
+# lines ( Diff_mat_train_c[[k]] , normalfit )
+# curve ( dnorm ( x , mean=mean ( Diff_mat_train_c[[k]] ), sd=sd( Diff_mat_train_c[[k]]) )  ,               
+#         min ( Diff_mat_train_c[[k]] , Diff_nonmat_train_c[[k]]) ,
+#         max ( Diff_mat_train_c[[k]] , Diff_nonmat_train_c[[k]]) ,
+#         col = "blue", lwd = 2 , add=TRUE ) 
+# 
+# curve ( dnorm ( x , mean=mean ( Diff_mat_train_c[[k]] ), sd=sd( Diff_mat_train_c[[k]]) )  ,                     
+#         col = "blue", lwd = 2 , add=TRUE , yaxt="n") 
+# 
+# histogram (Diff_mat_train_c[[k]])
+# histogram (Diff_nonmat_train_c[[k]], add= TRUE)
+# 
+# h_mat <- hist( Diff_mat_train_c[[k]], plot=F)
+# h_mat$counts <- h_mat$counts / sum (h_mat$counts)
+# plot ( h_mat, col="red",
+#         xlim = c(min ( round_any (min(Diff_mat_train_c[[k]]) , interval_utc, f= floor)  , 
+#                        round_any (min(Diff_nonmat_train_c[[k]]) , interval_utc, f= floor) ) ,
+#                  max ( round_any (max(Diff_mat_train_c[[k]]) , interval_utc, f= ceiling) ,
+#                        round_any (max(Diff_nonmat_train_c[[k]]) , interval_utc, f= ceiling) )),
+#         ylim= c(0,max(h_mat$counts)), freq=TRUE,
+#         xlab = 'GVW Difference', ylab = 'Density', main = 'Histogram of GVW Difference - Nonnormalized data')
+# 
+# 
+# h_nonmat <- hist( Diff_nonmat_train_c[[k]], plot=F)
+# h_nonmat$counts <- h_nonmat$counts / sum (h_nonmat$counts)
+# plot( h_nonmat, col = rgb(0,1,0,0.5), freq=FALSE, add=T)
+# 
+# 
+# curve ( dnorm(x, mean=mean ( Diff_mat_train_cs[[k]] ), sd= sd( Diff_mat_train_cs[[k]]) )  , 
+#         col = "blue", lwd = 2 ) 
+# 
+# curve ( dnorm ( x , mean=mean ( Diff_mat_train_c[[k]] ), sd=sd( Diff_mat_train_c[[k]]) )  ,               
+#         min ( Diff_mat_train_c[[k]] , Diff_nonmat_train_c[[k]]) ,
+#         max ( Diff_mat_train_c[[k]] , Diff_nonmat_train_c[[k]]) ,
+#         col = "blue", lwd = 2 , add=TRUE ) 
+# 
+# barplot ( histdensity_c[[k]][,3],  xlim = c(0, 100)), col="red",
+#           xlab = 'GVW Difference', ylab = 'Frequency', main = 'Histogram of GVW Difference - Nonnormalized data' ) #matching
+# barplot(histdensity_c[[k]][,4], col = rgb(0,1,0,0.5), add=TRUE)
+# # if want to make gamma dist.
 # curve(dgamma(x, shape = mean(Diff_mat_train_c[[3]])^2/var(Diff_mat_train_c[[3]]),
 #              scale = var(Diff_mat_train_c[[3]])/mean (Diff_mat_train_c[[3]]) ) , add=T )
 
@@ -1001,6 +1187,7 @@ for ( i in 1 : length( Diff_mat_train_n)  ){
     
   } 
 }
+
 
 
 # plot v1
@@ -1403,7 +1590,7 @@ for ( i in 1: length(Diff_mat_train_n) ){
 }
 
 
-save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Kernel_02112015")
+
 ## end
 
 op <- options(digits = 3)

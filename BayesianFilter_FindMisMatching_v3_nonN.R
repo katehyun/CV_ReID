@@ -1,11 +1,15 @@
 # find mismatching
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Mismatching_04272015")
 rm(list=ls())
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Kernel_02112015")
 
-thresholdForDif <- 1.5
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Kernel_02112015")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Kernel_04172015")
+library(stringr)
+
+thresholdForDif <- 2.5
 # buf <- 0.00000001 # at least for version 1
 buf <- 0.001 # at least for version 2
-weightSig <- 100
+weight <- c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,10)
 
 ## Extract attributes (train)
 Upcandidates<- list()
@@ -29,7 +33,7 @@ colnames(Downheader_new)[14:44] <- c( "class", "numax", "utc", "length", "gvw",
 
 Downtarget_attributes_all <- cbind(Downheader_new[,13:44],Downheader_new[,7] )
 
-library(stringr)
+
 Downtarget_attributes_train <- subset( Downtarget_attributes_all[,], 
                                        as.numeric(str_sub (Downtarget_attributes_all[,4],-13,-1) ) >  utcbd  )
 Downtarget_attributes_test <- subset( Downtarget_attributes_all[,], 
@@ -58,6 +62,9 @@ Attribute_diff_nonnormal_train <- list()
 Attribute_difftemp_test <- list()
 Attribute_diff_nonnormal_test <- list()
 
+Upcandidatesindex_train <- list()
+Upcandidates_train <- list()
+
 
 for (i in 1: length(Upsiglist_train)) {  
   
@@ -75,9 +82,9 @@ for (i in 1: length(Upsiglist_train)) {
      )
   }
 
-  for (j in 1: length(Upcandidatesindex_train[[i]])) {  
+  for (j in 1: length(Upcandidatesindex_train[[i]]) ) {  
     
-    if (Upcandidates_attribute_train[[i]] != 999 ) {
+    if ( Upcandidates_attribute_train[[i]][[1]][1] != 999 ) {
     Attribute_difftemp_train[[j]] <-  
      abs (as.numeric( (unlist (Upcandidates_attribute_train[[i]][j,4:33] )  ) ) - 
        as.numeric(Downtarget_attributes_train[i,4:33] )  )     
@@ -87,7 +94,7 @@ for (i in 1: length(Upsiglist_train)) {
       Attribute_difftemp_train[[j]] <- NA      
     }
     
-    Attribute_difftemp_train[[j]][31] <- a_magdif_train[[i]][[j]]  
+    Attribute_difftemp_train[[j]][31] <- a_magdif_train[[i]][[ Upcandidatesindex_train[[i]][j] ]]  
    
   }
   
@@ -102,44 +109,46 @@ for (i in 1: length(Upsiglist_train)) {
 
 
 # test
+
+
 for (i in 1: length(Upsiglist_test)) {  
+  
+
   
   Upcandidatesindex_test[[i]] <- which(a_magdif_test[[i]] < thresholdForDif * min(a_magdif_test[[i]]) )
   Upcandidates_test[[i]] <- subset (Upsiglist_test[[i]], a_magdif_test[[i]] < thresholdForDif * min(a_magdif_test[[i]]) )
   
-  
-  # train 
+  # test 
   if ( any (is.na (Upcandidates_test[[i]] ) ) )
     Upcandidates_attribute_test[[i]] <- 999
   
   else {
     Upcandidates_attribute_test[[i]] <- cbind(      
-      Upheader_new_test[ match( as.numeric(Upcandidates_test[[i]]), as.numeric(Upheader_new_test[,13])),13:44] ,
+      Upheader_new_test[ match( as.numeric(Upcandidates_test[[i]]), as.numeric(Upheader_new_test[,13])),13:44] , 
       Upheader_new_test[ match( as.numeric(Upcandidates_test[[i]]), as.numeric(Upheader_new_test[,13])),7] 
     )
   }
   
-  
-  
-  
-  for (j in 1: length(Upcandidatesindex_test[[i]])) {  
+  for (j in 1: length(Upcandidatesindex_test[[i]]) ) {  
     
-    if (Upcandidates_attribute_test[[i]] != 999 ) {
+    if ( Upcandidates_attribute_test[[i]][[1]][1] != 999 ) {
       Attribute_difftemp_test[[j]] <-  
         abs (as.numeric( (unlist (Upcandidates_attribute_test[[i]][j,4:33] )  ) ) - 
                as.numeric(Downtarget_attributes_test[i,4:33] )  )     
     }
     
     else {
-      Attribute_difftemp_test[[j]] <- NA     
+      Attribute_difftemp_test[[j]] <- NA      
     }
-    Attribute_difftemp_test[[j]][31] <- a_magdif_test[[i]][[j]]  
+    
+    Attribute_difftemp_test[[j]][31] <- a_magdif_test[[i]][[ Upcandidatesindex_test[[i]][j] ]]  
     
   }
-
+  
   
   Attribute_diff_nonnormal_test[[length(Attribute_diff_nonnormal_test)+1]] <- Attribute_difftemp_test # list in the list
   Attribute_difftemp_test <- list()
+  
 }
 
 
@@ -168,14 +177,19 @@ Target_baseanalysis_Jan0910_table_test  <- subset(Target_baseanalysis_Jan0910_ta
 
 m <- 0
 class9idxprob <- c(1:7, 13:21, 30:31)
+
+
 Downtarget_attributes_train_Class9 <- subset ( Downtarget_attributes_train, Downtarget_attributes_train [,2] == 9  )
+
+
 
 for (i in 1:length(Upcandidates_train)){
 
   
   if ( as.numeric ( Downtarget_attributes_train [i,2] ) == 9 ) {  # Only Class 9
     
-   if ( is.na ( Attribute_diff_nonnormal_train[[i]][1] )  ) {
+   if ( is.na ( Attribute_diff_nonnormal_train[[i]][[1]][1] )  ) {
+     jointprob_train[[length(jointprob_train) +1]] <- 999
      idxjointprob_train[i] <- 999
      UpFinalcandidates_train[i] <- 999
    }
@@ -184,30 +198,38 @@ for (i in 1:length(Upcandidates_train)){
             
       for (j in 1: length(  Upcandidatesindex_train[[i]]  )  ) {
                            
-          for (m in 1: 30) {
+#           for (m in 1: 31) {
+        for (m in 1: 31) {
             
-              # option 1 - non parametric
-              if ( m %in% class9idxprob) {
-               jointprobtemp_train[j,m] <- as.numeric ( (approx( kernel_mat[[m]]$x, kernel_mat[[m]]$y,
-                                                                 Attribute_diff_nonnormal_train[[i]][[j]][m]) )$y )
-              }
-              
-              # option 2 - parametric
+#               # option 1 - non parametric 
 #               if ( m %in% class9idxprob) {
-#                 jointprobtemp_train[j,m] <- as.numeric ( (approx( kernel_para_mat[[m]]$x, kernel_para_mat[[m]]$y,
-#                                                                   Attribute_diff_train_mat[[i]][[j]][m]) )$y )
+#                jointprobtemp_train[j,m] <- as.numeric ( (approx( kernel_mat_c[[m]]$x, kernel_mat_c[[m]]$y,
+#                                                                  Attribute_diff_nonnormal_train[[i]][[j]][m]) )$y )
 #               }
               
-#               # option 3 - histogram
+#               another option 1 - non parametric but smoothing
+#               if ( m %in% class9idxprob) {
+#                 jointprobtemp_train[j,m] <- as.numeric ( (approx( density_smooth_hist_mat_c[[m]]$x , density_smooth_hist_mat_c[[m]]$y,
+#                                                                   Attribute_diff_nonnormal_train[[i]][[j]][m]) )$y )
+#               }
+              
+#               option 2 - parametric
+              if ( m %in% class9idxprob) {
+                jointprobtemp_train[j,m] <- as.numeric ( (approx( diffseq_mat_c[[m]],  
+                                            normal_mat_c[[m]]  * multiplier_hist_mat_c[[m]][ which.min(is.na( multiplier_hist_mat_c[[m]] ) ) ] ,
+                                            Attribute_diff_nonnormal_train[[i]][[j]][m]) )$y )
+              }
+#               
+#               option 3 - histogram
 #               if ( m %in% class9idxprob  ) {
 #                 
-#                 if (  length ( which( histdensity[[m]][,1] < Attribute_diff_nonnormal_train[[i]][[j]][m] & 
-#                       Attribute_diff_nonnormal_train[[i]][[j]][m] < histdensity[[m]][,2])) > 0 )
+#                 if (  length ( which( histdensity_c[[m]][,1] < Attribute_diff_nonnormal_train[[i]][[j]][m] & 
+#                       Attribute_diff_nonnormal_train[[i]][[j]][m] < histdensity_c[[m]][,2])) > 0 )
 #                   
 #                 {
 #                   jointprobtemp_train[j,m] <-
-#                     histdensity[[m]][ which (histdensity[[m]][,1] < Attribute_diff_nonnormal_train[[i]][[j]][m] & 
-#                                             Attribute_diff_nonnormal_train[[i]][[j]][m] < histdensity[[m]][,2]),3]  
+#                     histdensity_c[[m]][ which (histdensity_c[[m]][,1] < Attribute_diff_nonnormal_train[[i]][[j]][m] & 
+#                                             Attribute_diff_nonnormal_train[[i]][[j]][m] < histdensity_c[[m]][,2]),3]  
 #                 }
 #                
 # 
@@ -217,9 +239,9 @@ for (i in 1:length(Upcandidates_train)){
 #                 }
 #                                                     
 #               }
-                
-              
-              
+#               # option 3 end 
+#               
+#               
               else {
                 jointprobtemp_train[j,m] <- 99999
               }
@@ -227,10 +249,16 @@ for (i in 1:length(Upcandidates_train)){
           }
 
           
-          jointprobtemp_train[j,31] <- 1 /  Attribute_diff_nonnormal_train[[i]][[j]][31]
+
                        
           jointprobtemp_train [is.na(jointprobtemp_train )] <- buf 
           jointprobtemp_train [jointprobtemp_train == 0] <- buf 
+
+#           jointprobtemp_train[j,31] <- 1 /  Attribute_diff_nonnormal_train[[i]][[j]][31]
+
+
+
+
           
 #           # option 1
 #            jointprobtemp_train[j,32] <-  jointprobtemp_train[j,1] * jointprobtemp_train[j,2] * jointprobtemp_train[j,3]  * 
@@ -245,13 +273,24 @@ for (i in 1:length(Upcandidates_train)){
 
           # option 2
          
-        jointprobtemp_train[j,32] <-  log10(jointprobtemp_train[j,1]) +  log10(jointprobtemp_train[j,2]) +
-          log10(jointprobtemp_train[j,3])  + log10(jointprobtemp_train[j,4]) + log10(jointprobtemp_train[j,5])
-          log10(jointprobtemp_train[j,6])  + log10(jointprobtemp_train[j,7]) + 
-          log10(jointprobtemp_train[j,14]) + log10(jointprobtemp_train[j,15]) + log10(jointprobtemp_train[j,16]) +
-          log10(jointprobtemp_train[j,17]) + log10(jointprobtemp_train[j,18]) + log10(jointprobtemp_train[j,19]) + 
-          log10(jointprobtemp_train[j,20]) + log10(jointprobtemp_train[j,30]) +
-          (log10(jointprobtemp_train[j,31])  * weightSig)
+        jointprobtemp_train[j,32] <-   log10(jointprobtemp_train[j,1]) * weight[1] +  
+                                       log10(jointprobtemp_train[j,2]) * weight[2] +
+                                       log10(jointprobtemp_train[j,3]) * weight[3] +
+                                       log10(jointprobtemp_train[j,4]) * weight[4] +
+                                       log10(jointprobtemp_train[j,5]) * weight[5] +
+                                       log10(jointprobtemp_train[j,6]) * weight[6] +
+                                       log10(jointprobtemp_train[j,7]) * weight[7] +
+                                       log10(jointprobtemp_train[j,13]) * weight[13] +
+                                       log10(jointprobtemp_train[j,14]) * weight[14] +
+                                       log10(jointprobtemp_train[j,15]) * weight[15] +
+                                       log10(jointprobtemp_train[j,16]) * weight[16] +
+                                       log10(jointprobtemp_train[j,17]) * weight[17] +
+                                       log10(jointprobtemp_train[j,18]) * weight[18] +
+                                       log10(jointprobtemp_train[j,19]) * weight[19] +
+                                       log10(jointprobtemp_train[j,20]) * weight[20] +
+                                       log10(jointprobtemp_train[j,21]) * weight[21] +
+                                       log10(jointprobtemp_train[j,30]) * weight[30] +
+                                       log10(jointprobtemp_train[j,31]) * weight[31] 
 
           jointprobtemp_train[j,33] <-  Upcandidates_train[[i]][j]   
          
@@ -262,7 +301,7 @@ for (i in 1:length(Upcandidates_train)){
     jointprobtemp_train <- data.frame()
    
 
-    idxjointprob_train[i] <- which.max(unlist (  jointprob_train[[length(jointprob_train)]][32]) )  
+    idxjointprob_train[i] <- which.max(unlist ( jointprob_train[[length(jointprob_train)]][32] ) )  
     UpFinalcandidates_train[i] <- Upsiglist_train[[i]][ Upcandidatesindex_train[[i]][idxjointprob_train[i]] ]  
 
    } 
@@ -286,11 +325,12 @@ for (i in 1:length(Upcandidates_train)){
 Downtarget_attributes_test_Class9 <- subset ( Downtarget_attributes_test, Downtarget_attributes_test [,2] == 9  )
 
 for (i in 1:length(Upcandidates_test)){
-
+  
   
   if ( as.numeric ( Downtarget_attributes_test [i,2] ) == 9 ) {  # Only Class 9
     
-    if ( is.na ( Attribute_diff_nonnormal_test[[i]][1] )  ) {
+    if ( is.na ( Attribute_diff_nonnormal_test[[i]][[1]][1] )  ) {
+      jointprob_test[[length(jointprob_test) +1]] <- 999
       idxjointprob_test[i] <- 999
       UpFinalcandidates_test[i] <- 999
     }
@@ -299,39 +339,50 @@ for (i in 1:length(Upcandidates_test)){
       
       for (j in 1: length(  Upcandidatesindex_test[[i]]  )  ) {
         
+#         for (m in 1: 31) {
         for (m in 1: 31) {
           
-                        # option 1 - non parametric
-          if ( m %in% class9idxprob) {
-              jointprobtemp_test[j,m] <- as.numeric ( (approx( kernel_mat[[m]]$x, kernel_mat[[m]]$y,
-                                                               Attribute_diff_nonnormal_test[[i]][[j]][m]) )$y )
-              }
+#           # option 1 - non parametric 
+#                         if ( m %in% class9idxprob) {
+#                          jointprobtemp_test[j,m] <- as.numeric ( (approx( kernel_mat_c[[m]]$x, kernel_mat_c[[m]]$y,
+#                                                                            Attribute_diff_nonnormal_test[[i]][[j]][m]) )$y )
+#                         }
           
-          # option 2 - parametric
-          #               if ( m %in% class9idxprob) {
-          #                 jointprobtemp_test[j,m] <- as.numeric ( (approx( kernel_para_mat[[m]]$x, kernel_para_mat[[m]]$y,
-          #                                                                   Attribute_diff_test_mat[[i]][[j]][m]) )$y )
-          #               }
-          
-#           # option 3 - histogram
-#           if ( m %in% class9idxprob  ) {
-#             
-#             if (  length ( which( histdensity[[m]][,1] < Attribute_diff_nonnormal_test[[i]][[j]][m] & 
-#                                     Attribute_diff_nonnormal_test[[i]][[j]][m] < histdensity[[m]][,2])) > 0 )
-#               
-#             {
-#               jointprobtemp_test[j,m] <- histdensity[[m]][ which (histdensity[[m]][,1] < Attribute_diff_nonnormal_test[[i]][[j]][m] & 
-#                                     Attribute_diff_nonnormal_test[[i]][[j]][m] < histdensity[[m]][,2]),3]  
-#               # + central tendency
-#             }
-#                  
-#             else
-#             {
-#               jointprobtemp_test[j,m] <- buf #  <- central tendency
-#             }
-            
+#           another option 1 - non parametric but smoothing
+#           if ( m %in% class9idxprob) {
+#             jointprobtemp_test[j,m] <- as.numeric ( (approx( density_smooth_hist_mat_c[[m]]$x , density_smooth_hist_mat_c[[m]]$y,
+#                                                              Attribute_diff_nonnormal_test[[i]][[j]][m]) )$y )
 #           }
+#           
+          # option 2 - parametric
+# 
+          if ( m %in% class9idxprob) {
+            jointprobtemp_test[j,m] <- as.numeric ( (approx( diffseq_mat_c[[m]],  
+                                      normal_mat_c[[m]]  * multiplier_hist_mat_c[[m]][ which.min(is.na( multiplier_hist_mat_c[[m]] ) ) ] ,
+                                      Attribute_diff_nonnormal_test[[i]][[j]][m]) )$y )
+          }
           
+#         # option 3 - histogram
+#           
+#             if ( m %in% class9idxprob  ) {
+#               
+#               if (  length ( which( histdensity_c[[m]][,1] < Attribute_diff_nonnormal_test[[i]][[j]][m] & 
+#                                       Attribute_diff_nonnormal_test[[i]][[j]][m] < histdensity_c[[m]][,2])) > 0 )
+#                 
+#               {
+#                 jointprobtemp_test[j,m] <-
+#                   histdensity_c[[m]][ which (histdensity_c[[m]][,1] < Attribute_diff_nonnormal_test[[i]][[j]][m] & 
+#                                                Attribute_diff_nonnormal_test[[i]][[j]][m] < histdensity_c[[m]][,2]),3]  
+#               }
+#               
+#               
+#               else
+#               {
+#                 jointprobtemp_test[j,m] <- buf
+#               }
+#               
+#             }
+#             # option 3 end 
           
           
           else {
@@ -339,10 +390,13 @@ for (i in 1:length(Upcandidates_test)){
           }
           
         }
+                 
+
         
-        jointprobtemp_test[j,31] <- 1 /  Attribute_diff_nonnormal_test[[i]][[j]][31]
         jointprobtemp_test [is.na(jointprobtemp_test )] <- buf 
-        jointprobtemp_test [jointprobtemp_test ==0] <- buf 
+        jointprobtemp_test [jointprobtemp_test == 0] <- buf 
+
+#         jointprobtemp_test[j,31] <- 1 /  Attribute_diff_nonnormal_test[[i]][[j]][31]
         
         #           # option 1
         #            jointprobtemp_test[j,32] <-  jointprobtemp_test[j,1] * jointprobtemp_test[j,2] * jointprobtemp_test[j,3]  * 
@@ -357,13 +411,25 @@ for (i in 1:length(Upcandidates_test)){
         
         # option 2
         
-        jointprobtemp_test[j,32] <-  log10(jointprobtemp_test[j,1]) +  log10(jointprobtemp_test[j,2]) +
-          log10(jointprobtemp_test[j,3])  + log10(jointprobtemp_test[j,4]) + log10(jointprobtemp_test[j,5])
-          log10(jointprobtemp_test[j,6])  + log10(jointprobtemp_test[j,7]) + 
-          log10(jointprobtemp_test[j,14]) + log10(jointprobtemp_test[j,15]) + log10(jointprobtemp_test[j,16]) +
-          log10(jointprobtemp_test[j,17]) + log10(jointprobtemp_test[j,18]) + log10(jointprobtemp_test[j,19]) + 
-          log10(jointprobtemp_test[j,20]) + log10(jointprobtemp_test[j,30]) +
-          (log10(jointprobtemp_test[j,31])  * weightSig)
+
+        jointprobtemp_test[j,32] <-   log10(jointprobtemp_test[j,1]) * weight[1] +  
+                                      log10(jointprobtemp_test[j,2]) * weight[2] +
+                                      log10(jointprobtemp_test[j,3]) * weight[3] +
+                                      log10(jointprobtemp_test[j,4]) * weight[4] +
+                                      log10(jointprobtemp_test[j,5]) * weight[5] +
+                                      log10(jointprobtemp_test[j,6]) * weight[6] +
+                                      log10(jointprobtemp_test[j,7]) * weight[7] +
+                                      log10(jointprobtemp_test[j,13]) * weight[13] +
+                                      log10(jointprobtemp_test[j,14]) * weight[14] +
+                                      log10(jointprobtemp_test[j,15]) * weight[15] +
+                                      log10(jointprobtemp_test[j,16]) * weight[16] +
+                                      log10(jointprobtemp_test[j,17]) * weight[17] +
+                                      log10(jointprobtemp_test[j,18]) * weight[18] +
+                                      log10(jointprobtemp_test[j,19]) * weight[19] +
+                                      log10(jointprobtemp_test[j,20]) * weight[20] +
+                                      log10(jointprobtemp_test[j,21]) * weight[21] +
+                                      log10(jointprobtemp_test[j,30]) * weight[30] +
+                                      log10(jointprobtemp_test[j,31]) * weight[31] 
         
         jointprobtemp_test[j,33] <-  Upcandidates_test[[i]][j]   
         
@@ -373,25 +439,21 @@ for (i in 1:length(Upcandidates_test)){
       jointprob_test[[length(jointprob_test)+1]] <-  jointprobtemp_test
       jointprobtemp_test <- data.frame()
       
-   
-      idxjointprob_test[i] <- which.max(unlist (  jointprob_test[[length(jointprob_test)]][32]) )  
+      
+      idxjointprob_test[i] <- which.max(unlist ( jointprob_test[[length(jointprob_test)]][32] ) )  
       UpFinalcandidates_test[i] <- Upsiglist_test[[i]][ Upcandidatesindex_test[[i]][idxjointprob_test[i]] ]  
- 
       
     } 
   }
   
-  else
+  else # class is not 9
     
   {
-    jointprob_test[[length(jointprob_test)+1]] <-  NA
-    
+    jointprob_test[[length(jointprob_test)+1]] <-  NA  
     idxjointprob_test[i] <-NA
     UpFinalcandidates_test[i] <- NA
   }
 }
-
-
 
 
 
@@ -430,8 +492,9 @@ missing_NN_train <- sum ( as.numeric (ResultMisMatching_train[,2]) == c(999))
 
 CMVeh_train <-  matching_NN_train[1]
 CVeh_train <- matching_obj_train[1]
-p <- 3
-MVeh_train <- sum(   (as.numeric( TargetTable_train[,p])) > 1000 )  
+
+p <- 4
+MVeh_train <- sum(   (as.numeric( TargetTable_train[,4])) > 1000 )  
 
 SIMR_train <- CMVeh_train / CVeh_train
 SCMR_train <- CMVeh_train / MVeh_train
@@ -463,8 +526,9 @@ missing_NN_test <- sum ( as.numeric (ResultMisMatching_test_class9 [,2]) == c(99
 
 CMVeh_test <-  matching_NN_test[1]
 CVeh_test <- matching_obj_test[1]
-p <- 3
-MVeh_test <- sum(   (as.numeric( TargetTable_test[,p])) > 1000 )  
+
+p <- 4
+MVeh_test <- sum(   (as.numeric( TargetTable_test[,4])) > 1000 )  
 
 SIMR_test <- CMVeh_test / CVeh_test
 SCMR_test <- CMVeh_test / MVeh_test
@@ -482,7 +546,7 @@ ResultMismatching_test <- data.frame( matching_obj_test[1], missing_obj_test[1],
                                      SIMR_test[[1]], SCMR_test[[1]], MMVeh_test[[1]], Veh_test[[1]], SER_test[[1]] )
 
 
-save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Mismatching_02122015")
+save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Mismatching_04272015")
 
 
 
@@ -500,10 +564,113 @@ jointprob_test [[ idxForClass9[[12]]  ]]
 ## duplicate module
 
 
-
+                                 
 duplicated(TargetTable_test[,4])
 jointprob_test[[9]]
-
+               
 
 ## end
+i=94
+comp <- matrix(0,3,33)
+comp <- Downtarget_attributes_test[match( ResultMisMatching_train[i,3] , Downtarget_attributes_train[,1] ),]
+# aa <- Downheader_new[match ( ResultMisMatching_train[i,3] , Downheader_new[,13]) , ]
+# temp <- Upheader_new[match ( ResultMisMatching_train[i,2] , Upheader_new[,13]) , ]
+temp <- Upheader_new[match ( ResultMisMatching_train[i,2] , Upheader_new[,13]) , 13:44]
+temp <- cbind(temp, Upheader_new_train[match ( ResultMisMatching_train[i,2] , Upheader_new[,13]) , 7] )
+names(temp) <- names(comp)
+comp <- rbind(comp, temp)
+comp <- rbind(comp, as.numeric (comp[1,]) -as.numeric( comp[2,]) )
+View(comp)
+
+
+comp2 <- matrix(0,3,33)
+comp2 <- Downtarget_attributes_train[match( ResultMisMatching_train[i,3] , Downtarget_attributes_train[,1] ),]
+# aa <- Downheader_new[match ( ResultMisMatching_train[i,3] , Downheader_new[,13]) , ]
+# temp <- Upheader_new[match ( ResultMisMatching_train[i,2] , Upheader_new[,13]) , ]
+temp <- Upheader_new[match ( ResultMisMatching_train[i,4] , Upheader_new[,13]) , 13:44]
+temp <- cbind(temp, Upheader_new_train[match ( ResultMisMatching_train[i,2] , Upheader_new[,13]) , 7] )
+names(temp) <- names(comp2)
+comp2 <- rbind(comp2, temp)
+comp2 <- rbind(comp2, as.numeric (comp2[1,]) -as.numeric( comp2[2,]) )
+View(comp2)
+
+
+a_magdif_train[[i]]
+Upsiglist_train[[i]]
+jointprob_train[[i]]
+
+
+time <- seq(from= 0, to= 1, by = 1/(num-1))
+insig_time <- time
+
+sigidDown=ResultMisMatching_train[i,3] 
+Down <- data.frame(time, Downobjout[match(sigidDown, Downheader_new$sigid),] )
+sigplot <- plot(Down[,1], Down[,2], main=paste("Candidate (Downstream)", sigidDown[1]))
+
+sigidUp_est= ResultMisMatching_train[i,4]
+Up_est <- data.frame(time, Upobjout[match(sigidUp_est, Upheader_new$sigid),] )
+sigplot <- plot(Up_est[,1], Up_est[,2], main=paste("Target (Upstream)", sigidUp_est[1]))
+
+sigidUp_act= ResultMisMatching_train[i,2]
+Up_act<- data.frame(time, Upobjout[match(sigidUp_act, Upheader_new$sigid),] )
+sigplot <- plot(Up_act[,1], Up_act[,2], main=paste("Target (Upstream)", sigidUp_act[1]))
+
+ggplot()+
+  geom_line(data=Down, aes ( x=Down[,1] , y=Down[,2]  ) , color='green' ) +
+  geom_line(data=Up_est , aes ( x=Up_est[,1] , y=Up_est [,2]  ) , color='red') +
+  geom_line(data=Up_act , aes ( x=Up_act[,1] , y=Up_act [,2]  ) , color='blue') 
+
+
+
+# test
+
+i=75
+comp <- matrix(0,3,33)
+comp <- Downtarget_attributes_test[match( ResultMisMatching_test[i,3] , Downtarget_attributes_test[,1] ),]
+# aa <- Downheader_new[match ( ResultMisMatching_test[i,3] , Downheader_new[,13]) , ]
+# temp <- Upheader_new[match ( ResultMisMatching_test[i,2] , Upheader_new[,13]) , ]
+temp <- Upheader_new[match ( ResultMisMatching_test[i,2] , Upheader_new[,13]) , 13:44]
+temp <- cbind(temp, Upheader_new_test[match ( ResultMisMatching_test[i,2] , Upheader_new[,13]) , 7] )
+names(temp) <- names(comp)
+comp <- rbind(comp, temp)
+comp <- rbind(comp, as.numeric (comp[1,]) -as.numeric( comp[2,]) )
+View(comp)
+
+
+comp2 <- matrix(0,3,33)
+comp2 <- Downtarget_attributes_test[match( ResultMisMatching_test[i,3] , Downtarget_attributes_test[,1] ),]
+# aa <- Downheader_new[match ( ResultMisMatching_test[i,3] , Downheader_new[,13]) , ]
+# temp <- Upheader_new[match ( ResultMisMatching_test[i,2] , Upheader_new[,13]) , ]
+temp <- Upheader_new[match ( ResultMisMatching_test[i,4] , Upheader_new[,13]) , 13:44]
+temp <- cbind(temp, Upheader_new_test[match ( ResultMisMatching_test[i,2] , Upheader_new[,13]) , 7] )
+names(temp) <- names(comp2)
+comp2 <- rbind(comp2, temp)
+comp2 <- rbind(comp2, as.numeric (comp2[1,]) -as.numeric( comp2[2,]) )
+View(comp2)
+
+
+a_magdif_test[[i]]
+Upsiglist_test[[i]]
+jointprob_test[[i]]
+
+
+time <- seq(from= 0, to= 1, by = 1/(num-1))
+insig_time <- time
+
+sigidDown=ResultMisMatching_test[i,3] 
+Down <- data.frame(time, Downobjout[match(sigidDown, Downheader_new$sigid),] )
+sigplot <- plot(Down[,1], Down[,2], main=paste("Candidate (Downstream)", sigidDown[1]))
+
+sigidUp_est= ResultMisMatching_test[i,4]
+Up_est <- data.frame(time, Upobjout[match(sigidUp_est, Upheader_new$sigid),] )
+sigplot <- plot(Up_est[,1], Up_est[,2], main=paste("Target (Upstream)", sigidUp_est[1]))
+
+sigidUp_act= ResultMisMatching_test[i,2]
+Up_act<- data.frame(time, Upobjout[match(sigidUp_act, Upheader_new$sigid),] )
+sigplot <- plot(Up_act[,1], Up_act[,2], main=paste("Target (Upstream)", sigidUp_act[1]))
+
+ggplot()+
+  geom_line(data=Down, aes ( x=Down[,1] , y=Down[,2]  ) , color='green' ) +
+  geom_line(data=Up_est , aes ( x=Up_est[,1] , y=Up_est [,2]  ) , color='red') +
+  geom_line(data=Up_act , aes ( x=Up_act[,1] , y=Up_act [,2]  ) , color='blue') 
 

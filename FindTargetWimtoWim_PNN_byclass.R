@@ -125,12 +125,12 @@ for (z in 1: length(Class)){
 
 options(scipen=999)
 
-save(prob, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/prob.RData")
-save(Result_PNN, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Result_PNN.RData")
-save(TargetTable_PNN, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Result_PNN.RData")
+save(prob, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/prob_04172015.RData")
+save(Result_PNN, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Result_PNN_04172015.RData")
+save(TargetTable_PNN, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Result_PNN_04172015.RData")
 
 rm(TargetTable, output, output2, Down, a, a_Upid, a_Upid_after, b, base_Upid_after, candi_guess, classresult,
    i,j, p, pnn_Upid, pnn_Upid_after, seqcandidate, z)
 
 
-save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/20141215Jan0910.RData") 
+save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/20140417Jan0910.RData") 
