@@ -749,7 +749,7 @@ f.ErrorDraw <- function ( Upsigid, Downsigid ) {
     time <- seq(from= 0, to= 1, by = 1/(num-1))
     insig_time <- time
     
-    insig_mag <- abs ( Downobjout[Downinsig,] - Upobjout[Upinsig,] )
+    insig_mag <- ( Downobjout[Downinsig,] - Upobjout[Upinsig,] )
     
     
     sigplot <- plot(insig_time, insig_mag, main=paste("Error", Downsigid[1] , Upsigid[1]))

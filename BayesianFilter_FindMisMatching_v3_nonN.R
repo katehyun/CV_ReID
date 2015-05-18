@@ -1,9 +1,9 @@
 # find mismatching
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Mismatching_04272015")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Mismatching_05062015")
 rm(list=ls())
 
 load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Kernel_02112015")
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Kernel_04172015")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Kernel_05062015")
 library(stringr)
 
 thresholdForDif <- 2.5
@@ -12,8 +12,13 @@ buf <- 0.001 # at least for version 2
 bufsig <- 0.000000000001
 weight <- c(1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,5)
 sigweight <- sigfeatidx
+sigweight[sigweight==0] <-1
 sigweight[sigweight==2] <-1
-sigweight[sigweight==3] <-2
+sigweight[sigweight==3] <-4
+
+wimweight  <- 2
+sigweightv1 <- 1 
+sigweightv2 <- 1 
 
 
 ## Extract attributes (train)
@@ -70,11 +75,12 @@ Attribute_diff_nonnormal_test <- list()
 Upcandidatesindex_train <- list()
 Upcandidates_train <- list()
 
-
 Attribute_sig_train_temp <- list()
 Attribute_sig_nonnormal_train <- list()
 Attribute_sig_test_temp <- list()
 Attribute_sig_nonnormal_test <- list()
+
+
 
 for (i in 1: length(Upsiglist_train)) {  
   
@@ -99,7 +105,7 @@ for (i in 1: length(Upsiglist_train)) {
      abs (as.numeric( (unlist (Upcandidates_attribute_train[[i]][j,4:33] )  ) ) - 
        as.numeric(Downtarget_attributes_train[i,4:33] )  )    
     
-    Attribute_sig_train_temp[[j]] <- sigfeature_train[[i]][j]
+    Attribute_sig_train_temp[[j]] <- sigfeature_train[[i]][ Upcandidatesindex_train[[i]][j]  ]
     }
     
     else {
@@ -129,9 +135,7 @@ for (i in 1: length(Upsiglist_train)) {
 
 
 for (i in 1: length(Upsiglist_test)) {  
-  
 
-  
   Upcandidatesindex_test[[i]] <- which(a_magdif_test[[i]] < thresholdForDif * min(a_magdif_test[[i]]) )
   Upcandidates_test[[i]] <- subset (Upsiglist_test[[i]], a_magdif_test[[i]] < thresholdForDif * min(a_magdif_test[[i]]) )
   
@@ -153,7 +157,7 @@ for (i in 1: length(Upsiglist_test)) {
         abs (as.numeric( (unlist (Upcandidates_attribute_test[[i]][j,4:33] )  ) ) - 
                as.numeric(Downtarget_attributes_test[i,4:33] )  )     
       
-      Attribute_sig_test_temp[[j]] <- sigfeature_test[[i]][j]
+      Attribute_sig_test_temp[[j]] <- sigfeature_test[[i]][Upcandidatesindex_test[[i]][j]]
     }
     
     else {
@@ -213,7 +217,7 @@ Target_baseanalysis_Jan0910_table_test  <- subset(Target_baseanalysis_Jan0910_ta
 
 
 m <- 0
-class9idxprob <- c(1:7, 13:21, 30:31)
+class9idxprob <- c(1:7, 12:21, 30:31)
 
 
 Downtarget_attributes_train_Class9 <- subset ( Downtarget_attributes_train, Downtarget_attributes_train [,2] == 9  )
@@ -227,7 +231,9 @@ for (i in 1:length(Upcandidates_train)){
     
    if ( is.na ( Attribute_diff_nonnormal_train[[i]][[1]][1] )  ) {
      jointprob_train[[length(jointprob_train) +1]] <- 999
+     jointprob_train_sig[[length(jointprob_train_sig) +1]] <- 999
      jointprob_train_result[[length(jointprob_train_result) +1]] <- 999
+     
      idxjointprob_train[i,1] <- 999
      idxjointprob_train[i,2] <- 999
      idxjointprob_train[i,3] <- 999
@@ -337,22 +343,22 @@ for (i in 1:length(Upcandidates_train)){
           # option 2
        
         jointprobtemp_train_result[j,1] <-   log10(jointprobtemp_train[j,1]) * weight[1] +  
-                                       log10(jointprobtemp_train[j,2]) * weight[2] +
-                                       log10(jointprobtemp_train[j,3]) * weight[3] +
-                                       log10(jointprobtemp_train[j,4]) * weight[4] +
-                                       log10(jointprobtemp_train[j,5]) * weight[5] +
-                                       log10(jointprobtemp_train[j,6]) * weight[6] +
-                                       log10(jointprobtemp_train[j,7]) * weight[7] +
-                                       log10(jointprobtemp_train[j,13]) * weight[13] +
-                                       log10(jointprobtemp_train[j,14]) * weight[14] +
-                                       log10(jointprobtemp_train[j,15]) * weight[15] +
-                                       log10(jointprobtemp_train[j,16]) * weight[16] +
-                                       log10(jointprobtemp_train[j,17]) * weight[17] +
-                                       log10(jointprobtemp_train[j,18]) * weight[18] +
-                                       log10(jointprobtemp_train[j,19]) * weight[19] +
-                                       log10(jointprobtemp_train[j,20]) * weight[20] +
-                                       log10(jointprobtemp_train[j,21]) * weight[21] +
-                                       log10(jointprobtemp_train[j,30]) * weight[30] 
+                                             log10(jointprobtemp_train[j,2]) * weight[2] +
+                                             log10(jointprobtemp_train[j,3]) * weight[3] +
+                                             log10(jointprobtemp_train[j,4]) * weight[4] +
+                                             log10(jointprobtemp_train[j,5]) * weight[5] +
+                                             log10(jointprobtemp_train[j,6]) * weight[6] +
+                                             log10(jointprobtemp_train[j,7]) * weight[7] +
+                                             log10(jointprobtemp_train[j,13]) * weight[13] +
+                                             log10(jointprobtemp_train[j,14]) * weight[14] +
+                                             log10(jointprobtemp_train[j,15]) * weight[15] +
+                                             log10(jointprobtemp_train[j,16]) * weight[16] +
+                                             log10(jointprobtemp_train[j,17]) * weight[17] +
+                                             log10(jointprobtemp_train[j,18]) * weight[18] +
+                                             log10(jointprobtemp_train[j,19]) * weight[19] +
+                                             log10(jointprobtemp_train[j,20]) * weight[20] +
+                                             log10(jointprobtemp_train[j,21]) * weight[21] +
+                                             log10(jointprobtemp_train[j,30]) * weight[30] 
 
         jointprobtemp_train_result[j,2] <- log10( jointprobtemp_train[j,31]) * weight[31] 
         jointprobtemp_train_result[j,3] <- 0
@@ -361,7 +367,8 @@ for (i in 1:length(Upcandidates_train)){
             jointprobtemp_train_result[j,3] <-  jointprobtemp_train_result[j,3] +
                                     log10(jointprobtemp_train_sig[j,n]) * sigweight[n]
          }
-          
+
+
   
                                       
           jointprobtemp_train_result[j,4] <-  jointprobtemp_train_result[j,1] + jointprobtemp_train_result[j,2]
@@ -379,10 +386,10 @@ for (j in 1: length(  Upcandidatesindex_train[[i]]  )  ) {
                                           ( max( jointprobtemp_train_result[,2] ) - min( jointprobtemp_train_result[,2] +1) )
         jointprobtemp_train_result[j,8] <- ( jointprobtemp_train_result[j,3] - max( jointprobtemp_train_result[,3] ) ) / 
                                           ( max( jointprobtemp_train_result[,3] ) - min( jointprobtemp_train_result[,3] +1) )
-        jointprobtemp_train_result[j,9] <- ( jointprobtemp_train_result[j,4] - max( jointprobtemp_train_result[,4] ) ) / 
-                                          ( max( jointprobtemp_train_result[,4] ) - min( jointprobtemp_train_result[,4] +1) )
-        jointprobtemp_train_result[j,10] <- ( jointprobtemp_train_result[j,5] - max( jointprobtemp_train_result[,5] ) ) / 
-                                          ( max( jointprobtemp_train_result[,5] ) - min( jointprobtemp_train_result[,5] +1) )
+        jointprobtemp_train_result[j,9] <- jointprobtemp_train_result[j,6] * wimweight +  
+                                            jointprobtemp_train_result[j,7] * sigweightv1 
+        jointprobtemp_train_result[j,10] <- jointprobtemp_train_result[j,6] * wimweight +
+                                            jointprobtemp_train_result[j,8] * sigweightv2 
      
         jointprobtemp_train_result[j,11] <-  Upcandidates_train[[i]][j]   
 }
@@ -416,7 +423,8 @@ for (j in 1: length(  Upcandidatesindex_train[[i]]  )  ) {
       
     {
       jointprob_train_result[[length(jointprob_train_result)+1]] <-  NA 
-      jointprob_train[[length(jointprob_train)+1]] <-  NA  
+      jointprob_train[[length(jointprob_train)+1]] <-  NA 
+      jointprob_train_sig[[length(jointprob_train_sig)+1]] <-  NA  
       idxjointprob_train[i,1] <- NA
       idxjointprob_train[i,2] <- NA
       idxjointprob_train[i,3] <- NA
@@ -541,11 +549,7 @@ for (i in 1:length(Upcandidates_test)){
         jointprobtemp_test_sig [jointprobtemp_test_sig == 0] <- bufsig
         
         #           jointprobtemp_test[j,31] <- 1 /  Attribute_diff_nonnormal_test[[i]][[j]][31]
-        
-        
-        
-        
-        
+  
         #           # option 1
         #            jointprobtemp_test[j,32] <-  jointprobtemp_test[j,1] * jointprobtemp_test[j,2] * jointprobtemp_test[j,3]  * 
         #               jointprobtemp_test[j,6] * jointprobtemp_test[j,7] * 
@@ -554,28 +558,28 @@ for (i in 1:length(Upcandidates_test)){
         #               jointprobtemp_test[j,30]  *
         #               jointprobtemp_test[j,31]  
         
-        #                ( 1 /jointprobtemp_test[j,31] * weightSig )
+        #            ( 1 /jointprobtemp_test[j,31] * weightSig )
         
         
         # option 2
         
         jointprobtemp_test_result[j,1] <-   log10(jointprobtemp_test[j,1]) * weight[1] +  
-          log10(jointprobtemp_test[j,2]) * weight[2] +
-          log10(jointprobtemp_test[j,3]) * weight[3] +
-          log10(jointprobtemp_test[j,4]) * weight[4] +
-          log10(jointprobtemp_test[j,5]) * weight[5] +
-          log10(jointprobtemp_test[j,6]) * weight[6] +
-          log10(jointprobtemp_test[j,7]) * weight[7] +
-          log10(jointprobtemp_test[j,13]) * weight[13] +
-          log10(jointprobtemp_test[j,14]) * weight[14] +
-          log10(jointprobtemp_test[j,15]) * weight[15] +
-          log10(jointprobtemp_test[j,16]) * weight[16] +
-          log10(jointprobtemp_test[j,17]) * weight[17] +
-          log10(jointprobtemp_test[j,18]) * weight[18] +
-          log10(jointprobtemp_test[j,19]) * weight[19] +
-          log10(jointprobtemp_test[j,20]) * weight[20] +
-          log10(jointprobtemp_test[j,21]) * weight[21] +
-          log10(jointprobtemp_test[j,30]) * weight[30] 
+                                            log10(jointprobtemp_test[j,2]) * weight[2] +
+                                            log10(jointprobtemp_test[j,3]) * weight[3] +
+                                            log10(jointprobtemp_test[j,4]) * weight[4] +
+                                            log10(jointprobtemp_test[j,5]) * weight[5] +
+                                            log10(jointprobtemp_test[j,6]) * weight[6] +
+                                            log10(jointprobtemp_test[j,7]) * weight[7] +
+                                            log10(jointprobtemp_test[j,13]) * weight[13] +
+                                            log10(jointprobtemp_test[j,14]) * weight[14] +
+                                            log10(jointprobtemp_test[j,15]) * weight[15] +
+                                            log10(jointprobtemp_test[j,16]) * weight[16] +
+                                            log10(jointprobtemp_test[j,17]) * weight[17] +
+                                            log10(jointprobtemp_test[j,18]) * weight[18] +
+                                            log10(jointprobtemp_test[j,19]) * weight[19] +
+                                            log10(jointprobtemp_test[j,20]) * weight[20] +
+                                            log10(jointprobtemp_test[j,21]) * weight[21] +
+                                            log10(jointprobtemp_test[j,30]) * weight[30] 
         
         jointprobtemp_test_result[j,2] <- log10( jointprobtemp_test[j,31]) * weight[31] 
         jointprobtemp_test_result[j,3] <- 0
@@ -594,18 +598,17 @@ for (i in 1:length(Upcandidates_test)){
       }
       # normalization
       for (j in 1: length(  Upcandidatesindex_test[[i]]  )  ) {
-        maxtemp[1] <- max( jointprobtemp_test_result[,1] )
-        mintemp[1] <- min( jointprobtemp_test_result[,1] )
+
         jointprobtemp_test_result[j,6] <- ( jointprobtemp_test_result[j,1] - max( jointprobtemp_test_result[,1] ) ) / 
           ( max( jointprobtemp_test_result[,1] ) - min( jointprobtemp_test_result[,1] +1) )
         jointprobtemp_test_result[j,7] <- ( jointprobtemp_test_result[j,2] - max( jointprobtemp_test_result[,2] ) ) / 
           ( max( jointprobtemp_test_result[,2] ) - min( jointprobtemp_test_result[,2] +1) )
         jointprobtemp_test_result[j,8] <- ( jointprobtemp_test_result[j,3] - max( jointprobtemp_test_result[,3] ) ) / 
           ( max( jointprobtemp_test_result[,3] ) - min( jointprobtemp_test_result[,3] +1) )
-        jointprobtemp_test_result[j,9] <- ( jointprobtemp_test_result[j,4] - max( jointprobtemp_test_result[,4] ) ) / 
-          ( max( jointprobtemp_test_result[,4] ) - min( jointprobtemp_test_result[,4] +1) )
-        jointprobtemp_test_result[j,10] <- ( jointprobtemp_test_result[j,5] - max( jointprobtemp_test_result[,5] ) ) / 
-          ( max( jointprobtemp_test_result[,5] ) - min( jointprobtemp_test_result[,5] +1) )
+        jointprobtemp_test_result[j,9] <-  jointprobtemp_test_result[j,6] * wimweight
+                                            +  jointprobtemp_test_result[j,7] * sigweightv1
+        jointprobtemp_test_result[j,10] <- jointprobtemp_test_result[j,6] * wimweight 
+                                            +  jointprobtemp_test_result[j,8] * sigweightv2
         
         jointprobtemp_test_result[j,11] <-  Upcandidates_test[[i]][j]   
       }
@@ -626,11 +629,11 @@ for (i in 1:length(Upcandidates_test)){
       idxjointprob_test[i,4] <- which.max(unlist ( jointprob_test_result[[length(jointprob_test_result)]][9] ) )  
       idxjointprob_test[i,5] <- which.max(unlist ( jointprob_test_result[[length(jointprob_test_result)]][10] ) ) 
       
-      UpFinalcandidates_test[i,1] <- Upsiglist_test[[i]][ Upcandidatesindex_test[[i]][idxjointprob_test[i,1]] ]  
-      UpFinalcandidates_test[i,2] <- Upsiglist_test[[i]][ Upcandidatesindex_test[[i]][idxjointprob_test[i,2]] ]  
-      UpFinalcandidates_test[i,3] <- Upsiglist_test[[i]][ Upcandidatesindex_test[[i]][idxjointprob_test[i,3]] ]  
-      UpFinalcandidates_test[i,4] <- Upsiglist_test[[i]][ Upcandidatesindex_test[[i]][idxjointprob_test[i,4]] ]  
-      UpFinalcandidates_test[i,5] <- Upsiglist_test[[i]][ Upcandidatesindex_test[[i]][idxjointprob_test[i,5]] ] 
+      UpFinalcandidates_test[i,1] <- Upsiglist_test[[i]][ Upcandidatesindex_test[[i]][idxjointprob_test[i,1] ] ]  
+      UpFinalcandidates_test[i,2] <- Upsiglist_test[[i]][ Upcandidatesindex_test[[i]][idxjointprob_test[i,2] ] ]  
+      UpFinalcandidates_test[i,3] <- Upsiglist_test[[i]][ Upcandidatesindex_test[[i]][idxjointprob_test[i,3] ] ]  
+      UpFinalcandidates_test[i,4] <- Upsiglist_test[[i]][ Upcandidatesindex_test[[i]][idxjointprob_test[i,4] ] ]  
+      UpFinalcandidates_test[i,5] <- Upsiglist_test[[i]][ Upcandidatesindex_test[[i]][idxjointprob_test[i,5] ] ] 
       
     } 
   }
@@ -661,9 +664,6 @@ for (i in 1:length(Upcandidates_test)){
 idxForClass9 <- which(Downheader_new[,14] == 9)
  
 rm(ResultMisMatching_train, ResultMisMatching_test)
-
-
-
 
 ResultMisMatching_train <- cbind(Target_baseanalysis_Jan0910_table_train[,1], Target_baseanalysis_Jan0910_table_train[,6],
                                  Target_baseanalysis_Jan0910_table_train[,4], 
@@ -878,4 +878,8 @@ ggplot()+
   geom_line(data=Down, aes ( x=Down[,1] , y=Down[,2]  ) , color='green' ) +
   geom_line(data=Up_est , aes ( x=Up_est[,1] , y=Up_est [,2]  ) , color='red') +
   geom_line(data=Up_act , aes ( x=Up_act[,1] , y=Up_act [,2]  ) , color='blue') 
+
+
+
+View(rbind(jointprob_train_sig[[34]][4,] , jointprob_train_sig[[34]][9,]  ))
 

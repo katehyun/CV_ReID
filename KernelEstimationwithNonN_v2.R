@@ -661,8 +661,8 @@ for ( i in 1: 31 )
 {
   if ((sum ( Diff_mat_train_n[[i]]) != 0) && (!is.na(sum( Diff_mat_train_n[[i]]) ))){
     
-    kernel_mat_n[[i]] <- density(Diff_mat_train_n[[i]], kernel = "epanechnikov", bw=2.1)
-    kernel_nonmat_n[[i]] <- density(Diff_nonmat_train_n[[i]], kernel = "epanechnikov", bw=2.1)
+    kernel_mat_n[[i]] <- density(Diff_mat_train_n[[i]], kernel = "epanechnikov")
+    kernel_nonmat_n[[i]] <- density(Diff_nonmat_train_n[[i]], kernel = "epanechnikov")
   }
   
   else
@@ -885,17 +885,100 @@ for ( i in 1 : length(sigweight )  ){
   
 }
 
-# clustering 
-# variance
-stdmat <- vector()
-stdnonmat <- vector()
-for ( i in 1 : length(sigweight )  ){
-  stdmat[i] = sd(Diff_sig_mat_train[[i]]) 
-  stdnonmat[i] = sd(Diff_sig_nonmat_train[[i]])
+
+# histogram and normal kernal - normalized data
+
+
+hist_mat_n <- list()
+hist_nonmat_n <- list()
+histdensity_n <- list()
+multiplier_hist_mat_n <- list()
+density_hist_mat_n <- list()
+density_smooth_hist_mat_n <- list()
+
+multiplier_hist_nonmat_n <- list()
+density_hist_nonmat_n <- list()
+density_smooth_hist_nonmat_n <- list()
+
+min <- vector()
+max <- vector()
+
+diffseq_mat_n <- list ()   
+normal_mat_n <- list()
+diffseq_nonmat_n <- list ()   
+normal_nonmat_n <- list()
+
+
+
+interval  <- c(0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,  NA, NA, NA, NA, 0.1, 0.1, 0.1, 0.1, 0.1, 0.1,0.1, 0.1, 0.1, 0.1,
+               NA, NA, NA, NA, NA, NA, NA, NA, 0.1, 0.1 )
+
+for ( i in 1 : length(Diff_mat_train_n)  ){
+  
+  if (i %in% c(1,2,3,4,5,6,7,12,13,14,15,16,17,18,19,20,21,30,31) ){ # utc
+    
+    min[i] <- round_any (min(Diff_nonmat_train_n[[i]] , Diff_mat_train_n[[i]]) , interval[i], f= floor)
+    max[i] <- round_any (max(Diff_nonmat_train_n[[i]] , Diff_mat_train_n[[i]]) , interval[i], f= ceiling)
+    
+    # non parametric
+    hist_mat_n[[i]] <- hist(Diff_mat_train_n[[i]],  breaks=seq(min[i] ,max[i], by=interval[i]), plot=FALSE)
+    multiplier_hist_mat_n[[i]] <- ( hist_mat_n[[i]]$counts / sum( hist_mat_n[[i]]$counts)) / hist_mat_n[[i]]$density
+    density_hist_mat_n[[i]] <- density (Diff_mat_train_n[[i]]) 
+    density_hist_mat_n[[i]]$y <- density_hist_mat_n[[i]]$y *
+      multiplier_hist_mat_n[[i]][ which.min(is.na( multiplier_hist_mat_n[[i]] ) ) ]
+    hist_mat_n[[i]]$density <-  hist_mat_n[[i]]$counts / sum(hist_mat_n[[i]]$counts )   
+    density_smooth_hist_mat_n[[i]] <-  smooth.spline(density_hist_mat_n[[i]]$x, density_hist_mat_n[[i]]$y,spar=0.8)
+    density_smooth_hist_mat_n[[i]]$y [density_smooth_hist_mat_n[[i]]$y < 0] <- 0
+    
+    
+    hist_nonmat_n[[i]] <- hist(Diff_nonmat_train_n[[i]],  breaks=seq(min[i],max[i],by=interval[i]) ,  plot=FALSE)
+    multiplier_hist_nonmat_n[[i]] <- ( hist_nonmat_n[[i]]$counts / sum( hist_nonmat_n[[i]]$counts)) / hist_nonmat_n[[i]]$density
+    density_hist_nonmat_n[[i]] <- density (Diff_nonmat_train_n[[i]]) 
+    density_hist_nonmat_n[[i]]$y <- density_hist_nonmat_n[[i]]$y *
+      multiplier_hist_nonmat_n[[i]][ which.min(is.na( multiplier_hist_nonmat_n[[i]] ) ) ]
+    hist_nonmat_n[[i]]$density <-  hist_nonmat_n[[i]]$counts / sum(hist_nonmat_n[[i]]$counts )
+    density_smooth_hist_nonmat_n[[i]] <-  smooth.spline(density_hist_nonmat_n[[i]]$x, density_hist_nonmat_n[[i]]$y,spar=0.8)
+    density_smooth_hist_nonmat_n[[i]]$y [density_smooth_hist_nonmat_n[[i]]$y < 0] <- 0 
+    
+    # normal distribution
+    diffseq_mat_n[[i]] <- seq(min (Diff_mat_train_n[[i]] ) , max( Diff_mat_train_n[[i]]) , length.out=100)  
+    diffseq_nonmat_n[[i]] <- seq(min (Diff_nonmat_train_n[[i]] ) , max( Diff_nonmat_train_n[[i]]) , length.out=100)  
+    normal_mat_n[[i]] <- dnorm (x=diffseq_mat_n[[i]] , mean= mean (Diff_mat_train_n[[i]]) , sd = sd(Diff_mat_train_n[[i]]) )
+    normal_mat_n[[i]] <- dnorm (x=diffseq_mat_n[[i]] , mean= mean (Diff_mat_train_n[[i]]) , sd = sd(Diff_mat_train_n[[i]]) )
+    normal_nonmat_n[[i]] <- dnorm (x=diffseq_nonmat_n[[i]] , mean= mean (Diff_nonmat_train_n[[i]]) , sd = sd(Diff_nonmat_train_n[[i]]) )
+    
+    
+    #histogram
+    histdensity_n[[i]] <- cbind(hist_mat_n[[i]]$mids - interval[i]/2, hist_mat_n[[i]]$mids + interval[i]/2 , 
+                                hist_mat_n[[i]]$counts / sum(hist_mat_n[[i]]$counts) ,  
+                                hist_nonmat_n[[i]]$counts / sum(hist_nonmat_n[[i]]$counts) ) 
+    
+    hist_mat_n[[i]]$counts <-  hist_mat_n[[i]]$counts / sum ( hist_mat_n[[i]]$counts)
+    hist_nonmat_n[[i]]$counts <-  hist_nonmat_n[[i]]$counts / sum ( hist_nonmat_n[[i]]$counts)
+    
+  }
+  
+  else if ( i %in% c(8,9,10, 11, 22,23,24,25,26,27,28,29)  ){
+    hist_mat_n[[i]] <- NA
+    hist_nonmat_n[[i]] <- NA
+    histdensity_n[[i]] <- NA
+  }
+  
 }
 
-stdall <- vector()
-stdall <- c(stdmat, stdnonmat)
+
+
+# clustering - SIG
+# variance
+stdmat_sig <- vector()
+stdnonmat_sig <- vector()
+for ( i in 1 : length(sigweight )  ){
+  stdmat_sig[i] = sd(Diff_sig_mat_train[[i]]) 
+  stdnonmat_sig[i] = sd(Diff_sig_nonmat_train[[i]])
+}
+
+stdall_sig <- vector()
+stdall_sig <- c(stdmat, stdnonmat)
  
 
 #kmeans
@@ -912,30 +995,30 @@ kmeansAIC = function(fit){
                     BIC = D + log(n)*m*k))
 }
 
-X =  sort(stdmat)
+X =  sort(stdmat_sig)
 fit <- kmeans(X, 2)
 # kmeansAIC(fit)
 plot(X, col = fit$cluster)
-stdthreshold <- 0.07
+stdthreshold_sig <- 0.07
 
 # ks test
-ttestpvalue <- vector()
+ttestpvalue_sig <- vector()
 for ( i in 1 : length(sigweight )  ){
-  ttestpvalue[i]<- ks.test( normal_mat_c_sig[[i]],  normal_nonmat_c_sig[[i]])$p.value
+  ttestpvalue_sig[i]<- ks.test( normal_mat_c_sig[[i]],  normal_nonmat_c_sig[[i]])$p.value
 }
 
-distidx <- which(ttestpvalue < 0.05)
+distidx <- which(ttestpvalue_sig < 0.05)
 
 sigfeatidx <- vector()
 for ( i in 1: length(sigweight)) {
   if ( i %in% distidx){
-    if (stdmat[i] > stdthreshold & stdnonmat[i] > stdthreshold ){
+    if (stdmat_sig[i] > stdthreshold_sig & stdnonmat_sig[i] > stdthreshold_sig ){
       sigfeatidx[i] <- 1
     }
-    if (stdmat[i] < stdthreshold & stdnonmat[i] < stdthreshold ){
+    if (stdmat_sig[i] < stdthreshold_sig & stdnonmat_sig[i] < stdthreshold_sig ){
       sigfeatidx[i] <- 2
     }
-    if (stdmat[i] < stdthreshold & stdnonmat[i] > stdthreshold ){
+    if (stdmat_sig[i] < stdthreshold_sig & stdnonmat_sig[i] > stdthreshold_sig ){
       sigfeatidx[i] <- 3
     }
     
@@ -947,10 +1030,108 @@ for ( i in 1: length(sigweight)) {
 }
 
 
+# WIM
+
+stdmat_wim_sp <- vector()
+stdnonmat_wim_sp <- vector()
+stdmat_wim_wt <- vector()
+stdnonmat_wim_wt <- vector()
+
+for ( i in 1 : 31  ){
+  if (i %in% c(4,5,6,7) ){ 
+  stdmat_wim_sp[i] = sd(Diff_mat_train_n[[i]]) 
+  stdnonmat_wim_sp[i] = sd(Diff_nonmat_train_n[[i]])
+  }
+  
+  if (i %in% c(12,13,14,15,16,17,18,19,20,21) ){ 
+    stdmat_wim_wt[i] = sd(Diff_mat_train_n[[i]]) 
+    stdnonmat_wim_wt[i] = sd(Diff_nonmat_train_n[[i]])
+  }
+  
+}
+
+stdall_wim_sp <- vector()
+stdall_wim_sp <- c(stdmat_wim_sp, stdnonmat_wim_sp)
+
+X =  sort(stdall_wim_sp)
+fit <- kmeans(X, 2)
+# kmeansAIC(fit)
+plot(X, col = fit$cluster)
+
+stdall_wim_wt <- vector()
+stdall_wim_wt <- c(stdmat_wim_wt, stdnonmat_wim_wt)
+X =  sort(stdall_wim_wt)
+fit <- kmeans(X, 2)
+plot(X, col = fit$cluster)
+
+stdthreshold_wim_sp <- 0.20
+stdthreshold_wim_wt <- 0.21
+
+# ks test
+ttestpvalue_wim <- vector()
+for ( i in 1 : 31 ){
+  if (i %in% c(1,2,3,4,5,6,7,12,13,14,15,16,17,18,19,20,21,30,31) ){ 
+  ttestpvalue_wim[i]<- ks.test( normal_mat_c[[i]],  normal_nonmat_c[[i]])$p.value
+  }
+  else ttestpvalue_wim[i] <- NA
+}
+
+distidx <- which(ttestpvalue_wim < 0.05)
+
+
+wimfeatidx <- vector()
+for ( i in 1: 31) {
+  if ( i %in% c(4,5,6,7) ){
+
+    if (stdmat_wim_sp[i] > stdthreshold_wim_sp & stdnonmat_wim_sp[i] > stdthreshold_wim_sp ){
+      wimfeatidx[i] <- 1
+    }
+    if (stdmat_wim_sp[i] < stdthreshold_wim_sp & stdnonmat_wim_sp[i] < stdthreshold_wim_sp ){
+      wimfeatidx[i] <- 2
+    }
+    if (stdmat_wim_sp[i] < stdthreshold_wim_sp & stdnonmat_wim_sp[i] > stdthreshold_wim_sp ){
+      wimfeatidx[i] <- 3
+    }
+    if (stdmat_wim_sp[i] > stdthreshold_wim_sp & stdnonmat_wim_sp[i] <  stdthreshold_wim_sp ){
+      wimfeatidx[i] <- 4
+    }
+    
+  }
+  
+  if ( i %in% c(12,13, 14,15,16,17,18,19,20,21) ){ 
+    
+    if (stdmat_wim_wt[i] > stdthreshold_wim_wt & stdnonmat_wim_wt[i] > stdthreshold_wim_wt ){
+      wimfeatidx[i] <- 1
+    }
+    if (stdmat_wim_wt[i] < stdthreshold_wim_wt & stdnonmat_wim_wt[i] < stdthreshold_wim_wt ){
+      wimfeatidx[i] <- 2
+    }
+    if (stdmat_wim_wt[i] < stdthreshold_wim_wt & stdnonmat_wim_wt[i] > stdthreshold_wim_wt ){
+      wimfeatidx[i] <- 3
+    }
+    if (stdmat_wim_wt[i] > stdthreshold_wim_wt & stdnonmat_wim_wt[i] < stdthreshold_wim_wt ){
+      wimfeatidx[i] <- 4
+    }
+    
+    
+  }
+  
+  if ( i %in% c(1,2,3,30,31) ){ 
+  
+      wimfeatidx[i] <- 3
+    
+  }
+  
+  
+  if ( i %in% c(8,9,10,11, 22,23,24,25,26,27,28,29) ){ 
+    wimfeatidx [i] <- 0  # mat = nonmat
+  }
+}
+
 
 #sample plot
 # library(ggplot2)
-i=31
+i=19
 plot(range(min[i], max[i]), range(density_hist_mat_c[[i]]$y))
 lines(density_hist_mat_c[[i]] )
 lines(density_smooth_hist_mat_c[[i]], col="blue")
@@ -964,6 +1145,20 @@ plot(density_smooth_hist_nonmat_c[[i]]$x, density_smooth_hist_nonmat_c[[i]]$y)
 plot(density_smooth_hist_nonmat_c[[i]]$data$x, density_smooth_hist_nonmat_c[[i]]$data$y)
 
 
+i=19
+plot(range(min[i], max[i]), range(density_hist_mat_n[[i]]$y))
+lines(density_hist_mat_n[[i]] )
+lines(density_smooth_hist_mat_n[[i]], col="blue")
+plot(density_smooth_hist_mat_n[[i]]$x, density_smooth_hist_mat_n[[i]]$y)
+plot(density_smooth_hist_mat_n[[i]]$data$x, density_smooth_hist_mat_n[[i]]$data$y)
+
+plot(range(min[i], max[i]), range(density_hist_mat_n[[i]]$y))
+lines(density_hist_nonmat_n[[i]] )
+lines(density_smooth_hist_nonmat_n[[i]], col="blue")
+plot(density_smooth_hist_nonmat_n[[i]]$x, density_smooth_hist_nonmat_n[[i]]$y)
+plot(density_smooth_hist_nonmat_n[[i]]$data$x, density_smooth_hist_nonmat_n[[i]]$data$y)
+
+
 
 #plot a = non-parametric but smoothing data
 a_mat <- data.frame(density_smooth_hist_mat_c[[i]]$x , density_smooth_hist_mat_c[[i]]$y )
@@ -971,6 +1166,15 @@ a_nonmat <- data.frame(density_smooth_hist_nonmat_c[[i]]$x, density_smooth_hist_
 ggplot() +
   geom_line(data=a_mat, aes(x=a_mat[,1] , y=a_mat[,2]) , color='green') + 
   geom_line(data=a_nonmat, aes(x=a_nonmat[,1] , y=a_nonmat[,2]) , color='red') 
+
+
+a_mat <- data.frame(density_smooth_hist_mat_n[[i]]$x , density_smooth_hist_mat_n[[i]]$y )
+a_nonmat <- data.frame(density_smooth_hist_nonmat_n[[i]]$x, density_smooth_hist_nonmat_n[[i]]$y)
+ggplot() +
+  geom_line(data=a_mat, aes(x=a_mat[,1] , y=a_mat[,2]) , color='green') + 
+  geom_line(data=a_nonmat, aes(x=a_nonmat[,1] , y=a_nonmat[,2]) , color='red') 
+
+
 
 # plot( diffseq_mat_c[[i]] ,
 #       normal_mat_c[[i]]  * multiplier_hist_mat_c[[i]][ which.min(is.na( multiplier_hist_mat_c[[i]] ) ) ] , 
@@ -996,8 +1200,24 @@ ggplot() +
 
 head(b_mat)
 
+## normalized 
+b_mat <- data.frame(diffseq_mat_n[[i]], 
+                    normal_mat_n[[i]]  * multiplier_hist_mat_n[[i]][ which.min(is.na( multiplier_hist_mat_n[[i]] ) ) ]  )
+b_nonmat <- data.frame( diffseq_nonmat_n[[i]], 
+                        normal_nonmat_n[[i]]  * multiplier_hist_nonmat_n[[i]][ which.min(is.na( multiplier_hist_nonmat_n[[i]] ) ) ]  )
+ggplot() + 
+  geom_line(data=b_mat, aes ( x=b_mat[,1] , y=b_mat[,2]  ) , color='green') + 
+  geom_line(data=b_nonmat, aes ( x=b_nonmat[,1] , y=b_nonmat[,2]  ) , color='red')
+
+
+ggplot() +
+  geom_line(data=a_mat, aes ( x=a_mat[,1] , y=a_mat[,2]  ) , color='blue') + 
+  geom_line(data=b_mat, aes ( x=b_mat[,1] , y=b_mat[,2]  ) , color='black') 
+
+head(b_mat)
+
 # plot histogram
-k <- 31
+k <- 19
 plot( hist_nonmat_c[[k]], col = "red", 
       xlim = c(min ( round_any (min(Diff_mat_train_c[[k]]) , interval[k], f= floor)  , 
                      round_any (min(Diff_nonmat_train_c[[k]]) , interval[k], f= floor) ) ,
@@ -1008,6 +1228,19 @@ plot( hist_nonmat_c[[k]], col = "red",
       xlab = 'GVW Difference', ylab = 'Density', main = 'Histogram of GVW Difference - Nonnormalized data')
 
 plot( hist_mat_c[[k]], col = rgb(0,1,0,0.5), freq=TRUE, add=T)
+
+#normalized
+k <- 19
+plot( hist_nonmat_n[[k]], col = "red", 
+      xlim = c(min ( round_any (min(Diff_mat_train_n[[k]]) , interval[k], f= floor)  , 
+                     round_any (min(Diff_nonmat_train_n[[k]]) , interval[k], f= floor) ) ,
+               max ( round_any (max(Diff_mat_train_n[[k]]) , interval[k], f= ceiling) ,
+                     round_any (max(Diff_nonmat_train_n[[k]]) , interval[k], f= ceiling) )),
+      ylim= c(0,max(hist_mat_n[[k]]$count )),
+      freq=TRUE,
+      xlab = 'GVW Difference', ylab = 'Density', main = 'Histogram of GVW Difference - Nonnormalized data')
+
+plot( hist_mat_n[[k]], col = rgb(0,1,0,0.5), freq=TRUE, add=T)
 
 ## sig plot
 
@@ -1033,47 +1266,10 @@ library(grid)
 library(gridExtra)
 library(multiplot)
 
-multiplot <- function(..., plotlist=NULL, file, cols=1, layout=NULL) {
-  library(grid)
-  
-  # Make a list from the ... arguments and plotlist
-  plots <- c(list(...), plotlist)
-  
-  numPlots = length(plots)
-  
-  # If layout is NULL, then use 'cols' to determine layout
-  if (is.null(layout)) {
-    # Make the panel
-    # ncol: Number of columns of plots
-    # nrow: Number of rows needed, calculated from # of cols
-    layout <- matrix(seq(1, cols * ceiling(numPlots/cols)),
-                     ncol = cols, nrow = ceiling(numPlots/cols))
-  }
-  
-  if (numPlots==1) {
-    print(plots[[1]])
-    
-  } else {
-    # Set up the page
-    grid.newpage()
-    pushViewport(viewport(layout = grid.layout(nrow(layout), ncol(layout))))
-    
-    # Make each plot, in the correct location
-    for (i in 1:numPlots) {
-      # Get the i,j matrix positions of the regions that contain this subplot
-      matchidx <- as.data.frame(which(layout == i, arr.ind = TRUE))
-      
-      print(plots[[i]], vp = viewport(layout.pos.row = matchidx$row,
-                                      layout.pos.col = matchidx$col))
-    }
-  }
-}
-
-pt<-list()
-plot <- list()
 
 
-setwd("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/SigFeature") 
+setwd("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/WIMFeature") 
+
 for (i in 1: 50){
  pt  <- ggplot()+
     geom_line(data= data.frame(density_smooth_hist_mat_c_sig[[i]]$x , density_smooth_hist_mat_c_sig[[i]]$y ),
@@ -1087,6 +1283,9 @@ for (i in 1: 50){
     
  ggsave(filename = paste("sig feature " , i, ".jpeg" , sep="") , plot = pt)
 }
+
+
+
 
 
 
@@ -1120,7 +1319,7 @@ for (i in 1: 50){
 
 View(  sigfeatidx )
 # plot histogram
-k <- 35
+k <- 19
 plot( hist_nonmat_c_sig[[k]], col = "red", 
       xlim = c(min ( round_any (min(Diff_sig_mat_train[[k]]) , sigweight[k], f= floor)  , 
                      round_any (min(Diff_sig_nonmat_train[[k]]) , sigweight[k], f= floor) ) ,
@@ -1131,6 +1330,44 @@ plot( hist_nonmat_c_sig[[k]], col = "red",
       xlab = 'sigfeature diff', ylab = 'Density', main = 'Histogram of Sig Feature Difference')
 
 plot( hist_mat_c_sig[[k]], col = rgb(0,1,0,0.5), freq=TRUE, add=T)
+
+
+# plot - wim 
+for (i in 1: 31){
+  if (i %in% c(1,2,3,4,5,6,7,12,13,14,15,16,17,18,19,20,21,30,31) ){ 
+  
+  b_mat <- data.frame(diffseq_mat_c[[i]], 
+                          normal_mat_c[[i]]  * multiplier_hist_mat_c[[i]][ which.min(is.na( multiplier_hist_mat_c[[i]] ) ) ]  )
+  b_nonmat <- data.frame( diffseq_nonmat_c[[i]], 
+                              normal_nonmat_c[[i]]  * multiplier_hist_nonmat_c[[i]][ which.min(is.na( multiplier_hist_nonmat_c[[i]] ) ) ]  )
+  pt <- ggplot() + 
+    geom_line(data=b_mat, aes ( x=b_mat[,1] , y=b_mat[,2]  ) , color='green') +       
+    geom_line(data=b_nonmat, aes ( x=b_nonmat[,1] , y=b_nonmat[,2]  ) , color='red')  + ggtitle(i) 
+  
+#   pt <-   pt + xlim(-0.4, 0.4)
+  
+  ggsave(filename = paste("wim feature - gaussian" , i, ".jpeg" , sep="") , plot = pt)
+}
+}
+
+
+for (i in 1: 31){
+  if (i %in% c(1,2,3,4,5,6,7,12,13,14,15,16,17,18,19,20,21,30,31) ){ 
+    
+    b_mat <- data.frame(diffseq_mat_n[[i]], 
+                        normal_mat_n[[i]]  * multiplier_hist_mat_n[[i]][ which.min(is.na( multiplier_hist_mat_n[[i]] ) ) ]  )
+    b_nonmat <- data.frame( diffseq_nonmat_n[[i]], 
+                            normal_nonmat_n[[i]]  * multiplier_hist_nonmat_n[[i]][ which.min(is.na( multiplier_hist_nonmat_n[[i]] ) ) ]  )
+    pt <- ggplot() + 
+      geom_line(data=b_mat, aes ( x=b_mat[,1] , y=b_mat[,2]  ) , color='green') +       
+      geom_line(data=b_nonmat, aes ( x=b_nonmat[,1] , y=b_nonmat[,2]  ) , color='red')  + ggtitle(i) 
+    
+    #   pt <-   pt + xlim(-0.4, 0.4)
+    
+    ggsave(filename = paste("wim feature norm - gaussian" , i, ".jpeg" , sep="") , plot = pt)
+  }
+}
+
 
 # http://stackoverflow.com/questions/20078107/overlay-normal-curve-to-histogram-in-r
 save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Kernel_04292015")
