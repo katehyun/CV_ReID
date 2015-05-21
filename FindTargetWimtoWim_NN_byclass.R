@@ -142,7 +142,7 @@ Target_baseanalysis_Jan0910_table <- cbind(SOLCFHWAClass,min_a_basemagdif,min_a_
 mode(Target_baseanalysis_Jan0910_table) <- "numeric"
 
 # start from here  - by Class
-threshold_NN<- seq(from = 20, to = 120, by = 1) 
+threshold_NN<- seq(from = 0, to = 10, by = 0.5) 
 # Result_NN <-list()
 
 
@@ -257,8 +257,9 @@ for (z in 1: length(Class)){
  write.table(Result_NN[5], "./Result_NN_Class9.txt", sep="\t",row.names=FALSE)
 
 # utils::View(Result_NN9)
+rm ( a, b, a_Upid_after, base_Upid_after, Result_tmp_NN, classresult, p, z  )
 
-
+save(Target_baseanalysis_Jan0910_table , file= "C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Target_baseanalysis_Jan0910_table.RData")
 save(Result_NN, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Result_NN.RData")
 save(TargetTable_NN, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Result_NN.RData")
 save(SOLCFHWAClass,file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/SOLCFHWAClass.RData" )

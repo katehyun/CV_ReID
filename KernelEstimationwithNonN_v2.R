@@ -1,13 +1,22 @@
 rm(list=ls())
 
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Kernel_04292015")
+# load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Kernel_04292015")
+# load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/20141215Jan0910.RData")
 
-
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/20141215Jan0910.RData") 
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Downobjout.RData ")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/a_magdif_04272015.RData ")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/a_basemagdif_04272015.RData ")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Upheader_new.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Downheader_new.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/candidate_04272015.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Upsiglist.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/matching.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Result_NN.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/SOLCFHWAClass.RData" )
 load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Upheader_new_nonN.RData")
 load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Downheader_new_nonN.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/sigfeature_04272015.RData")
 
-# load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Kernel_04292015")
 ## kernel estimation 
 rm(sub_matching, sub_nonmatching, sub_all, sub_all_train, sub_all_test, sub_matching_train, sub_matching_test, 
    sub_nonmatching_train, sub_nonmatching_test)
@@ -18,6 +27,10 @@ library(plyr)
 library(ggplot2)
 library(stringr)
 library(reshape2)
+Sys.setenv(JAVA_HOME='C:\\Program Files\\Java\\jre7') 
+library(rJava)
+library(FSelector)
+
 #WHAT TO CHAGE
 utcbd <- 1357804800000
 
@@ -117,6 +130,7 @@ for (i in 1: length( Upheader_new[,1])){
 
 
 Upheader_new <- Upheader_new_cl
+
 # reseting the sub_all with calibrated wim data
 sub_all <- data.frame()
 sub_all <- TargetTable_NN[[5]][,1:4]
@@ -131,6 +145,8 @@ sub_all <- cbind( sub_all ,
 # install.packages("stringr")
 # signature feature 
 
+idx_magdif <- lapply(a_magdif,which.min)
+
 sig_selected <- list()
 for (i in 1:length(a_magdif)){ 
   a <- unlist(idx_magdif[i])
@@ -141,10 +157,14 @@ for (i in 1:length(a_magdif)){
 # train (01/09)
 DownheaderTrainIdx <- which (Downheader_new[,12] > utcbd )
 DownheaderTestIdx <- which (Downheader_new[,12] < utcbd )
+DownheaderTrain9Idx <-  which (Downheader_new[,12] > utcbd  &  Downheader_new[,14]== 9)
+DownheaderTest9Idx <-  which (Downheader_new[,12] < utcbd  &  Downheader_new[,14]== 9)
 Upsiglist_train <- Upsiglist[DownheaderTrainIdx]
 Upsiglist_test <- Upsiglist[DownheaderTestIdx]
 sig_selected_train <- sig_selected[DownheaderTrainIdx]
 sig_selected_test <- sig_selected[DownheaderTestIdx]
+sig_selected_train_class9 <- sig_selected[DownheaderTrain9Idx]
+sig_selected_test_class9 <- sig_selected[DownheaderTest9Idx]
 sigfeature_train <- sigfeature[DownheaderTrainIdx]
 sigfeature_test <- sigfeature[DownheaderTestIdx]
 
@@ -176,6 +196,8 @@ submatching_test_Idx <- which ( as.numeric (sub_all_test  [,5]) == as.numeric(su
                                   as.numeric (sub_all_test [,5]) != 999)
 subnonmatching_test_Idx <- which ( as.numeric (sub_all_test [,5]) != as.numeric( sub_all_test [,6]) )
 
+
+
 # Difference (train, test) 
 Diff_mat_train <- list()
 Diff_nonmat_train <- list()
@@ -201,10 +223,12 @@ Diff_mat_test[[31]] <- na.omit (  (sub_matching_test [,3]  ))
 Diff_nonmat_test[[31]] <- na.omit ( (sub_nonmatching_test [,3]  )) 
 
 # signature
-sig_mat_train   <- sig_selected_train[submatching_train_Idx]
-sig_nonmat_train <- sig_selected_train[subnonmatching_train_Idx]
-sig_mat_test <- sig_selected_test[submatching_test_Idx]
-sig_nonmat_test <- sig_selected_test[subnonmatching_test_Idx]
+
+
+sig_mat_train   <- sig_selected_train_class9[submatching_train_Idx]
+sig_nonmat_train <- sig_selected_train_class9[subnonmatching_train_Idx]
+sig_mat_test <- sig_selected_test_class9[submatching_test_Idx]
+sig_nonmat_test <- sig_selected_test_class9[subnonmatching_test_Idx]
 
 Diff_sig_mat_train <- list()
 Diff_sig_nonmat_train <- list()
@@ -330,52 +354,52 @@ for ( i in 1:30 )
                                             ( max_train_nonmat[1+i] - min_train_nonmat[1+i] )  ) 
 }
 
-
-# scailized 
-
-max_all <- vector()
-min_all <- vector()
-max_all[1] <- max( unlist( Diff_mat_train_c[[1]] ) ,  unlist(Diff_nonmat_train_c[[1]] )  )
-min_all[1] <- min( unlist( Diff_mat_train_c[[1]] ) ,  unlist(Diff_nonmat_train_c[[1]] )  )
-
-for ( i in 1:30 )
-{
-  max_all[i+1] <-  max( unlist( Diff_mat_train_c[[i+1]] ) ,  unlist(Diff_nonmat_train_c[[i+1]] )  )
-  min_all[i+1] <-  min( unlist( Diff_mat_train_c[[i+1]] ) ,  unlist(Diff_nonmat_train_c[[i+1]] )  )
-  
-}
-
-
-Diff_mat_train_cs <- list()
-Diff_nonmat_train_cs <- list()
-Diff_mat_train_cs[[1]] <- na.omit ( ( Diff_mat_train_c[[1]]  - min_all[1] ) / 
-                                      ( max_all[1] - min_all[1] )  )
-Diff_nonmat_train_cs[[1]] <- na.omit (  ( Diff_nonmat_train_c[[1]] - min_all[1] ) / 
-                                          ( max_all[1] - min_all[1] )  )
-
-for ( i in 1:30 )
-{
-  Diff_mat_train_cs[[i+1]] <- na.omit ( ( Diff_mat_train_c[[1+i]] - min_all[1+i] ) /  
-                                          ( max_all[1+i] - min_all[1+i] )  )
-  Diff_nonmat_train_cs[[i+1]] <- na.omit ( ( Diff_nonmat_train_c[[1+i]] -  min_all[1+i] ) /  
-                                             ( max_all[1+i] - min_all[1+i] )  ) 
-}
-
-Diff_mat_train_ns <- list()
-Diff_nonmat_train_ns <- list()
-Diff_mat_train_ns[[1]] <- na.omit ( ( Diff_mat_train_n[[1]]  - min_all[1] ) / 
-                                      ( max_all[1] - min_all[1] )  )
-Diff_nonmat_train_ns[[1]] <- na.omit (  ( Diff_nonmat_train_n[[1]] - min_all[1] ) / 
-                                          ( max_all[1] - min_all[1] )  )
-
-for ( i in 1:30 )
-{
-  Diff_mat_train_ns[[i+1]] <- na.omit ( ( Diff_mat_train_n[[1+i]] - min_all[1+i] ) /  
-                                          ( max_all[1+i] - min_all[1+i] )  )
-  Diff_nonmat_train_ns[[i+1]] <- na.omit ( ( Diff_nonmat_train_n[[1+i]] -  min_all[1+i] ) /  
-                                             ( max_all[1+i] - min_all[1+i] )  ) 
-}
-
+# 
+# # scailized 
+# 
+# max_all <- vector()
+# min_all <- vector()
+# max_all[1] <- max( unlist( Diff_mat_train_c[[1]] ) ,  unlist(Diff_nonmat_train_c[[1]] )  )
+# min_all[1] <- min( unlist( Diff_mat_train_c[[1]] ) ,  unlist(Diff_nonmat_train_c[[1]] )  )
+# 
+# for ( i in 1:30 )
+# {
+#   max_all[i+1] <-  max( unlist( Diff_mat_train_c[[i+1]] ) ,  unlist(Diff_nonmat_train_c[[i+1]] )  )
+#   min_all[i+1] <-  min( unlist( Diff_mat_train_c[[i+1]] ) ,  unlist(Diff_nonmat_train_c[[i+1]] )  )
+#   
+# }
+# 
+# 
+# Diff_mat_train_cs <- list()
+# Diff_nonmat_train_cs <- list()
+# Diff_mat_train_cs[[1]] <- na.omit ( ( Diff_mat_train_c[[1]]  - min_all[1] ) / 
+#                                       ( max_all[1] - min_all[1] )  )
+# Diff_nonmat_train_cs[[1]] <- na.omit (  ( Diff_nonmat_train_c[[1]] - min_all[1] ) / 
+#                                           ( max_all[1] - min_all[1] )  )
+# 
+# for ( i in 1:30 )
+# {
+#   Diff_mat_train_cs[[i+1]] <- na.omit ( ( Diff_mat_train_c[[1+i]] - min_all[1+i] ) /  
+#                                           ( max_all[1+i] - min_all[1+i] )  )
+#   Diff_nonmat_train_cs[[i+1]] <- na.omit ( ( Diff_nonmat_train_c[[1+i]] -  min_all[1+i] ) /  
+#                                              ( max_all[1+i] - min_all[1+i] )  ) 
+# }
+# 
+# Diff_mat_train_ns <- list()
+# Diff_nonmat_train_ns <- list()
+# Diff_mat_train_ns[[1]] <- na.omit ( ( Diff_mat_train_n[[1]]  - min_all[1] ) / 
+#                                       ( max_all[1] - min_all[1] )  )
+# Diff_nonmat_train_ns[[1]] <- na.omit (  ( Diff_nonmat_train_n[[1]] - min_all[1] ) / 
+#                                           ( max_all[1] - min_all[1] )  )
+# 
+# for ( i in 1:30 )
+# {
+#   Diff_mat_train_ns[[i+1]] <- na.omit ( ( Diff_mat_train_n[[1+i]] - min_all[1+i] ) /  
+#                                           ( max_all[1+i] - min_all[1+i] )  )
+#   Diff_nonmat_train_ns[[i+1]] <- na.omit ( ( Diff_nonmat_train_n[[1+i]] -  min_all[1+i] ) /  
+#                                              ( max_all[1+i] - min_all[1+i] )  ) 
+# }
+# 
 
 
 # # Percent Difference (train) 
@@ -411,86 +435,88 @@ for ( i in 1:30 )
 #   min_train_nonmat_pd[i+1] <-  min ( unlist( Diff_nonmat_train_pd[[i+1]] ) )
 # }
 # 
+# 
+# # to make non-zero data
+# minval <- 0
+# 
+# #non-normalized data
+# 
+# for (i in 1: length( Diff_mat_train_c) ){
+#   for (j in 1: length( Diff_mat_train_c[[i]] ) ){
+#     
+#     if ( length( Diff_mat_train_c[[i]])  > 0 ){
+#       
+#       if (Diff_mat_train_c[[i]][j] == 0 ){
+#         Diff_mat_train_c[[i]][j]  <- minval
+#       }
+#       
+#       if (Diff_mat_train_c[[i]][j] == 99999 ){
+#         Diff_mat_train_c[[i]][j] <- NA
+#       }
+#     }
+#   }
+# }
+# 
+# 
+# 
+# for (i in 1: length( Diff_nonmat_train_c) ){
+#   for (j in 1:length( Diff_nonmat_train_c[[i]] ) ){
+#     
+#     if ( length( Diff_nonmat_train_c[[i]])  > 0 ){
+#       
+#       if (Diff_nonmat_train_c[[i]][j] == 0 ){
+#         Diff_nonmat_train_c[[i]][j] <- minval
+#       }
+#       
+#       
+#       if  (Diff_nonmat_train_c[[i]][j] == 99999 )  {
+#         Diff_nonmat_train_c[[i]][j] <- NA
+#       }
+#       
+#     }
+#   }
+# }
+# 
+# 
+# #normalized data
+# for (i in 1: length( Diff_mat_train ) ){
+#   for (j in 1: length( Diff_mat_train[[i]] ) ){
+#     
+#     if ( length( Diff_mat_train_n[[i]])  > 0 ){
+#       
+#       if ((Diff_mat_train_n[[i]][j] == 0 ) && (!is.na(Diff_mat_train_n[[i]][j] ))){
+#         Diff_mat_train_n[[i]][j]  <- minval
+#       }
+#       
+#       if  ((Diff_mat_train_n[[i]][j] == 99999 ) && (!is.na(Diff_mat_train_n[[i]][j] ))){
+#         Diff_mat_train_n[[i]][j] <- NA
+#       }
+#       
+#     }   
+#   }
+# }
+# 
+# 
+# 
+# for (i in 1: length( Diff_nonmat_train_n ) ){
+#   for (j in 1:length( Diff_nonmat_train_n[[i]] ) ){
+#     
+#     if ( length( Diff_nonmat_train_n[[i]])  > 0 ){
+#       
+#       if ((Diff_nonmat_train_n[[i]][j] == 0 )&& (!is.na(Diff_nonmat_train_n[[i]][j] ))){
+#         Diff_nonmat_train_n[[i]][j] <- minval
+#       }
+#       
+#       else if  ((Diff_nonmat_train_n[[i]][j] == 99999 ) && (!is.na(Diff_nonmat_train_n[[i]][j] ))){
+#         Diff_nonmat_train_n[[i]][j] <- NA
+#       }
+#     }
+#   }
+# }
 
-# to make non-zero data
-minval <- 0
-
-#non-normalized data
-
-for (i in 1: length( Diff_mat_train_c) ){
-  for (j in 1: length( Diff_mat_train_c[[i]] ) ){
-    
-    if ( length( Diff_mat_train_c[[i]])  > 0 ){
-      
-      if (Diff_mat_train_c[[i]][j] == 0 ){
-        Diff_mat_train_c[[i]][j]  <- minval
-      }
-      
-      if (Diff_mat_train_c[[i]][j] == 99999 ){
-        Diff_mat_train_c[[i]][j] <- NA
-      }
-    }
-  }
-}
 
 
-
-for (i in 1: length( Diff_nonmat_train_c) ){
-  for (j in 1:length( Diff_nonmat_train_c[[i]] ) ){
-    
-    if ( length( Diff_nonmat_train_c[[i]])  > 0 ){
-      
-      if (Diff_nonmat_train_c[[i]][j] == 0 ){
-        Diff_nonmat_train_c[[i]][j] <- minval
-      }
-      
-      
-      if  (Diff_nonmat_train_c[[i]][j] == 99999 )  {
-        Diff_nonmat_train_c[[i]][j] <- NA
-      }
-      
-    }
-  }
-}
-
-
-#normalized data
-for (i in 1: length( Diff_mat_train ) ){
-  for (j in 1: length( Diff_mat_train[[i]] ) ){
-    
-    if ( length( Diff_mat_train_n[[i]])  > 0 ){
-      
-      if ((Diff_mat_train_n[[i]][j] == 0 ) && (!is.na(Diff_mat_train_n[[i]][j] ))){
-        Diff_mat_train_n[[i]][j]  <- minval
-      }
-      
-      if  ((Diff_mat_train_n[[i]][j] == 99999 ) && (!is.na(Diff_mat_train_n[[i]][j] ))){
-        Diff_mat_train_n[[i]][j] <- NA
-      }
-      
-    }   
-  }
-}
-
-
-
-for (i in 1: length( Diff_nonmat_train_n ) ){
-  for (j in 1:length( Diff_nonmat_train_n[[i]] ) ){
-    
-    if ( length( Diff_nonmat_train_n[[i]])  > 0 ){
-      
-      if ((Diff_nonmat_train_n[[i]][j] == 0 )&& (!is.na(Diff_nonmat_train_n[[i]][j] ))){
-        Diff_nonmat_train_n[[i]][j] <- minval
-      }
-      
-      else if  ((Diff_nonmat_train_n[[i]][j] == 99999 ) && (!is.na(Diff_nonmat_train_n[[i]][j] ))){
-        Diff_nonmat_train_n[[i]][j] <- NA
-      }
-    }
-  }
-}
-
-
+# remove NA
 Diff_mat_train_c[[1]] <- na.omit (  Diff_mat_train_c[[1]]  )
 Diff_nonmat_train_c[[1]] <- na.omit (  Diff_nonmat_train_c[[1]]  ) 
 for ( i in 1:30 )
@@ -509,100 +535,100 @@ for ( i in 1:30 )
   Diff_nonmat_train_n[[i+1]] <- na.omit (  Diff_nonmat_train_n[[1+i]]  ) 
 }
 
-# scalized data - non normalized
-
-for (i in 1: length( Diff_mat_train_cs) ){
-  for (j in 1: length( Diff_mat_train_cs[[i]] ) ){
-    
-    if ( length( Diff_mat_train_cs[[i]])  > 0 ){
-      
-      if (Diff_mat_train_cs[[i]][j] == 0 ){
-        Diff_mat_train_cs[[i]][j]  <- minval
-      }
-      
-      if (Diff_mat_train_cs[[i]][j] == 99999 ){
-        Diff_mat_train_cs[[i]][j] <- NA
-      }
-    }
-  }
-}
-
-
-
-for (i in 1: length( Diff_nonmat_train_cs) ){
-  for (j in 1:length( Diff_nonmat_train_cs[[i]] ) ){
-    
-    if ( length( Diff_nonmat_train_cs[[i]])  > 0 ){
-      
-      if (Diff_nonmat_train_cs[[i]][j] == 0 ){
-        Diff_nonmat_train_cs[[i]][j] <- minval
-      }
-      
-      
-      if  (Diff_nonmat_train_cs[[i]][j] == 99999 )  {
-        Diff_nonmat_train_cs[[i]][j] <- NA
-      }
-      
-    }
-  }
-}
-
-
-# scalized data - normalized data
-
-for (i in 1: length( Diff_mat_train ) ){
-  for (j in 1: length( Diff_mat_train[[i]] ) ){
-    
-    if ( length( Diff_mat_train_ns[[i]])  > 0 ){
-      
-      if ((Diff_mat_train_ns[[i]][j] == 0 ) && (!is.na(Diff_mat_train_ns[[i]][j] ))){
-        Diff_mat_train_ns[[i]][j]  <- minval
-      }
-      
-      if  ((Diff_mat_train_ns[[i]][j] == 99999 ) && (!is.na(Diff_mat_train_ns[[i]][j] ))){
-        Diff_mat_train_ns[[i]][j] <- NA
-      }
-      
-    }   
-  }
-}
-
-
-
-for (i in 1: length( Diff_nonmat_train_ns ) ){
-  for (j in 1:length( Diff_nonmat_train_ns[[i]] ) ){
-    
-    if ( length( Diff_nonmat_train_ns[[i]])  > 0 ){
-      
-      if ((Diff_nonmat_train_ns[[i]][j] == 0 )&& (!is.na(Diff_nonmat_train_ns[[i]][j] ))){
-        Diff_nonmat_train_ns[[i]][j] <- minval
-      }
-      
-      else if  ((Diff_nonmat_train_ns[[i]][j] == 99999 ) && (!is.na(Diff_nonmat_train_ns[[i]][j] ))){
-        Diff_nonmat_train_ns[[i]][j] <- NA
-      }
-    }
-  }
-}
-
-
-Diff_mat_train_cs[[1]] <- na.omit (  Diff_mat_train_cs[[1]]  )
-Diff_nonmat_train_cs[[1]] <- na.omit (  Diff_nonmat_train_cs[[1]]  ) 
-for ( i in 1:30 )
-{
-  Diff_mat_train_cs[[i+1]] <- na.omit (  Diff_mat_train_cs[[1+i]]  )
-  Diff_nonmat_train_cs[[i+1]] <- na.omit (  Diff_nonmat_train_cs[[1+i]]  ) 
-}
-
-
-
-Diff_mat_train_ns[[1]] <- na.omit (  Diff_mat_train_ns[[1]]  )
-Diff_nonmat_train_ns[[1]] <- na.omit (  Diff_nonmat_train_ns[[1]]  ) 
-for ( i in 1:30 )
-{
-  Diff_mat_train_ns[[i+1]] <- na.omit (  Diff_mat_train_ns[[1+i]]  )
-  Diff_nonmat_train_ns[[i+1]] <- na.omit (  Diff_nonmat_train_ns[[1+i]]  ) 
-}
+# # scalized data - non normalized
+# 
+# for (i in 1: length( Diff_mat_train_cs) ){
+#   for (j in 1: length( Diff_mat_train_cs[[i]] ) ){
+#     
+#     if ( length( Diff_mat_train_cs[[i]])  > 0 ){
+#       
+#       if (Diff_mat_train_cs[[i]][j] == 0 ){
+#         Diff_mat_train_cs[[i]][j]  <- minval
+#       }
+#       
+#       if (Diff_mat_train_cs[[i]][j] == 99999 ){
+#         Diff_mat_train_cs[[i]][j] <- NA
+#       }
+#     }
+#   }
+# }
+# 
+# 
+# 
+# for (i in 1: length( Diff_nonmat_train_cs) ){
+#   for (j in 1:length( Diff_nonmat_train_cs[[i]] ) ){
+#     
+#     if ( length( Diff_nonmat_train_cs[[i]])  > 0 ){
+#       
+#       if (Diff_nonmat_train_cs[[i]][j] == 0 ){
+#         Diff_nonmat_train_cs[[i]][j] <- minval
+#       }
+#       
+#       
+#       if  (Diff_nonmat_train_cs[[i]][j] == 99999 )  {
+#         Diff_nonmat_train_cs[[i]][j] <- NA
+#       }
+#       
+#     }
+#   }
+# }
+# 
+# 
+# # scalized data - normalized data
+# 
+# for (i in 1: length( Diff_mat_train ) ){
+#   for (j in 1: length( Diff_mat_train[[i]] ) ){
+#     
+#     if ( length( Diff_mat_train_ns[[i]])  > 0 ){
+#       
+#       if ((Diff_mat_train_ns[[i]][j] == 0 ) && (!is.na(Diff_mat_train_ns[[i]][j] ))){
+#         Diff_mat_train_ns[[i]][j]  <- minval
+#       }
+#       
+#       if  ((Diff_mat_train_ns[[i]][j] == 99999 ) && (!is.na(Diff_mat_train_ns[[i]][j] ))){
+#         Diff_mat_train_ns[[i]][j] <- NA
+#       }
+#       
+#     }   
+#   }
+# }
+# 
+# 
+# 
+# for (i in 1: length( Diff_nonmat_train_ns ) ){
+#   for (j in 1:length( Diff_nonmat_train_ns[[i]] ) ){
+#     
+#     if ( length( Diff_nonmat_train_ns[[i]])  > 0 ){
+#       
+#       if ((Diff_nonmat_train_ns[[i]][j] == 0 )&& (!is.na(Diff_nonmat_train_ns[[i]][j] ))){
+#         Diff_nonmat_train_ns[[i]][j] <- minval
+#       }
+#       
+#       else if  ((Diff_nonmat_train_ns[[i]][j] == 99999 ) && (!is.na(Diff_nonmat_train_ns[[i]][j] ))){
+#         Diff_nonmat_train_ns[[i]][j] <- NA
+#       }
+#     }
+#   }
+# }
+# 
+# 
+# Diff_mat_train_cs[[1]] <- na.omit (  Diff_mat_train_cs[[1]]  )
+# Diff_nonmat_train_cs[[1]] <- na.omit (  Diff_nonmat_train_cs[[1]]  ) 
+# for ( i in 1:30 )
+# {
+#   Diff_mat_train_cs[[i+1]] <- na.omit (  Diff_mat_train_cs[[1+i]]  )
+#   Diff_nonmat_train_cs[[i+1]] <- na.omit (  Diff_nonmat_train_cs[[1+i]]  ) 
+# }
+# 
+# 
+# 
+# Diff_mat_train_ns[[1]] <- na.omit (  Diff_mat_train_ns[[1]]  )
+# Diff_nonmat_train_ns[[1]] <- na.omit (  Diff_nonmat_train_ns[[1]]  ) 
+# for ( i in 1:30 )
+# {
+#   Diff_mat_train_ns[[i+1]] <- na.omit (  Diff_mat_train_ns[[1+i]]  )
+#   Diff_nonmat_train_ns[[i+1]] <- na.omit (  Diff_nonmat_train_ns[[1+i]]  ) 
+# }
 
 
 ###################### kerdel design
@@ -676,38 +702,41 @@ for ( i in 1: 31 )
 }
 
 
-# kernel (nonparametric) : non-normalized but scailized differences
-kernel_mat_cs <- list()
-kernel_nonmat_cs <- list()
+# # kernel (nonparametric) : non-normalized but scailized differences
+# kernel_mat_cs <- list()
+# kernel_nonmat_cs <- list()
+# 
+# 
+# for ( i in 1: 31 )
+# {
+#   if (sum ( Diff_mat_train_cs[[i]]) != 0) {
+#     set.seed(123)
+#     kernel_mat_cs[[i]] <- density(Diff_mat_train_cs[[i]])
+#     kernel_nonmat_cs[[i]] <- density(Diff_nonmat_train_cs[[i]], kernel = "epanechnikov", bw=5)
+#     kernel_nonmat_cs[[i]] <- density(Diff_nonmat_train_cs[[i]])
+#   }
+#   
+#   else
+#   {
+#     kernel_mat_cs$x[[i]] <- NA
+#     kernel_mat_cs$y[[i]] <- NA
+#     kernel_nonmat_cs$x[[i]] <-  NA
+#     kernel_nonmat_cs$y[[i]] <-  NA
+#   }
+#   
+# }
 
-
-for ( i in 1: 31 )
-{
-  if (sum ( Diff_mat_train_cs[[i]]) != 0) {
-    set.seed(123)
-    kernel_mat_cs[[i]] <- density(Diff_mat_train_cs[[i]])
-    kernel_nonmat_cs[[i]] <- density(Diff_nonmat_train_cs[[i]], kernel = "epanechnikov", bw=5)
-    kernel_nonmat_cs[[i]] <- density(Diff_nonmat_train_cs[[i]])
-  }
-  
-  else
-  {
-    kernel_mat_cs$x[[i]] <- NA
-    kernel_mat_cs$y[[i]] <- NA
-    kernel_nonmat_cs$x[[i]] <-  NA
-    kernel_nonmat_cs$y[[i]] <-  NA
-  }
-  
-}
-
-plot(kernel_nonmat_cs[[1]]$x, kernel_nonmat_cs[[1]]$y, type="l", col="red" )
-par(new=TRUE)
-plot(kernel_mat_cs[[1]]$x, kernel_mat_cs[[1]]$y , type="l", col="green", add=TRUE )
+# plot(kernel_nonmat_cs[[1]]$x, kernel_nonmat_cs[[1]]$y, type="l", col="red" )
+# par(new=TRUE)
+# plot(kernel_mat_cs[[1]]$x, kernel_mat_cs[[1]]$y , type="l", col="green", add=TRUE )
 
 q=13
 plot(kernel_sig_mat_c[[q]]$x, kernel_sig_mat_c[[q]]$y, type="l", col="red" )
 par(new=TRUE)
 plot(kernel_sig_nonmat_c[[q]]$x, kernel_sig_nonmat_c[[q]]$y , type="l", col="green", add=TRUE )
+
+
+
 ###histogram with non_normalized data
 
 
@@ -970,6 +999,8 @@ for ( i in 1 : length(Diff_mat_train_n)  ){
 
 # clustering - SIG
 # variance
+
+# v1
 stdmat_sig <- vector()
 stdnonmat_sig <- vector()
 for ( i in 1 : length(sigweight )  ){
@@ -978,28 +1009,39 @@ for ( i in 1 : length(sigweight )  ){
 }
 
 stdall_sig <- vector()
-stdall_sig <- c(stdmat, stdnonmat)
+stdall_sig <- c(stdmat_sig, stdnonmat_sig)
  
+#v2
+stdmat_sig <- vector()
+stdnonmat_sig <- vector()
+for ( i in 1 : length(sigweight )  ){
+  stdmat_sig[i] = sd(Diff_sig_mat_train[[i]]) / mean(abs (Diff_sig_mat_train[[i]]) )
+  stdnonmat_sig[i] = sd(Diff_sig_nonmat_train[[i]]) / mean(abs (Diff_sig_nonmat_train[[i]]) )
+}
+
+stdall_sig <- vector()
+stdall_sig <- c(stdmat_sig, stdnonmat_sig)
 
 #kmeans
-install.packages("kmeans")
-library(kmeans)
-
-kmeansAIC = function(fit){
-  
-  m = ncol(fit$centers)
-  n = length(fit$cluster)
-  k = nrow(fit$centers)
-  D = fit$tot.withinss
-  return(data.frame(AIC = D + 2*m*k,
-                    BIC = D + log(n)*m*k))
-}
+# install.packages("kmeans")
+# library(kmeans)
+# 
+# kmeansAIC = function(fit){
+#   
+#   m = ncol(fit$centers)
+#   n = length(fit$cluster)
+#   k = nrow(fit$centers)
+#   D = fit$tot.withinss
+#   return(data.frame(AIC = D + 2*m*k,
+#                     BIC = D + log(n)*m*k))
+# }
 
 X =  sort(stdmat_sig)
 fit <- kmeans(X, 2)
 # kmeansAIC(fit)
 plot(X, col = fit$cluster)
-stdthreshold_sig <- 0.07
+stdthreshold_sig <- 1.18
+# stdthreshold_sig <- 0.07
 
 # ks test
 ttestpvalue_sig <- vector()
@@ -1021,6 +1063,9 @@ for ( i in 1: length(sigweight)) {
     if (stdmat_sig[i] < stdthreshold_sig & stdnonmat_sig[i] > stdthreshold_sig ){
       sigfeatidx[i] <- 3
     }
+    if (stdmat_sig[i] > stdthreshold_sig & stdnonmat_sig[i] < stdthreshold_sig ){
+      sigfeatidx[i] <- 4
+    }
     
   }
   
@@ -1032,101 +1077,315 @@ for ( i in 1: length(sigweight)) {
 
 # WIM
 
-stdmat_wim_sp <- vector()
-stdnonmat_wim_sp <- vector()
-stdmat_wim_wt <- vector()
-stdnonmat_wim_wt <- vector()
-
-for ( i in 1 : 31  ){
-  if (i %in% c(4,5,6,7) ){ 
-  stdmat_wim_sp[i] = sd(Diff_mat_train_n[[i]]) 
-  stdnonmat_wim_sp[i] = sd(Diff_nonmat_train_n[[i]])
-  }
-  
-  if (i %in% c(12,13,14,15,16,17,18,19,20,21) ){ 
-    stdmat_wim_wt[i] = sd(Diff_mat_train_n[[i]]) 
-    stdnonmat_wim_wt[i] = sd(Diff_nonmat_train_n[[i]])
-  }
-  
-}
-
-stdall_wim_sp <- vector()
-stdall_wim_sp <- c(stdmat_wim_sp, stdnonmat_wim_sp)
-
-X =  sort(stdall_wim_sp)
-fit <- kmeans(X, 2)
-# kmeansAIC(fit)
-plot(X, col = fit$cluster)
-
-stdall_wim_wt <- vector()
-stdall_wim_wt <- c(stdmat_wim_wt, stdnonmat_wim_wt)
-X =  sort(stdall_wim_wt)
-fit <- kmeans(X, 2)
-plot(X, col = fit$cluster)
-
-stdthreshold_wim_sp <- 0.20
-stdthreshold_wim_wt <- 0.21
 
 # ks test
 ttestpvalue_wim <- vector()
 for ( i in 1 : 31 ){
   if (i %in% c(1,2,3,4,5,6,7,12,13,14,15,16,17,18,19,20,21,30,31) ){ 
-  ttestpvalue_wim[i]<- ks.test( normal_mat_c[[i]],  normal_nonmat_c[[i]])$p.value
+    ttestpvalue_wim[i]<- ks.test( normal_mat_c[[i]],  normal_nonmat_c[[i]])$p.value
   }
   else ttestpvalue_wim[i] <- NA
 }
 
-distidx <- which(ttestpvalue_wim < 0.05)
+
+# ttestpvalue_wim <- vector()
+# for ( i in 1 : 31 ){
+#   if (i %in% c(1,2,3,4,5,6,7,12,13,14,15,16,17,18,19,20,21,30,31) ){ 
+#     ttestpvalue_wim[i]<- ks.test( normal_mat_n[[i]],  normal_nonmat_n[[i]])$p.value
+#   }
+#   else ttestpvalue_wim[i] <- NA
+# }
+
+
+distidx <- which(ttestpvalue_wim > 0.05)
+
+
+# wim kmeans version 1
+stdmat_wim_sp <- vector()
+stdnonmat_wim_sp <- vector()
+stdmat_wim_wt <- vector()
+stdnonmat_wim_wt <- vector()
+stdmat_wim_mc <- vector()
+stdnonmat_wim_mc <- vector()
+
+for ( i in 1 : 31  ){
+  if (i %in% c(1,2,3,30,31) ){
+    stdmat_wim_mc[i] = sd(Diff_mat_train_n[[i]]) / mean(Diff_mat_train_n[[i]])
+    stdnonmat_wim_mc[i] = sd(Diff_nonmat_train_n[[i]]) / mean(Diff_nonmat_train_n[[i]])
+  }
+  
+  if (i %in% c(4,5,6,7) ){ 
+  stdmat_wim_sp[i] = sd(Diff_mat_train_n[[i]]) / mean(Diff_mat_train_n[[i]])
+  stdnonmat_wim_sp[i] = sd(Diff_nonmat_train_n[[i]]) / mean(Diff_nonmat_train_n[[i]])
+  }
+  
+  if (i %in% c(12,13,14,15,16,17,18,19,20,21) ){ 
+    stdmat_wim_wt[i] = sd(Diff_mat_train_n[[i]]) / mean(Diff_mat_train_n[[i]])
+    stdnonmat_wim_wt[i] = sd(Diff_nonmat_train_n[[i]]) / mean(Diff_nonmat_train_n[[i]])
+  }
+  
+}
+
+stdmat_wim_all <- vector()
+stdnonmat_wim_all <- vector()
+
+for ( i in 1 : 31  ){
+   if (i %in% c(1,2,3, 4,5,6,7 , 12,13, 14,15,16,17,18,19,20,21, 30,31) ){
+     stdmat_wim_all[i] <-  sd(Diff_mat_train_n[[i]]) / mean(Diff_mat_train_n[[i]])
+     stdnonmat_wim_all[i] <- sd(Diff_nonmat_train_n[[i]]) / mean(Diff_nonmat_train_n[[i]])
+   }
+}
+
+
+stdall_wim_all <- vector()
+stdall_wim_all <- c( stdmat_wim_mc ,  stdnonmat_wim_mc , stdmat_wim_sp, stdnonmat_wim_sp,
+                     stdmat_wim_wt, stdnonmat_wim_wt)
+
+X =  sort(stdall_wim_all )
+fit <- kmeans(X, 2)
+plot(X, col = fit$cluster)
+
+
+stdthreshold_wim_all <- 0.48
+
 
 
 wimfeatidx <- vector()
-for ( i in 1: 31) {
-  if ( i %in% c(4,5,6,7) ){
-
-    if (stdmat_wim_sp[i] > stdthreshold_wim_sp & stdnonmat_wim_sp[i] > stdthreshold_wim_sp ){
-      wimfeatidx[i] <- 1
-    }
-    if (stdmat_wim_sp[i] < stdthreshold_wim_sp & stdnonmat_wim_sp[i] < stdthreshold_wim_sp ){
-      wimfeatidx[i] <- 2
-    }
-    if (stdmat_wim_sp[i] < stdthreshold_wim_sp & stdnonmat_wim_sp[i] > stdthreshold_wim_sp ){
-      wimfeatidx[i] <- 3
-    }
-    if (stdmat_wim_sp[i] > stdthreshold_wim_sp & stdnonmat_wim_sp[i] <  stdthreshold_wim_sp ){
-      wimfeatidx[i] <- 4
-    }
-    
+for ( i in 1: 30) {
+  if (i %in% distidx){
+    wimfeatidx[i] <- 0
   }
-  
-  if ( i %in% c(12,13, 14,15,16,17,18,19,20,21) ){ 
+  else{
     
-    if (stdmat_wim_wt[i] > stdthreshold_wim_wt & stdnonmat_wim_wt[i] > stdthreshold_wim_wt ){
-      wimfeatidx[i] <- 1
-    }
-    if (stdmat_wim_wt[i] < stdthreshold_wim_wt & stdnonmat_wim_wt[i] < stdthreshold_wim_wt ){
-      wimfeatidx[i] <- 2
-    }
-    if (stdmat_wim_wt[i] < stdthreshold_wim_wt & stdnonmat_wim_wt[i] > stdthreshold_wim_wt ){
-      wimfeatidx[i] <- 3
-    }
-    if (stdmat_wim_wt[i] > stdthreshold_wim_wt & stdnonmat_wim_wt[i] < stdthreshold_wim_wt ){
-      wimfeatidx[i] <- 4
+    if ( i %in% c(1,2,3, 4,5,6,7 , 12,13, 14,15,16,17,18,19,20,21, 30,31) ){
+      
+      if (stdmat_wim_all[i] > stdthreshold_wim_all & stdnonmat_wim_all[i] > stdthreshold_wim_all ){
+        wimfeatidx[i] <- 1
+      }
+      if (stdmat_wim_all[i] < stdthreshold_wim_all & stdnonmat_wim_all[i] < stdthreshold_wim_all ){
+        wimfeatidx[i] <- 2
+      }
+      if (stdmat_wim_all[i] < stdthreshold_wim_all & stdnonmat_wim_all[i] > stdthreshold_wim_all ){
+        wimfeatidx[i] <- 3
+      }
+      if (stdmat_wim_all[i] > stdthreshold_wim_all & stdnonmat_wim_all[i] <  stdthreshold_wim_all ){
+        wimfeatidx[i] <- 4
+      }
+      
     }
     
-    
-  }
-  
-  if ( i %in% c(1,2,3,30,31) ){ 
-  
-      wimfeatidx[i] <- 3
-    
-  }
-  
-  
-  if ( i %in% c(8,9,10,11, 22,23,24,25,26,27,28,29) ){ 
-    wimfeatidx [i] <- 0  # mat = nonmat
+    else {
+      wimfeatidx[i] <- 0
+    }
   }
 }
+wimfeatidx[31] <- 1
+
+
+
+
+# # wim kmeans version 2
+# stdall_wim_sp <- vector()
+# stdall_wim_sp <- c(stdmat_wim_sp, stdnonmat_wim_sp)
+# 
+# X =  sort(stdall_wim_sp)
+# fit <- kmeans(X, 2)
+# # kmeansAIC(fit)
+# plot(X, col = fit$cluster)
+# 
+# stdall_wim_wt <- vector()
+# stdall_wim_wt <- c(stdmat_wim_wt, stdnonmat_wim_wt)
+# X =  sort(stdall_wim_wt)
+# fit <- kmeans(X, 2)
+# plot(X, col = fit$cluster)
+# 
+# stdthreshold_wim_sp <- 0.20
+# stdthreshold_wim_wt <- 0.21
+# 
+# 
+# 
+# wimfeatidx <- vector()
+# for ( i in 1: 31) {
+#   if (i %in% distidx){
+#     wimfeatidx[i] <- 0
+#   }
+#   else{
+#     
+#         if ( i %in% c(4,5,6,7) ){
+#       
+#           if (stdmat_wim_sp[i] > stdthreshold_wim_sp & stdnonmat_wim_sp[i] > stdthreshold_wim_sp ){
+#             wimfeatidx[i] <- 1
+#           }
+#           if (stdmat_wim_sp[i] < stdthreshold_wim_sp & stdnonmat_wim_sp[i] < stdthreshold_wim_sp ){
+#             wimfeatidx[i] <- 2
+#           }
+#           if (stdmat_wim_sp[i] < stdthreshold_wim_sp & stdnonmat_wim_sp[i] > stdthreshold_wim_sp ){
+#             wimfeatidx[i] <- 3
+#           }
+#           if (stdmat_wim_sp[i] > stdthreshold_wim_sp & stdnonmat_wim_sp[i] <  stdthreshold_wim_sp ){
+#             wimfeatidx[i] <- 4
+#           }
+#           
+#         }
+#         
+#         if ( i %in% c(12,13, 14,15,16,17,18,19,20,21) ){ 
+#           
+#           if (stdmat_wim_wt[i] > stdthreshold_wim_wt & stdnonmat_wim_wt[i] > stdthreshold_wim_wt ){
+#             wimfeatidx[i] <- 1
+#           }
+#           if (stdmat_wim_wt[i] < stdthreshold_wim_wt & stdnonmat_wim_wt[i] < stdthreshold_wim_wt ){
+#             wimfeatidx[i] <- 2
+#           }
+#           if (stdmat_wim_wt[i] < stdthreshold_wim_wt & stdnonmat_wim_wt[i] > stdthreshold_wim_wt ){
+#             wimfeatidx[i] <- 3
+#           }
+#           if (stdmat_wim_wt[i] > stdthreshold_wim_wt & stdnonmat_wim_wt[i] < stdthreshold_wim_wt ){
+#             wimfeatidx[i] <- 4
+#           }
+#           
+#           
+#         }
+#         
+#         if ( i %in% c(1,2,3,30,31) ){ 
+#         
+#             wimfeatidx[i] <- 3
+#           
+#         }
+#         
+#         
+#         if ( i %in% c(8,9,10,11, 22,23,24,25,26,27,28,29) ){ 
+#           wimfeatidx [i] <- 0  # mat = nonmat
+#         }
+#   }
+# }
+
+
+# IG
+
+# wim attribute weight
+# WIMWttemp <- data.frame()
+# 
+# for (i in 1:length(ResultMisMatching_train[,1])){
+#   
+#   if ( as.numeric (ResultMisMatching_train [i,1] ) == 9 ) { 
+#     if ( ResultMisMatching_train[i,2] == ResultMisMatching_train[i,4] ) {
+#       
+#       for (m in 1: 30) { 
+#         WIMWttemp[i,m] <- Upcandidates_attribute_train_missing[[i]][1,m]   
+#       }
+#       WIMWttemp[i,m+1] <- "1"
+#     }
+#     
+#     else {
+#       for (m in 1: 30) { 
+#         WIMWttemp[i,m] <- Upcandidates_attribute_train_missing[[i]][1,m]   
+#       }
+#       WIMWttemp[i,m+1] <- "2"
+#     }
+#   }
+# }
+
+WIMWttemp <- data.frame()
+
+for (j in 1:length(Diff_mat_train[[1]])){
+   
+   for (i in 1: 30) { 
+     WIMWttemp[j,i] <-Diff_mat_train[[i]][j] 
+   }
+     WIMWttemp[j,i+1] <- "1"
+   
+}
+
+for (jj in 1:length(Diff_nonmat_train[[1]])){
+  
+  for (i in 1: 30) { 
+    WIMWttemp[j+jj,i] <-Diff_nonmat_train[[i]][jj] 
+  }
+  WIMWttemp[j+jj,i+1] <- "2"
+  
+}
+    
+
+WIMWttemp <- na.omit(WIMWttemp)
+
+
+WIMWttemp <- WIMWttemp[-8:-11]
+WIMWttemp <- WIMWttemp[-18:-25]
+View(WIMWttemp)
+colnames(WIMWttemp) <- c("time", "length" , "weight", "axsp12" , "axsp23" , "axsp34", "axsp45", 
+                         "axwt1l" , "axwt1r" ,  "axwt2l" , "axwt2r" , "axwt3l" , "axwt3r" , "axwt4l" , "axwt4r" ,
+                         "axwt5l" , "axwt5r" , "duration" , "matchidx")
+
+
+
+# evaluator <- function(subset) {
+#   #k-fold cross validation
+#   k <- 5
+#   splits <- runif(nrow(WIMWttemp))
+#   results = sapply(1:k, function(i) {
+#     test.idx <- (splits >= (i - 1) / k) & (splits < i / k)
+#     train.idx <- !test.idx
+#     test <- WIMWttemp[test.idx, , drop=FALSE]
+#     train <- WIMWttemp[train.idx, , drop=FALSE]
+#     tree <- rpart(as.simple.formula(subset, "matchidx"), train)
+#     error.rate = sum(test$ idx!= predict(tree, test, type="c")) / nrow(test)
+#     return(1 - error.rate)
+#   })
+#   print(subset)
+#   print(mean(results))
+#   return(mean(results))
+# }
+
+
+# subsetwim <- exhaustive.search( names(WIMWttemp)[-20], evaluator)
+# f <- as.simple.formula(subset, "matchidx")
+# print(f)
+
+
+
+wimIGweights <- information.gain(matchidx~., WIMWttemp)
+print(wimIGweights)
+nIG <- sum(wimIGweights > 0)
+subset <- cutoff.k(wimIGweights, nIG)
+f <- as.simple.formula(subset, "matchidx")
+print(f)
+
+# sig weight -IG
+
+
+
+SIGWttemp <- data.frame()
+
+for (j in 1:length(sig_mat_train)){
+  
+  for (i in 1: 50) { 
+    SIGWttemp[j,i] <-  Diff_sig_mat_train [[i]][j] 
+  }
+  SIGWttemp[j,i+1] <- "1"
+  
+}
+
+for (jj in 1:length(sig_nonmat_train)){
+  
+  for (i in 1: 50) { 
+    SIGWttemp[j+jj,i] <-  Diff_sig_nonmat_train[[i]][jj] 
+  }
+  SIGWttemp[j+jj,i+1] <- "2"
+  
+}
+
+
+SIGWttemp <- na.omit(SIGWttemp)
+View(SIGWttemp)
+
+colnames(SIGWttemp)[51] <- c("sigidx")
+SIGIGweights <- information.gain(sigidx~., SIGWttemp)
+print(SIGIGweights)
+nIG <- sum(SIGIGweights > 0)
+subset <- cutoff.k(SIGIGweights, nIG)
+f <- as.simple.formula(subset, "sigidx")
+print(f)
+
 
 
 #sample plot
@@ -1268,7 +1527,7 @@ library(multiplot)
 
 
 
-setwd("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/WIMFeature") 
+setwd("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/WIMFeature2") 
 
 for (i in 1: 50){
  pt  <- ggplot()+
@@ -1317,7 +1576,7 @@ for (i in 1: 50){
   ggsave(filename = paste("sig feature - gaussian" , i, ".jpeg" , sep="") , plot = pt)
 }
 
-View(  sigfeatidx )
+
 # plot histogram
 k <- 19
 plot( hist_nonmat_c_sig[[k]], col = "red", 
@@ -1370,6 +1629,6 @@ for (i in 1: 31){
 
 
 # http://stackoverflow.com/questions/20078107/overlay-normal-curve-to-histogram-in-r
-save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Kernel_04292015")
+save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Kernel_05202015")
 #############################################################################################
 # end

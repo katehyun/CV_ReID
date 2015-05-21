@@ -1,6 +1,6 @@
 ### Plot
 setwd( "C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Plot/Non_Matches") 
-num <- 1000
+num <- 50
 
 no <-28
 Downplot <- f.drawDownsignature (no)
@@ -16,8 +16,8 @@ Upplot <- f.drawUpsignature (n1,n2)
 
 
 q=16
-Downsigid <- 531357852462433
-Downsigid <- matchingonly[q,4]
+Downsigid <- 541357774379513
+# Downsigid <- matchingonly[q,4]
 Downplot <- f.Downdraw (Downsigid)
 
 # Upsigid <- 941357772169808
@@ -25,7 +25,7 @@ Upsigid <- matchingonly[q,5]
 Upplot <- f.Updraw (Upsigid)
 Errorplot <- f.ErrorDraw ( as.numeric(Upsigid), as.numeric(Downsigid) ) 
 
-Upsigid <-931357850800950
+Upsigid <- 941357772586625
 Upplot <- f.Updraw (Upsigid)
 Errorplot <- f.ErrorDraw ( Upsigid, Downsigid ) 
 

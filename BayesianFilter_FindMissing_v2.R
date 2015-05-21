@@ -1,20 +1,53 @@
-# load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Missing_05082014")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Missing_05182015")
+
+# sigweight v1
+# sigweight <- sigfeatidx
+# sigweight[sigweight==0] <-0
+# sigweight[sigweight==2] <-1
+# sigweight[sigweight==3] <-2
 
 
-sigweight <- sigfeatidx
-sigweight[sigweight==0] <-1
-sigweight[sigweight==2] <-1
-sigweight[sigweight==3] <-2
+# sig weight v2 - from IG
+# sigweight  <- as.vector(as.matrix(SIGIGweights))
 
-wimweight <- wimfeatidx
-wimweight[wimweight==0] <-1
-wimweight[wimweight==2] <-1
-wimweight[wimweight==3] <-2
-wimweight[wimweight==4] <-0
+# sig weight v3
+sigfeatidx[sigfeatidx==4] <- 0
+sigweight  <- as.vector ( as.matrix (sigfeatidx * SIGIGweights ))
 
-wimweight[14] <- 0
-wimweight[16] <- 0
-wimweight[20] <- 0
+# # wimweight v1
+# wimweight <- wimfeatidx
+# wimweight[wimweight==0] <-1
+# wimweight[wimweight==2] <-1
+# wimweight[wimweight==3] <-2
+# wimweight[wimweight==4] <-0
+# 
+# wimweight[14] <- 0
+# wimweight[16] <- 0
+# wimweight[20] <- 0
+
+
+# wimweight v2 - from IG
+# th <- 1
+# wimweight[1:7] <- th  * wimIGweights[[1]][1:7]
+# wimweight[8:11] <- th  * 0
+# wimweight[12:21] <- th  * wimIGweights[[1]][8:17]
+# wimweight[22:29] <- th  * 0
+# wimweight[30:31] <- th  * wimIGweights[[1]][18:19]
+# wimweightV2 <- wimweight
+
+# wimweight v3 
+wimfeatidx[ wimfeatidx == 4] <- 0
+
+th <- 1
+wimweight[1:7] <- th  * wimIGweights[[1]][1:7]
+wimweight[8:11] <- th  * 0
+wimweight[12:21] <- th  * wimIGweights[[1]][8:17]
+wimweight[22:29] <- th  * 0
+wimweight[30] <- th  * wimIGweights[[1]][18]
+wimweight[31] <- 1
+wimweightV2 <- wimweight
+wimweight <- wimfeatidx * wimweightV2
+
 
 buf_matching_sig <- 0.00001
 buf_missing_sig <- 0.01
@@ -149,7 +182,7 @@ for (i in 1:length(Upcandidates_attribute_train_missing)){
     
     else
     {
-      for (j in 1:5){
+      for (j in 1:6){
         for (m in 1: 31) { 
           #       for (m in 1: 30) { 
           
@@ -279,6 +312,8 @@ for (i in 1:length(Upcandidates_attribute_train_missing)){
         
         jointprob_matching_train_result_temp[j,4] <-  jointprob_matching_train_result_temp[j,1]  + jointprob_matching_train_result_temp[j,2] 
         jointprob_matching_train_result_temp[j,5] <-  jointprob_matching_train_result_temp[j,1]  + jointprob_matching_train_result_temp[j,3]  
+        jointprob_matching_train_result_temp[j,6] <-  jointprob_matching_train_result_temp[j,1]  + 
+                                                      jointprob_matching_train_result_temp[j,2]  + jointprob_matching_train_result_temp[j,3] 
         
       }
       
@@ -329,7 +364,7 @@ for (i in 1:length(Upcandidates_attribute_train_missing)){
     
     else
     {
-      for (j in 1:5){
+      for (j in 1:6){
         for (m in 1: 31) { 
           #       for (m in 1: 30) { 
           
@@ -459,6 +494,8 @@ for (i in 1:length(Upcandidates_attribute_train_missing)){
         
         jointprob_missing_train_result_temp[j,4] <-  jointprob_missing_train_result_temp[j,1]  + jointprob_missing_train_result_temp[j,2] 
         jointprob_missing_train_result_temp[j,5] <-  jointprob_missing_train_result_temp[j,1]  + jointprob_missing_train_result_temp[j,3]  
+        jointprob_missing_train_result_temp[j,6] <-  jointprob_missing_train_result_temp[j,1]  + 
+                                                     jointprob_missing_train_result_temp[j,2]  + jointprob_missing_train_result_temp[j,3]  
         
       }
       
@@ -510,15 +547,15 @@ for (i in 1:length(Upcandidates_attribute_train_missing)){
     
     else
     {
-      for (j in 1:5){
+      for (j in 1:6){
         for (m in 1: 31) { 
           
           
           # option 2 - parametric
           if ( m %in% class9idxprob) {
             jointprob_matching_train_temp[j,m] <- as.numeric ( approx( diffseq_mat_n[[m]], 
-                                                                       normal_mat_n[[m]]  * multiplier_hist_mat_n[[m]][ which.min(is.na( multiplier_hist_mat_n[[m]] ) ) ] ,
-                                                                       (( Upcandidates_attribute_train_missing[[i]][j,m] - min_train_mat[m] ) / ( max_train_mat[m] - min_train_mat[m])) )$y )
+                   normal_mat_n[[m]]  * multiplier_hist_mat_n[[m]][ which.min(is.na( multiplier_hist_mat_n[[m]] ) ) ] ,
+                   (( Upcandidates_attribute_train_missing[[i]][j,m] - min_train_mat[m] ) / ( max_train_mat[m] - min_train_mat[m])) )$y )
             
             jointprob_matching_train_temp[j,m] [is.na(jointprob_matching_train_temp[j,m])] <- buf_matching 
           }
@@ -531,8 +568,8 @@ for (i in 1:length(Upcandidates_attribute_train_missing)){
         for (n in 1: 50) {
           
           jointprob_matching_train_sig_temp[j,n] <- as.numeric ( (approx( diffseq_mat_c_sig[[n]],  
-                                                                          normal_mat_c_sig[[n]]  *  multiplier_hist_mat_c_sig[[n]][ which.min(is.na( multiplier_hist_mat_c_sig[[n]] ) ) ] ,
-                                                                          Upcandidates_attribute_train_missing_sig[[i]][j,n]) )$y )
+                   normal_mat_c_sig[[n]]  *  multiplier_hist_mat_c_sig[[n]][ which.min(is.na( multiplier_hist_mat_c_sig[[n]] ) ) ] ,
+                   Upcandidates_attribute_train_missing_sig[[i]][j,n]) )$y )
           
           jointprob_matching_train_sig_temp[j,n] [is.na(  jointprob_matching_train_sig_temp[j,n])] <- buf_matching_sig 
         }
@@ -575,6 +612,8 @@ for (i in 1:length(Upcandidates_attribute_train_missing)){
         
         jointprob_matching_train_result_temp[j,4] <-  jointprob_matching_train_result_temp[j,1]  + jointprob_matching_train_result_temp[j,2] 
         jointprob_matching_train_result_temp[j,5] <-  jointprob_matching_train_result_temp[j,1]  + jointprob_matching_train_result_temp[j,3]  
+        jointprob_matching_train_result_temp[j,6] <-  jointprob_matching_train_result_temp[j,1]  + 
+                                                      jointprob_matching_train_result_temp[j,2]  + jointprob_matching_train_result_temp[j,3] 
         
       }
       
@@ -625,7 +664,7 @@ for (i in 1:length(Upcandidates_attribute_train_missing)){
     
     else
     {
-      for (j in 1:5){
+      for (j in 1:6){
         for (m in 1: 31) { 
           
           
@@ -689,6 +728,8 @@ for (i in 1:length(Upcandidates_attribute_train_missing)){
         
         jointprob_missing_train_result_temp[j,4] <-  jointprob_missing_train_result_temp[j,1]  + jointprob_missing_train_result_temp[j,2] 
         jointprob_missing_train_result_temp[j,5] <-  jointprob_missing_train_result_temp[j,1]  + jointprob_missing_train_result_temp[j,3]  
+        jointprob_missing_train_result_temp[j,6] <-  jointprob_missing_train_result_temp[j,1]  +
+                                                     jointprob_missing_train_result_temp[j,2] +  jointprob_missing_train_result_temp[j,3] 
         
       }
       
@@ -717,6 +758,9 @@ for (i in 1:length(Upcandidates_attribute_train_missing)){
 # jointprob_matching_train_result <- jointprob_matching_train_result_n
 # jointprob_missing_train <- jointprob_missing_train_n
 # jointprob_matching_train <- jointprob_matching_train_n
+
+
+
 
 # train matching and missing prob normalization
 jointprob_matching_train_normalized <- list()
@@ -755,6 +799,41 @@ for (i in 1:length(Upcandidates_attribute_train_missing)){
 }
 
 
+# train matching and missing prob normalization
+jointprob_matching_train_sig_normalized <- list()
+jointprob_missing_train_sig_normalized <- list()
+
+jointprob_matching_train_sig_normalized_temp <- data.frame()
+jointprob_missing_train_sig_normalized_temp <- data.frame()
+
+
+for (i in 1:length(Upcandidates_attribute_train_missing)){
+  
+  if ( !is.na ( Upcandidates_attribute_train_missing[[i]][1,1] )  ) {
+    for (j in 1 : length(Upcandidates_attribute_train_missing[[i]][,1] )){
+      for (k in 1 : length(Upcandidates_attribute_train_missing_sig[[i]] )){
+        
+        jointprob_matching_train_sig_normalized_temp[j,k] = 
+          jointprob_matching_train_sig[[i]][j,k]  / (  jointprob_matching_train_sig[[i]][j,k] +  jointprob_missing_train_sig[[i]][j,k] )
+        
+        jointprob_missing_train_sig_normalized_temp[j,k] = 
+          jointprob_missing_train_sig[[i]][j,k]  / (  jointprob_matching_train_sig[[i]][j,k] +  jointprob_missing_train_sig[[i]][j,k] )
+        
+      }  
+    } 
+  }
+  
+  
+  else{
+    jointprob_matching_train_sig_normalized_temp[j,k]  <- NA
+    jointprob_missing_train_sig_normalized_temp[j,k]  <- NA
+  }
+  
+  
+  jointprob_matching_train_sig_normalized[[length( jointprob_matching_train_sig_normalized) + 1 ]]  <- jointprob_matching_train_sig_normalized_temp
+  jointprob_missing_train_sig_normalized[[length( jointprob_missing_train_sig_normalized) + 1 ]]  <- jointprob_missing_train_sig_normalized_temp
+  
+}
 
 # normalized train matching
 jointprob_matching_train_result_normalized_temp <- data.frame()
@@ -765,29 +844,13 @@ for (i in 1:length(Upcandidates_attribute_train_missing)){
   if ( as.numeric (Downtarget_attributes_train [i,2] ) == 9 ) { 
     
     if ( is.na ( Upcandidates_attribute_train_missing[[i]][1,1] )  ) {
-      jointprob_matching_train_sig[[length(jointprob_matching_train_sig) + 1 ]] <-  NA
       jointprob_matching_train_result_normalized[[length(jointprob_matching_train_result_normalized) + 1]] <- NA
     }
     
     else
     {
-      for (j in 1:5){
-        
-        for (n in 1: 50) {
-          
-          jointprob_matching_train_sig_temp[j,n] <- as.numeric ( (approx( diffseq_mat_c_sig[[n]],  
-                                                                          normal_mat_c_sig[[n]]  *  multiplier_hist_mat_c_sig[[n]][ which.min(is.na( multiplier_hist_mat_c_sig[[n]] ) ) ] ,
-                                                                          Upcandidates_attribute_train_missing_sig[[i]][j,n]) )$y )
-          
-          jointprob_matching_train_sig_temp[j,n] [is.na(  jointprob_matching_train_sig_temp[j,n])] <- buf_matching_sig 
-        }
-        
-        
-        
-        
-        jointprob_matching_train_sig_temp[is.na(jointprob_matching_train_sig_temp)] <- buf_matching_sig 
-        jointprob_matching_train_sig_temp[jointprob_matching_train_sig_temp == 0 ] <- buf_matching_sig 
-        
+      for (j in 1:6){
+
         
         # option 2
         
@@ -814,23 +877,20 @@ for (i in 1:length(Upcandidates_attribute_train_missing)){
         
         for ( n in 1: length(sigweight)){
           jointprob_matching_train_result_normalized_temp[j,3] <- jointprob_matching_train_result_normalized_temp[j,3] + 
-            log10(jointprob_matching_train_sig_temp[j,n]) * sigweight[n]
+            log10(jointprob_matching_train_sig_normalized[[i]][j,n]) * sigweight[n]
         }
         
         jointprob_matching_train_result_normalized_temp[j,4] <-  jointprob_matching_train_result_normalized_temp[j,1] + 
           jointprob_matching_train_result_normalized_temp[j,2] 
         jointprob_matching_train_result_normalized_temp[j,5] <-  jointprob_matching_train_result_normalized_temp[j,1] +
           jointprob_matching_train_result_normalized_temp[j,3]  
+        jointprob_matching_train_result_normalized_temp[j,6] <-  jointprob_matching_train_result_normalized_temp[j,1] +
+          jointprob_matching_train_result_normalized_temp[j,2]  + jointprob_matching_train_result_normalized_temp[j,3]  
         
       }
       
       jointprob_matching_train_result_normalized[[length(jointprob_matching_train_result_normalized) + 1]] <- 
         jointprob_matching_train_result_normalized_temp
-      jointprob_matching_train_sig[[length( jointprob_matching_train_sig) +1]] <-  jointprob_matching_train_sig_temp
-      jointprob_matching_train[[length( jointprob_matching_train) +1]] <-  jointprob_matching_train_temp
-      
-      
-      jointprob_matching_train_sig_temp <- data.frame()
       jointprob_matching_train_result_normalized_temp <- data.frame()
       
     }
@@ -839,8 +899,6 @@ for (i in 1:length(Upcandidates_attribute_train_missing)){
   else # class is not 9
     
   {
-    
-    jointprob_matching_train_sig[[length(jointprob_matching_train_sig) + 1 ]] <-  NA
     jointprob_matching_train_result_normalized[[length(jointprob_matching_train_result_normalized) + 1]] <- NA
   }
   
@@ -857,30 +915,13 @@ for (i in 1:length(Upcandidates_attribute_train_missing)){
   if ( as.numeric (Downtarget_attributes_train [i,2] ) == 9 ) { 
     
     if ( is.na ( Upcandidates_attribute_train_missing[[i]][1,1] )  ) {
-      jointprob_missing_train_sig[[length(jointprob_missing_train_sig) + 1 ]] <-  NA
       jointprob_missing_train_result_normalization[[length(jointprob_missing_train_result_normalized) + 1]] <- NA
     }
     
     else
     {
-      for (j in 1:5){
-        
-        for (n in 1: 50) {
-          
-          jointprob_missing_train_sig_temp[j,n] <- as.numeric ( (approx( diffseq_nonmat_c_sig[[n]],  
-                                                                         normal_nonmat_c_sig[[n]]  *  multiplier_hist_mat_c_sig[[n]][ which.min(is.na( multiplier_hist_mat_c_sig[[n]] ) ) ] ,
-                                                                         Upcandidates_attribute_train_missing_sig[[i]][j,n]) )$y )
-          
-          jointprob_missing_train_sig_temp[j,n] [is.na(  jointprob_missing_train_sig_temp[j,n])] <- buf_missing_sig 
-        }
-        
-        
-        
-        
-        jointprob_missing_train_sig_temp[is.na(jointprob_missing_train_sig_temp)] <- buf_missing_sig 
-        jointprob_missing_train_sig_temp[jointprob_missing_train_sig_temp == 0 ] <- buf_missing_sig 
-        
-        
+      for (j in 1:6){
+               
         # option 2
         
         jointprob_missing_train_result_normalized_temp[j,1] <-   log10( jointprob_missing_train_normalized[[i]][j,1]) * wimweight[1] +  
@@ -906,25 +947,22 @@ for (i in 1:length(Upcandidates_attribute_train_missing)){
         
         for ( n in 1: length(sigweight)){
           jointprob_missing_train_result_normalized_temp[j,3] <- jointprob_missing_train_result_normalized_temp[j,3] + 
-            log10(jointprob_missing_train_sig_temp[j,n]) * sigweight[n]
+            log10(jointprob_missing_train_sig[[i]][j,n]) * sigweight[n]
         }
         
         jointprob_missing_train_result_normalized_temp[j,4] <-  jointprob_missing_train_result_normalized_temp[j,1] + 
           jointprob_missing_train_result_normalized_temp[j,2] 
         jointprob_missing_train_result_normalized_temp[j,5] <-  jointprob_missing_train_result_normalized_temp[j,1] +
           jointprob_missing_train_result_normalized_temp[j,3]  
+        jointprob_missing_train_result_normalized_temp[j,6] <-  jointprob_missing_train_result_normalized_temp[j,1] +
+          jointprob_missing_train_result_normalized_temp[j,2] + jointprob_missing_train_result_normalized_temp[j,3] 
         
       }
-      
-      
+     
       
       jointprob_missing_train_result_normalized[[length(jointprob_missing_train_result_normalized) + 1]] <- 
         jointprob_missing_train_result_normalized_temp
-      jointprob_missing_train_sig[[length( jointprob_missing_train_sig) +1]] <-  jointprob_missing_train_sig_temp
-      jointprob_missing_train[[length( jointprob_missing_train) +1]] <-  jointprob_missing_train_temp
-      
-      
-      jointprob_missing_train_sig_temp <- data.frame()
+
       jointprob_missing_train_result_normalized_temp <- data.frame()
       
     }
@@ -933,8 +971,6 @@ for (i in 1:length(Upcandidates_attribute_train_missing)){
   else # class is not 9
     
   {
-    
-    jointprob_missing_train_sig[[length(jointprob_missing_train_sig) + 1 ]] <-  NA
     jointprob_missing_train_result_normalized[[length(jointprob_missing_train_result_normalized) + 1]] <- NA
   }
   
@@ -1019,7 +1055,7 @@ for (i in 1:length(Upcandidates_attribute_test_missing)){
     
     else
     {
-      for (j in 1:5){
+      for (j in 1:6){
         for (m in 1: 31) { 
           #       for (m in 1: 30) { 
           
@@ -1147,6 +1183,8 @@ for (i in 1:length(Upcandidates_attribute_test_missing)){
         
         jointprob_matching_test_result_temp[j,4] <-  jointprob_matching_test_result_temp[j,1]  + jointprob_matching_test_result_temp[j,2] 
         jointprob_matching_test_result_temp[j,5] <-  jointprob_matching_test_result_temp[j,1]  + jointprob_matching_test_result_temp[j,3]  
+        jointprob_matching_test_result_temp[j,6] <-  jointprob_matching_test_result_temp[j,1]  + 
+                                                     jointprob_matching_test_result_temp[j,2]  +jointprob_matching_test_result_temp[j,3]  
         
       }
       
@@ -1195,7 +1233,7 @@ for (i in 1:length(Upcandidates_attribute_test_missing)){
     
     else
     {
-      for (j in 1:5){
+      for (j in 1:6){
         for (m in 1: 31) { 
           #       for (m in 1: 30) { 
           
@@ -1323,7 +1361,9 @@ for (i in 1:length(Upcandidates_attribute_test_missing)){
         
         jointprob_missing_test_result_temp[j,4] <-  jointprob_missing_test_result_temp[j,1]  + jointprob_missing_test_result_temp[j,2] 
         jointprob_missing_test_result_temp[j,5] <-  jointprob_missing_test_result_temp[j,1]  + jointprob_missing_test_result_temp[j,3]  
-        
+        jointprob_missing_test_result_temp[j,6] <-  jointprob_missing_test_result_temp[j,1]  +
+                                                    jointprob_missing_test_result_temp[j,2]  + jointprob_missing_test_result_temp[j,3] 
+         
       }
       
       jointprob_missing_test_result[[length(jointprob_missing_test_result) + 1]] <- jointprob_missing_test_result_temp
@@ -1377,7 +1417,7 @@ for (i in 1:length(Upcandidates_attribute_test_missing)){
     
     else
     {
-      for (j in 1:5){
+      for (j in 1:6){
         for (m in 1: 31) { 
           
           
@@ -1401,8 +1441,8 @@ for (i in 1:length(Upcandidates_attribute_test_missing)){
         for (n in 1: 50) {
           
           jointprob_matching_test_sig_temp[j,n] <- as.numeric ( (approx( diffseq_mat_c_sig[[n]],  
-                                                                         normal_mat_c_sig[[n]]  *  multiplier_hist_mat_c_sig[[n]][ which.min(is.na( multiplier_hist_mat_c_sig[[n]] ) ) ] ,
-                                                                         Upcandidates_attribute_test_missing_sig[[i]][j,n]) )$y )
+                   normal_mat_c_sig[[n]]  *  multiplier_hist_mat_c_sig[[n]][ which.min(is.na( multiplier_hist_mat_c_sig[[n]] ) ) ] ,
+                   Upcandidates_attribute_test_missing_sig[[i]][j,n]) )$y )
           
           jointprob_matching_test_sig_temp[j,n] [is.na(  jointprob_matching_test_sig_temp[j,n])] <- buf_matching_sig 
         }
@@ -1446,6 +1486,8 @@ for (i in 1:length(Upcandidates_attribute_test_missing)){
         
         jointprob_matching_test_result_temp[j,4] <-  jointprob_matching_test_result_temp[j,1]  + jointprob_matching_test_result_temp[j,2] 
         jointprob_matching_test_result_temp[j,5] <-  jointprob_matching_test_result_temp[j,1]  + jointprob_matching_test_result_temp[j,3]  
+        jointprob_matching_test_result_temp[j,6] <-  jointprob_matching_test_result_temp[j,1]  +
+                                                     jointprob_matching_test_result_temp[j,2]  + jointprob_matching_test_result_temp[j,3]   
         
       }
       
@@ -1494,7 +1536,7 @@ for (i in 1:length(Upcandidates_attribute_test_missing)){
     
     else
     {
-      for (j in 1:5){
+      for (j in 1:6){
         for (m in 1: 31) { 
           
           
@@ -1561,6 +1603,8 @@ for (i in 1:length(Upcandidates_attribute_test_missing)){
         
         jointprob_missing_test_result_temp[j,4] <-  jointprob_missing_test_result_temp[j,1]  + jointprob_missing_test_result_temp[j,2] 
         jointprob_missing_test_result_temp[j,5] <-  jointprob_missing_test_result_temp[j,1]  + jointprob_missing_test_result_temp[j,3]  
+        jointprob_missing_test_result_temp[j,6] <-  jointprob_missing_test_result_temp[j,1]  + 
+                                                    jointprob_missing_test_result_temp[j,2]  + jointprob_missing_test_result_temp[j,3] 
         
       }
       
@@ -1594,6 +1638,8 @@ for (i in 1:length(Upcandidates_attribute_test_missing)){
 # jointprob_matching_test_result <- jointprob_matching_test_result_n
 # jointprob_missing_test <- jointprob_missing_test_n
 # jointprob_matching_test <- jointprob_matching_test_n
+
+
 
 # test matching and missing prob normalization
 jointprob_matching_test_normalized <- list()
@@ -1632,6 +1678,43 @@ for (i in 1:length(Upcandidates_attribute_test_missing)){
 }
 
 
+# test matching and missing prob normalization
+jointprob_matching_test_sig_normalized <- list()
+jointprob_missing_test_sig_normalized <- list()
+
+jointprob_matching_test_sig_normalized_temp <- data.frame()
+jointprob_missing_test_sig_normalized_temp <- data.frame()
+
+
+for (i in 1:length(Upcandidates_attribute_test_missing)){
+  
+  if ( !is.na ( Upcandidates_attribute_test_missing[[i]][1,1] )  ) {
+    for (j in 1 : length(Upcandidates_attribute_test_missing[[i]][,1] )){
+      for (k in 1 : length(Upcandidates_attribute_test_missing_sig[[i]] )){
+        
+        jointprob_matching_test_sig_normalized_temp[j,k] = 
+          jointprob_matching_test_sig[[i]][j,k]  / (  jointprob_matching_test_sig[[i]][j,k] +  jointprob_missing_test_sig[[i]][j,k] )
+        
+        jointprob_missing_test_sig_normalized_temp[j,k] = 
+          jointprob_missing_test_sig[[i]][j,k]  / (  jointprob_matching_test_sig[[i]][j,k] +  jointprob_missing_test_sig[[i]][j,k] )
+        
+      }  
+    } 
+  }
+  
+  
+  else{
+    jointprob_matching_test_sig_normalized_temp[j,k]  <- NA
+    jointprob_missing_test_sig_normalized_temp[j,k]  <- NA
+  }
+  
+  
+  jointprob_matching_test_sig_normalized[[length( jointprob_matching_test_sig_normalized) + 1 ]]  <- jointprob_matching_test_sig_normalized_temp
+  jointprob_missing_test_sig_normalized[[length( jointprob_missing_test_sig_normalized) + 1 ]]  <- jointprob_missing_test_sig_normalized_temp
+  
+}
+
+
 # normalized test matching
 jointprob_matching_test_result_normalized_temp <- data.frame()
 jointprob_matching_test_result_normalized <- list()
@@ -1641,28 +1724,12 @@ for (i in 1:length(Upcandidates_attribute_test_missing)){
   if ( as.numeric (Downtarget_attributes_test [i,2] ) == 9 ) { 
     
     if ( is.na ( Upcandidates_attribute_test_missing[[i]][1,1] )  ) {
-      jointprob_matching_test_sig[[length(jointprob_matching_test_sig) + 1 ]] <-  NA
       jointprob_matching_test_result_normalized[[length(jointprob_matching_test_result_normalized) + 1]] <- NA
     }
     
     else
     {
-      for (j in 1:5){
-        
-        for (n in 1: 50) {
-          
-          jointprob_matching_test_sig_temp[j,n] <- as.numeric ( (approx( diffseq_mat_c_sig[[n]],  
-                                                                         normal_mat_c_sig[[n]]  *  multiplier_hist_mat_c_sig[[n]][ which.min(is.na( multiplier_hist_mat_c_sig[[n]] ) ) ] ,
-                                                                         Upcandidates_attribute_test_missing_sig[[i]][j,n]) )$y )
-          
-          jointprob_matching_test_sig_temp[j,n] [is.na(  jointprob_matching_test_sig_temp[j,n])] <- buf_matching_sig 
-        }
-        
-        
-        
-        jointprob_matching_test_sig_temp[is.na(jointprob_matching_test_sig_temp)] <- buf_matching_sig 
-        jointprob_matching_test_sig_temp[jointprob_matching_test_sig_temp == 0 ] <- buf_matching_sig 
-        
+      for (j in 1:6){
         
         # option 2
         
@@ -1689,26 +1756,22 @@ for (i in 1:length(Upcandidates_attribute_test_missing)){
         
         for ( n in 1: length(sigweight)){
           jointprob_matching_test_result_normalized_temp[j,3] <- jointprob_matching_test_result_normalized_temp[j,3] + 
-            log10(jointprob_matching_test_sig_temp[j,n]) * sigweight[n]
+            log10(jointprob_matching_test_sig_normalized[[i]][j,n]) * sigweight[n]
         }
         
         jointprob_matching_test_result_normalized_temp[j,4] <-  jointprob_matching_test_result_normalized_temp[j,1] + 
           jointprob_matching_test_result_normalized_temp[j,2] 
         jointprob_matching_test_result_normalized_temp[j,5] <-  jointprob_matching_test_result_normalized_temp[j,1] +
           jointprob_matching_test_result_normalized_temp[j,3]  
+        jointprob_matching_test_result_normalized_temp[j,6] <-  jointprob_matching_test_result_normalized_temp[j,1] +
+          jointprob_matching_test_result_normalized_temp[j,2]  +  jointprob_matching_test_result_normalized_temp[j,3]  
         
       }
       
-      
-      
-      
+  
       jointprob_matching_test_result_normalized[[length(jointprob_matching_test_result_normalized) + 1]] <- 
         jointprob_matching_test_result_normalized_temp
-      jointprob_matching_test_sig[[length( jointprob_matching_test_sig) +1]] <-  jointprob_matching_test_sig_temp
-      jointprob_matching_test[[length( jointprob_matching_test) +1]] <-  jointprob_matching_test_temp
-      
-      
-      jointprob_matching_test_sig_temp <- data.frame()
+
       jointprob_matching_test_result_normalized_temp <- data.frame()
       
     }
@@ -1717,8 +1780,6 @@ for (i in 1:length(Upcandidates_attribute_test_missing)){
   else # class is not 9
     
   {
-    
-    jointprob_matching_test_sig[[length(jointprob_matching_test_sig) + 1 ]] <-  NA
     jointprob_matching_test_result_normalized[[length(jointprob_matching_test_result_normalized) + 1]] <- NA
   }
   
@@ -1735,29 +1796,14 @@ for (i in 1:length(Upcandidates_attribute_test_missing)){
   if ( as.numeric (Downtarget_attributes_test [i,2] ) == 9 ) { 
     
     if ( is.na ( Upcandidates_attribute_test_missing[[i]][1,1] )  ) {
-      jointprob_missing_test_sig[[length(jointprob_missing_test_sig) + 1 ]] <-  NA
       jointprob_missing_test_result_normalized[[length(jointprob_missing_test_result_normalized) + 1]] <- NA
     }
     
     else
     {
-      for (j in 1:5){
+      for (j in 1:6){
         
-        for (n in 1: 50) {
-          
-          jointprob_missing_test_sig_temp[j,n] <- as.numeric ( (approx( diffseq_nonmat_c_sig[[n]],  
-                                                                        normal_nonmat_c_sig[[n]]  *  multiplier_hist_mat_c_sig[[n]][ which.min(is.na( multiplier_hist_mat_c_sig[[n]] ) ) ] ,
-                                                                        Upcandidates_attribute_test_missing_sig[[i]][j,n]) )$y )
-          
-          jointprob_missing_test_sig_temp[j,n] [is.na(  jointprob_missing_test_sig_temp[j,n])] <- buf_missing_sig 
-        }
-        
-        
-        
-        jointprob_missing_test_sig_temp[is.na(jointprob_missing_test_sig_temp)] <- buf_missing_sig 
-        jointprob_missing_test_sig_temp[jointprob_missing_test_sig_temp == 0 ] <- buf_missing_sig 
-        
-        
+
         # option 2
         
         jointprob_missing_test_result_normalized_temp[j,1] <-   log10( jointprob_missing_test_normalized[[i]][j,1]) * wimweight[1] +  
@@ -1783,24 +1829,22 @@ for (i in 1:length(Upcandidates_attribute_test_missing)){
         
         for ( n in 1: length(sigweight)){
           jointprob_missing_test_result_normalized_temp[j,3] <- jointprob_missing_test_result_normalized_temp[j,3] + 
-            log10(jointprob_missing_test_sig_temp[j,n]) * sigweight[n]
+            log10(jointprob_missing_test_sig_normalized[[i]][j,n]) * sigweight[n]
         }
         
         jointprob_missing_test_result_normalized_temp[j,4] <-  jointprob_missing_test_result_normalized_temp[j,1] + 
           jointprob_missing_test_result_normalized_temp[j,2] 
         jointprob_missing_test_result_normalized_temp[j,5] <-  jointprob_missing_test_result_normalized_temp[j,1] +
           jointprob_missing_test_result_normalized_temp[j,3]  
+        jointprob_missing_test_result_normalized_temp[j,6] <-  jointprob_missing_test_result_normalized_temp[j,1] +
+          jointprob_missing_test_result_normalized_temp[j,2]  + jointprob_missing_test_result_normalized_temp[j,3]  
         
       }
       
       
       jointprob_missing_test_result_normalized[[length(jointprob_missing_test_result_normalized) + 1]] <- 
         jointprob_missing_test_result_normalized_temp
-      jointprob_missing_test_sig[[length( jointprob_missing_test_sig) +1]] <-  jointprob_missing_test_sig_temp
-      jointprob_missing_test[[length( jointprob_missing_test) +1]] <-  jointprob_missing_test_temp
-      
-      
-      jointprob_missing_test_sig_temp <- data.frame()
+    
       jointprob_missing_test_result_normalized_temp <- data.frame()
       
     }
@@ -1809,8 +1853,6 @@ for (i in 1:length(Upcandidates_attribute_test_missing)){
   else # class is not 9
     
   {
-    
-    jointprob_missing_test_sig[[length(jointprob_missing_test_sig) + 1 ]] <-  NA
     jointprob_missing_test_result_normalized[[length(jointprob_missing_test_result_normalized) + 1]] <- NA
   }
   
@@ -1825,46 +1867,49 @@ ResultMissing_train_all_1 <- data.frame()
 ResultMissing_test_all_2 <- data.frame()
 ResultMissing_train_all_2 <- data.frame()
 
-# weightwim <- 1
-# weightsig1 <- 2
-# weightsig2 <- 2
+ResultMissing_train <- data.frame()
+ResultMissing_test <- data.frame()
 
-for ( weightwim in seq(from=0, to=3, by=0.5)) {
-  for ( weightsig1 in seq(from=0, to=3, by=0.5)) {
-    for ( weightsig2 in seq(from=0, to=3, by=0.5)) {
+weightwim <- 2
+weightsig1 <- 1.5
+weightsig2 <- 1
+
+# for ( weightwim in seq(from=0, to=3, by=0.5)) {
+#   for ( weightsig1 in seq(from=0, to=3, by=0.5)) {
+#     for ( weightsig2 in seq(from=0, to=3, by=0.5)) {
       
       #  result normalization - train
       for (i in 1:length(Upcandidates_attribute_train_missing)){
         
         if ( as.numeric (Downtarget_attributes_train [i,2] ) == 9 ) { 
-          for (j in 1: 5 ) {
+          for (j in 1: 6 ) {
             
-            jointprob_matching_train_result[[i]][j,6] <- (jointprob_matching_train_result[[i]][j,1] -
+            jointprob_matching_train_result[[i]][j,7] <- (jointprob_matching_train_result[[i]][j,1] -
                                                             ( min(unlist(jointprob_matching_train_result[[i]][,1]) , unlist(jointprob_missing_train_result[[i]][,1])) ) )/ 
               ( max(unlist(jointprob_matching_train_result[[i]][,1]) , unlist(jointprob_missing_train_result[[i]][,1])) - 
                   min(unlist(jointprob_matching_train_result[[i]][,1]) , unlist(jointprob_missing_train_result[[i]][,1])) )
             
-            jointprob_missing_train_result[[i]][j,6] <- (jointprob_missing_train_result[[i]][j,1] -
+            jointprob_missing_train_result[[i]][j,7] <- (jointprob_missing_train_result[[i]][j,1] -
                                                            ( min(unlist(jointprob_matching_train_result[[i]][,1]) , unlist(jointprob_missing_train_result[[i]][,1])) ) )/ 
               ( max(unlist(jointprob_matching_train_result[[i]][,1]) , unlist(jointprob_missing_train_result[[i]][,1])) - 
                   min(unlist(jointprob_matching_train_result[[i]][,1]) , unlist(jointprob_missing_train_result[[i]][,1])) )
             
-            jointprob_matching_train_result[[i]][j,7] <- (jointprob_matching_train_result[[i]][j,2] -
+            jointprob_matching_train_result[[i]][j,8] <- (jointprob_matching_train_result[[i]][j,2] -
                                                             ( min(unlist(jointprob_matching_train_result[[i]][,2]) , unlist(jointprob_missing_train_result[[i]][,2])) ) )/ 
               ( max(unlist(jointprob_matching_train_result[[i]][,2]) , unlist(jointprob_missing_train_result[[i]][,2])) - 
                   min(unlist(jointprob_matching_train_result[[i]][,2]) , unlist(jointprob_missing_train_result[[i]][,2])) )
             
-            jointprob_missing_train_result[[i]][j,7] <- (jointprob_missing_train_result[[i]][j,2] -
+            jointprob_missing_train_result[[i]][j,8] <- (jointprob_missing_train_result[[i]][j,2] -
                                                            ( min(unlist(jointprob_matching_train_result[[i]][,2]) , unlist(jointprob_missing_train_result[[i]][,2])) ) )/ 
               ( max(unlist(jointprob_matching_train_result[[i]][,2]) , unlist(jointprob_missing_train_result[[i]][,2])) - 
                   min(unlist(jointprob_matching_train_result[[i]][,2]) , unlist(jointprob_missing_train_result[[i]][,2])) )
             
-            jointprob_matching_train_result[[i]][j,8] <- (jointprob_matching_train_result[[i]][j,3] -
+            jointprob_matching_train_result[[i]][j,9] <- (jointprob_matching_train_result[[i]][j,3] -
                                                             ( min(unlist(jointprob_matching_train_result[[i]][,3]) , unlist(jointprob_missing_train_result[[i]][,3])) ) )/ 
               ( max(unlist(jointprob_matching_train_result[[i]][,3]) , unlist(jointprob_missing_train_result[[i]][,3])) - 
                   min(unlist(jointprob_matching_train_result[[i]][,3]) , unlist(jointprob_missing_train_result[[i]][,3])) )
             
-            jointprob_missing_train_result[[i]][j,8] <- (jointprob_missing_train_result[[i]][j,3] -
+            jointprob_missing_train_result[[i]][j,9] <- (jointprob_missing_train_result[[i]][j,3] -
                                                            ( min(unlist(jointprob_matching_train_result[[i]][,3]) , unlist(jointprob_missing_train_result[[i]][,3])) ) )/ 
               ( max(unlist(jointprob_matching_train_result[[i]][,3]) , unlist(jointprob_missing_train_result[[i]][,3])) - 
                   min(unlist(jointprob_matching_train_result[[i]][,3]) , unlist(jointprob_missing_train_result[[i]][,3])) )
@@ -1872,26 +1917,26 @@ for ( weightwim in seq(from=0, to=3, by=0.5)) {
             jointprob_matching_train_result[[i]][is.na( jointprob_matching_train_result[[i]])] <- 0
             jointprob_missing_train_result[[i]][is.na( jointprob_missing_train_result[[i]])] <- 0
             
-            jointprob_matching_train_result[[i]][j,9] <- jointprob_matching_train_result[[i]][j,6] * weightwim +
-              jointprob_matching_train_result[[i]][j,7] * weightsig1
+            jointprob_matching_train_result[[i]][j,10] <- jointprob_matching_train_result[[i]][j,7] * weightwim +
+              jointprob_matching_train_result[[i]][j,8] * weightsig1
             
-            jointprob_missing_train_result[[i]][j,9] <- jointprob_missing_train_result[[i]][j,6]  * weightwim  +
-              jointprob_missing_train_result[[i]][j,7] * weightsig1
+            jointprob_missing_train_result[[i]][j,10] <- jointprob_missing_train_result[[i]][j,7]  * weightwim  +
+              jointprob_missing_train_result[[i]][j,8] * weightsig1
             
-            jointprob_matching_train_result[[i]][j,10] <- jointprob_matching_train_result[[i]][j,6] * weightwim  +
-              jointprob_matching_train_result[[i]][j,8] * weightsig2
+            jointprob_matching_train_result[[i]][j,11] <- jointprob_matching_train_result[[i]][j,7] * weightwim  +
+              jointprob_matching_train_result[[i]][j,9] * weightsig2
             
-            jointprob_missing_train_result[[i]][j,10] <- jointprob_missing_train_result[[i]][j,6] * weightwim  +
-              jointprob_missing_train_result[[i]][j,8] * weightsig2
+            jointprob_missing_train_result[[i]][j,11] <- jointprob_missing_train_result[[i]][j,7] * weightwim  +
+              jointprob_missing_train_result[[i]][j,9] * weightsig2
             
-            jointprob_matching_train_result[[i]][j,11] <- jointprob_matching_train_result[[i]][j,6] * weightwim  +
-              jointprob_matching_train_result[[i]][j,7] * weightsig1 + jointprob_matching_train_result[[i]][j,8] * weightsig2
+            jointprob_matching_train_result[[i]][j,12] <- jointprob_matching_train_result[[i]][j,7] * weightwim  +
+              jointprob_matching_train_result[[i]][j,8] * weightsig1 + jointprob_matching_train_result[[i]][j,9] * weightsig2
             
-            jointprob_missing_train_result[[i]][j,11] <- jointprob_missing_train_result[[i]][j,6] * weightwim  +
-              jointprob_missing_train_result[[i]][j,7] * weightsig1 + jointprob_missing_train_result[[i]][j,8] * weightsig2
+            jointprob_missing_train_result[[i]][j,12] <- jointprob_missing_train_result[[i]][j,7] * weightwim  +
+              jointprob_missing_train_result[[i]][j,8] * weightsig1 + jointprob_missing_train_result[[i]][j,9] * weightsig2
             
-            jointprob_matching_train_result[[i]][j,12] <-  jointprob_train_result[[i]][idxjointprob_train[i,j] , 11]  
-            jointprob_missing_train_result[[i]][j,12] <-  jointprob_train_result[[i]][idxjointprob_train[i,j] , 11] 
+            jointprob_matching_train_result[[i]][j,13] <-  jointprob_train_result[[i]][idxjointprob_train[i,j] , 13]  
+            jointprob_missing_train_result[[i]][j,13] <-  jointprob_train_result[[i]][idxjointprob_train[i,j] , 13] 
             
             
           }
@@ -1903,34 +1948,34 @@ for ( weightwim in seq(from=0, to=3, by=0.5)) {
       for (i in 1:length(Upcandidates_attribute_train_missing)){
         
         if ( as.numeric (Downtarget_attributes_train [i,2] ) == 9 ) { 
-          for (j in 1: 5 ) {
+          for (j in 1: 6 ) {
             
-            jointprob_matching_train_result_normalized[[i]][j,6] <- (jointprob_matching_train_result_normalized[[i]][j,1] -
+            jointprob_matching_train_result_normalized[[i]][j,7] <- (jointprob_matching_train_result_normalized[[i]][j,1] -
                                                                        ( min(unlist(jointprob_matching_train_result_normalized[[i]][,1]) , unlist(jointprob_missing_train_result_normalized[[i]][,1])) ) )/ 
               ( max(unlist(jointprob_matching_train_result_normalized[[i]][,1]) , unlist(jointprob_missing_train_result_normalized[[i]][,1])) - 
                   min(unlist(jointprob_matching_train_result_normalized[[i]][,1]) , unlist(jointprob_missing_train_result_normalized[[i]][,1])) )
             
-            jointprob_missing_train_result_normalized[[i]][j,6] <- (jointprob_missing_train_result_normalized[[i]][j,1] -
+            jointprob_missing_train_result_normalized[[i]][j,7] <- (jointprob_missing_train_result_normalized[[i]][j,1] -
                                                                       ( min(unlist(jointprob_matching_train_result_normalized[[i]][,1]) , unlist(jointprob_missing_train_result_normalized[[i]][,1])) ) )/ 
               ( max(unlist(jointprob_matching_train_result_normalized[[i]][,1]) , unlist(jointprob_missing_train_result_normalized[[i]][,1])) - 
                   min(unlist(jointprob_matching_train_result_normalized[[i]][,1]) , unlist(jointprob_missing_train_result_normalized[[i]][,1])) )
             
-            jointprob_matching_train_result_normalized[[i]][j,7] <- (jointprob_matching_train_result_normalized[[i]][j,2] -
+            jointprob_matching_train_result_normalized[[i]][j,8] <- (jointprob_matching_train_result_normalized[[i]][j,2] -
                                                                        ( min(unlist(jointprob_matching_train_result_normalized[[i]][,2]) , unlist(jointprob_missing_train_result_normalized[[i]][,2])) ) )/ 
               ( max(unlist(jointprob_matching_train_result_normalized[[i]][,2]) , unlist(jointprob_missing_train_result_normalized[[i]][,2])) - 
                   min(unlist(jointprob_matching_train_result_normalized[[i]][,2]) , unlist(jointprob_missing_train_result_normalized[[i]][,2])) )
             
-            jointprob_missing_train_result_normalized[[i]][j,7] <- (jointprob_missing_train_result_normalized[[i]][j,2] -
+            jointprob_missing_train_result_normalized[[i]][j,8] <- (jointprob_missing_train_result_normalized[[i]][j,2] -
                                                                       ( min(unlist(jointprob_matching_train_result_normalized[[i]][,2]) , unlist(jointprob_missing_train_result_normalized[[i]][,2])) ) )/ 
               ( max(unlist(jointprob_matching_train_result_normalized[[i]][,2]) , unlist(jointprob_missing_train_result_normalized[[i]][,2])) - 
                   min(unlist(jointprob_matching_train_result_normalized[[i]][,2]) , unlist(jointprob_missing_train_result_normalized[[i]][,2])) )
             
-            jointprob_matching_train_result_normalized[[i]][j,8] <- (jointprob_matching_train_result_normalized[[i]][j,3] -
+            jointprob_matching_train_result_normalized[[i]][j,9] <- (jointprob_matching_train_result_normalized[[i]][j,3] -
                                                                        ( min(unlist(jointprob_matching_train_result_normalized[[i]][,3]) , unlist(jointprob_missing_train_result_normalized[[i]][,3])) ) )/ 
               ( max(unlist(jointprob_matching_train_result_normalized[[i]][,3]) , unlist(jointprob_missing_train_result_normalized[[i]][,3])) - 
                   min(unlist(jointprob_matching_train_result_normalized[[i]][,3]) , unlist(jointprob_missing_train_result_normalized[[i]][,3])) )
             
-            jointprob_missing_train_result_normalized[[i]][j,8] <- (jointprob_missing_train_result_normalized[[i]][j,3] -
+            jointprob_missing_train_result_normalized[[i]][j,9] <- (jointprob_missing_train_result_normalized[[i]][j,3] -
                                                                       ( min(unlist(jointprob_matching_train_result_normalized[[i]][,3]) , unlist(jointprob_missing_train_result_normalized[[i]][,3])) ) )/ 
               ( max(unlist(jointprob_matching_train_result_normalized[[i]][,3]) , unlist(jointprob_missing_train_result_normalized[[i]][,3])) - 
                   min(unlist(jointprob_matching_train_result_normalized[[i]][,3]) , unlist(jointprob_missing_train_result_normalized[[i]][,3])) )
@@ -1938,26 +1983,26 @@ for ( weightwim in seq(from=0, to=3, by=0.5)) {
             jointprob_matching_train_result_normalized[[i]][is.na( jointprob_matching_train_result_normalized[[i]])] <- 0
             jointprob_missing_train_result_normalized[[i]][is.na( jointprob_missing_train_result_normalized[[i]])] <- 0
             
-            jointprob_matching_train_result_normalized[[i]][j,9] <- jointprob_matching_train_result_normalized[[i]][j,6] * weightwim +
-              jointprob_matching_train_result_normalized[[i]][j,7] * weightsig1
+            jointprob_matching_train_result_normalized[[i]][j,10] <- jointprob_matching_train_result_normalized[[i]][j,7] * weightwim +
+              jointprob_matching_train_result_normalized[[i]][j,8] * weightsig1
             
-            jointprob_missing_train_result_normalized[[i]][j,9] <- jointprob_missing_train_result_normalized[[i]][j,6] * weightwim +
-              jointprob_missing_train_result_normalized[[i]][j,7] * weightsig1
+            jointprob_missing_train_result_normalized[[i]][j,10] <- jointprob_missing_train_result_normalized[[i]][j,7] * weightwim +
+              jointprob_missing_train_result_normalized[[i]][j,8] * weightsig1
             
-            jointprob_matching_train_result_normalized[[i]][j,10] <- jointprob_matching_train_result_normalized[[i]][j,6] * weightwim + 
-              jointprob_matching_train_result_normalized[[i]][j,8] * weightsig2
+            jointprob_matching_train_result_normalized[[i]][j,11] <- jointprob_matching_train_result_normalized[[i]][j,7] * weightwim + 
+              jointprob_matching_train_result_normalized[[i]][j,9] * weightsig2
             
-            jointprob_missing_train_result_normalized[[i]][j,10] <- jointprob_missing_train_result_normalized[[i]][j,6] * weightwim  +
-              jointprob_missing_train_result_normalized[[i]][j,8] * weightsig2
+            jointprob_missing_train_result_normalized[[i]][j,11] <- jointprob_missing_train_result_normalized[[i]][j,7] * weightwim  +
+              jointprob_missing_train_result_normalized[[i]][j,9] * weightsig2
             
-            jointprob_matching_train_result_normalized[[i]][j,11] <- jointprob_matching_train_result_normalized[[i]][j,6] * weightwim + 
-              jointprob_matching_train_result_normalized[[i]][j,7] * weightsig1 + jointprob_matching_train_result_normalized[[i]][j,8] * weightsig2
+            jointprob_matching_train_result_normalized[[i]][j,12] <- jointprob_matching_train_result_normalized[[i]][j,7] * weightwim + 
+              jointprob_matching_train_result_normalized[[i]][j,8] * weightsig1 + jointprob_matching_train_result_normalized[[i]][j,9] * weightsig2
             
-            jointprob_missing_train_result_normalized[[i]][j,11] <- jointprob_missing_train_result_normalized[[i]][j,6] * weightwim  +
-              jointprob_missing_train_result_normalized[[i]][j,7] * weightsig1 + jointprob_missing_train_result_normalized[[i]][j,8] * weightsig2
+            jointprob_missing_train_result_normalized[[i]][j,12] <- jointprob_missing_train_result_normalized[[i]][j,7] * weightwim  +
+              jointprob_missing_train_result_normalized[[i]][j,8] * weightsig1 + jointprob_missing_train_result_normalized[[i]][j,9] * weightsig2
             
-            jointprob_matching_train_result_normalized[[i]][j,12] <-  jointprob_train_result[[i]][idxjointprob_train[i,j] , 11]  
-            jointprob_missing_train_result_normalized[[i]][j,12] <-  jointprob_train_result[[i]][idxjointprob_train[i,j] , 11]    
+            jointprob_matching_train_result_normalized[[i]][j,13] <-  jointprob_train_result[[i]][idxjointprob_train[i,j] , 13]  
+            jointprob_missing_train_result_normalized[[i]][j,13] <-  jointprob_train_result[[i]][idxjointprob_train[i,j] , 13]    
             
             
           }
@@ -1972,34 +2017,34 @@ for ( weightwim in seq(from=0, to=3, by=0.5)) {
           
           if (! is.na ( Upcandidates_attribute_test_missing[[i]][1,1] )  ) {
             
-            for (j in 1: 5 ) {
+            for (j in 1: 6 ) {
               
-              jointprob_matching_test_result[[i]][j,6] <- (jointprob_matching_test_result[[i]][j,1] -
+              jointprob_matching_test_result[[i]][j,7] <- (jointprob_matching_test_result[[i]][j,1] -
                                                              ( min(unlist(jointprob_matching_test_result[[i]][,1]) , unlist(jointprob_missing_test_result[[i]][,1])) ) )/ 
                 (( max(unlist(jointprob_matching_test_result[[i]][,1]) , unlist(jointprob_missing_test_result[[i]][,1])) - 
                      min(unlist(jointprob_matching_test_result[[i]][,1]) , unlist(jointprob_missing_test_result[[i]][,1])) ))
               
-              jointprob_missing_test_result[[i]][j,6] <- (jointprob_missing_test_result[[i]][j,1] -
+              jointprob_missing_test_result[[i]][j,7] <- (jointprob_missing_test_result[[i]][j,1] -
                                                             ( min(unlist(jointprob_matching_test_result[[i]][,1]) , unlist(jointprob_missing_test_result[[i]][,1])) ) )/ 
                 (( max(unlist(jointprob_matching_test_result[[i]][,1]) , unlist(jointprob_missing_test_result[[i]][,1])) - 
                      min(unlist(jointprob_matching_test_result[[i]][,1]) , unlist(jointprob_missing_test_result[[i]][,1])) ))
               
-              jointprob_matching_test_result[[i]][j,7] <- (jointprob_matching_test_result[[i]][j,2] -
+              jointprob_matching_test_result[[i]][j,8] <- (jointprob_matching_test_result[[i]][j,2] -
                                                              ( min(unlist(jointprob_matching_test_result[[i]][,2]) , unlist(jointprob_missing_test_result[[i]][,2])) ) )/ 
                 (( max(unlist(jointprob_matching_test_result[[i]][,2]) , unlist(jointprob_missing_test_result[[i]][,2])) - 
                      min(unlist(jointprob_matching_test_result[[i]][,2]) , unlist(jointprob_missing_test_result[[i]][,2])) ))
               
-              jointprob_missing_test_result[[i]][j,7] <- (jointprob_missing_test_result[[i]][j,2] -
+              jointprob_missing_test_result[[i]][j,8] <- (jointprob_missing_test_result[[i]][j,2] -
                                                             ( min(unlist(jointprob_matching_test_result[[i]][,2]) , unlist(jointprob_missing_test_result[[i]][,2])) ) )/ 
                 (( max(unlist(jointprob_matching_test_result[[i]][,2]) , unlist(jointprob_missing_test_result[[i]][,2])) - 
                      min(unlist(jointprob_matching_test_result[[i]][,2]) , unlist(jointprob_missing_test_result[[i]][,2])) ))
               
-              jointprob_matching_test_result[[i]][j,8] <- (jointprob_matching_test_result[[i]][j,3] -
+              jointprob_matching_test_result[[i]][j,9] <- (jointprob_matching_test_result[[i]][j,3] -
                                                              ( min(unlist(jointprob_matching_test_result[[i]][,3]) , unlist(jointprob_missing_test_result[[i]][,3])) ) )/ 
                 (( max(unlist(jointprob_matching_test_result[[i]][,3]) , unlist(jointprob_missing_test_result[[i]][,3])) - 
                      min(unlist(jointprob_matching_test_result[[i]][,3]) , unlist(jointprob_missing_test_result[[i]][,3])) ))
               
-              jointprob_missing_test_result[[i]][j,8] <- (jointprob_missing_test_result[[i]][j,3] -
+              jointprob_missing_test_result[[i]][j,9] <- (jointprob_missing_test_result[[i]][j,3] -
                                                             ( min(unlist(jointprob_matching_test_result[[i]][,3]) , unlist(jointprob_missing_test_result[[i]][,3])) ) )/ 
                 (( max(unlist(jointprob_matching_test_result[[i]][,3]) , unlist(jointprob_missing_test_result[[i]][,3])) - 
                      min(unlist(jointprob_matching_test_result[[i]][,3]) , unlist(jointprob_missing_test_result[[i]][,3])) ))
@@ -2007,26 +2052,26 @@ for ( weightwim in seq(from=0, to=3, by=0.5)) {
               jointprob_matching_test_result[[i]][is.na( jointprob_matching_test_result[[i]])] <- 0
               jointprob_missing_test_result[[i]][is.na( jointprob_missing_test_result[[i]])] <- 0
               
-              jointprob_matching_test_result[[i]][j,9] <- jointprob_matching_test_result[[i]][j,6] * weightwim +
-                jointprob_matching_test_result[[i]][j,7] * weightsig1
+              jointprob_matching_test_result[[i]][j,10] <- jointprob_matching_test_result[[i]][j,7] * weightwim +
+                jointprob_matching_test_result[[i]][j,8] * weightsig1
               
-              jointprob_missing_test_result[[i]][j,9] <- jointprob_missing_test_result[[i]][j,6] * weightwim +
-                jointprob_missing_test_result[[i]][j,7] * weightsig1
+              jointprob_missing_test_result[[i]][j,10] <- jointprob_missing_test_result[[i]][j,7] * weightwim +
+                jointprob_missing_test_result[[i]][j,8] * weightsig1
               
-              jointprob_matching_test_result[[i]][j,10] <- jointprob_matching_test_result[[i]][j,6] * weightwim +
-                jointprob_matching_test_result[[i]][j,8]  * weightsig2
+              jointprob_matching_test_result[[i]][j,11] <- jointprob_matching_test_result[[i]][j,7] * weightwim +
+                jointprob_matching_test_result[[i]][j,9]  * weightsig2
               
-              jointprob_missing_test_result[[i]][j,10] <- jointprob_missing_test_result[[i]][j,6] * weightwim +
-                jointprob_missing_test_result[[i]][j,8] * weightsig2
+              jointprob_missing_test_result[[i]][j,11] <- jointprob_missing_test_result[[i]][j,7] * weightwim +
+                jointprob_missing_test_result[[i]][j,9] * weightsig2
               
-              jointprob_matching_test_result[[i]][j,11] <- jointprob_matching_test_result[[i]][j,6] * weightwim +
-                jointprob_matching_test_result[[i]][j,7]  * weightsig1 + jointprob_matching_test_result[[i]][j,8]  * weightsig2
+              jointprob_matching_test_result[[i]][j,12] <- jointprob_matching_test_result[[i]][j,7] * weightwim +
+                jointprob_matching_test_result[[i]][j,8]  * weightsig1 + jointprob_matching_test_result[[i]][j,9]  * weightsig2
               
-              jointprob_missing_test_result[[i]][j,11] <- jointprob_missing_test_result[[i]][j,6] * weightwim +
-                jointprob_missing_test_result[[i]][j,7] * weightsig1 + jointprob_missing_test_result[[i]][j,8] * weightsig2
+              jointprob_missing_test_result[[i]][j,12] <- jointprob_missing_test_result[[i]][j,7] * weightwim +
+                jointprob_missing_test_result[[i]][j,8] * weightsig1 + jointprob_missing_test_result[[i]][j,9] * weightsig2
               
-              jointprob_matching_test_result[[i]][j,12] <-  jointprob_test_result[[i]][idxjointprob_test[i,j] , 11]  
-              jointprob_missing_test_result[[i]][j,12] <-  jointprob_test_result[[i]][idxjointprob_test[i,j] , 11] 
+              jointprob_matching_test_result[[i]][j,13] <-  jointprob_test_result[[i]][idxjointprob_test[i,j] , 13]  
+              jointprob_missing_test_result[[i]][j,13] <-  jointprob_test_result[[i]][idxjointprob_test[i,j] , 13] 
               
               
             }
@@ -2042,34 +2087,34 @@ for ( weightwim in seq(from=0, to=3, by=0.5)) {
           
           if ( !is.na ( Upcandidates_attribute_test_missing[[i]][1,1] )  ) {
             
-            for (j in 1: 5 ) {
+            for (j in 1:6 ) {
               
-              jointprob_matching_test_result_normalized[[i]][j,6] <- (jointprob_matching_test_result_normalized[[i]][j,1] -
+              jointprob_matching_test_result_normalized[[i]][j,7] <- (jointprob_matching_test_result_normalized[[i]][j,1] -
                                                                         ( min(unlist(jointprob_matching_test_result_normalized[[i]][,1]) , unlist(jointprob_missing_test_result_normalized[[i]][,1])) ) )/ 
                 (( max(unlist(jointprob_matching_test_result_normalized[[i]][,1]) , unlist(jointprob_missing_test_result_normalized[[i]][,1])) - 
                      min(unlist(jointprob_matching_test_result_normalized[[i]][,1]) , unlist(jointprob_missing_test_result_normalized[[i]][,1])) ))
               
-              jointprob_missing_test_result_normalized[[i]][j,6] <- (jointprob_missing_test_result_normalized[[i]][j,1] -
+              jointprob_missing_test_result_normalized[[i]][j,7] <- (jointprob_missing_test_result_normalized[[i]][j,1] -
                                                                        ( min(unlist(jointprob_matching_test_result_normalized[[i]][,1]) , unlist(jointprob_missing_test_result_normalized[[i]][,1])) ) )/ 
                 (( max(unlist(jointprob_matching_test_result_normalized[[i]][,1]) , unlist(jointprob_missing_test_result_normalized[[i]][,1])) - 
                      min(unlist(jointprob_matching_test_result_normalized[[i]][,1]) , unlist(jointprob_missing_test_result_normalized[[i]][,1])) ))
               
-              jointprob_matching_test_result_normalized[[i]][j,7] <- (jointprob_matching_test_result_normalized[[i]][j,2] -
+              jointprob_matching_test_result_normalized[[i]][j,8] <- (jointprob_matching_test_result_normalized[[i]][j,2] -
                                                                         ( min(unlist(jointprob_matching_test_result_normalized[[i]][,2]) , unlist(jointprob_missing_test_result_normalized[[i]][,2])) ) )/ 
                 (( max(unlist(jointprob_matching_test_result_normalized[[i]][,2]) , unlist(jointprob_missing_test_result_normalized[[i]][,2])) - 
                      min(unlist(jointprob_matching_test_result_normalized[[i]][,2]) , unlist(jointprob_missing_test_result_normalized[[i]][,2])) ))
               
-              jointprob_missing_test_result_normalized[[i]][j,7] <- (jointprob_missing_test_result_normalized[[i]][j,2] -
+              jointprob_missing_test_result_normalized[[i]][j,8] <- (jointprob_missing_test_result_normalized[[i]][j,2] -
                                                                        ( min(unlist(jointprob_matching_test_result_normalized[[i]][,2]) , unlist(jointprob_missing_test_result_normalized[[i]][,2])) ) )/ 
                 (( max(unlist(jointprob_matching_test_result_normalized[[i]][,2]) , unlist(jointprob_missing_test_result_normalized[[i]][,2])) - 
                      min(unlist(jointprob_matching_test_result_normalized[[i]][,2]) , unlist(jointprob_missing_test_result_normalized[[i]][,2])) ))
               
-              jointprob_matching_test_result_normalized[[i]][j,8] <- (jointprob_matching_test_result_normalized[[i]][j,3] -
+              jointprob_matching_test_result_normalized[[i]][j,9] <- (jointprob_matching_test_result_normalized[[i]][j,3] -
                                                                         ( min(unlist(jointprob_matching_test_result_normalized[[i]][,3]) , unlist(jointprob_missing_test_result_normalized[[i]][,3])) ) )/ 
                 (( max(unlist(jointprob_matching_test_result_normalized[[i]][,3]) , unlist(jointprob_missing_test_result_normalized[[i]][,3])) - 
                      min(unlist(jointprob_matching_test_result_normalized[[i]][,3]) , unlist(jointprob_missing_test_result_normalized[[i]][,3])) ))
               
-              jointprob_missing_test_result_normalized[[i]][j,8] <- (jointprob_missing_test_result_normalized[[i]][j,3] -
+              jointprob_missing_test_result_normalized[[i]][j,9] <- (jointprob_missing_test_result_normalized[[i]][j,3] -
                                                                        ( min(unlist(jointprob_matching_test_result_normalized[[i]][,3]) , unlist(jointprob_missing_test_result_normalized[[i]][,3])) ) )/ 
                 (( max(unlist(jointprob_matching_test_result_normalized[[i]][,3]) , unlist(jointprob_missing_test_result_normalized[[i]][,3])) - 
                      min(unlist(jointprob_matching_test_result_normalized[[i]][,3]) , unlist(jointprob_missing_test_result_normalized[[i]][,3])) ))
@@ -2077,26 +2122,26 @@ for ( weightwim in seq(from=0, to=3, by=0.5)) {
               jointprob_matching_test_result_normalized[[i]][is.na( jointprob_matching_test_result_normalized[[i]])] <- 0
               jointprob_missing_test_result_normalized[[i]][is.na( jointprob_missing_test_result_normalized[[i]])] <- 0
               
-              jointprob_matching_test_result_normalized[[i]][j,9] <- jointprob_matching_test_result_normalized[[i]][j,6] * weightwim +
-                jointprob_matching_test_result_normalized[[i]][j,7] * weightsig1
+              jointprob_matching_test_result_normalized[[i]][j,10] <- jointprob_matching_test_result_normalized[[i]][j,7] * weightwim +
+                jointprob_matching_test_result_normalized[[i]][j,8] * weightsig1
               
-              jointprob_missing_test_result_normalized[[i]][j,9] <- jointprob_missing_test_result_normalized[[i]][j,6]  * weightwim +
-                jointprob_missing_test_result_normalized[[i]][j,7] * weightsig1
+              jointprob_missing_test_result_normalized[[i]][j,10] <- jointprob_missing_test_result_normalized[[i]][j,7]  * weightwim +
+                jointprob_missing_test_result_normalized[[i]][j,8] * weightsig1
               
-              jointprob_matching_test_result_normalized[[i]][j,10] <- jointprob_matching_test_result_normalized[[i]][j,6] * weightwim +
-                jointprob_matching_test_result_normalized[[i]][j,8] * weightsig2
+              jointprob_matching_test_result_normalized[[i]][j,11] <- jointprob_matching_test_result_normalized[[i]][j,7] * weightwim +
+                jointprob_matching_test_result_normalized[[i]][j,9] * weightsig2
               
-              jointprob_missing_test_result_normalized[[i]][j,10] <- jointprob_missing_test_result_normalized[[i]][j,6] * weightwim +
-                jointprob_missing_test_result_normalized[[i]][j,8] * weightsig2
+              jointprob_missing_test_result_normalized[[i]][j,11] <- jointprob_missing_test_result_normalized[[i]][j,7] * weightwim +
+                jointprob_missing_test_result_normalized[[i]][j,9] * weightsig2
               
-              jointprob_matching_test_result_normalized[[i]][j,11] <- jointprob_matching_test_result_normalized[[i]][j,6] * weightwim +
-                jointprob_matching_test_result_normalized[[i]][j,7] * weightsig1 +jointprob_matching_test_result_normalized[[i]][j,8] * weightsig2
+              jointprob_matching_test_result_normalized[[i]][j,12] <- jointprob_matching_test_result_normalized[[i]][j,7] * weightwim +
+                jointprob_matching_test_result_normalized[[i]][j,8] * weightsig1 +jointprob_matching_test_result_normalized[[i]][j,9] * weightsig2
               
-              jointprob_missing_test_result_normalized[[i]][j,11] <- jointprob_missing_test_result_normalized[[i]][j,6] * weightwim +
-                jointprob_missing_test_result_normalized[[i]][j,7] * weightsig1 + jointprob_missing_test_result_normalized[[i]][j,8] * weightsig2
+              jointprob_missing_test_result_normalized[[i]][j,12] <- jointprob_missing_test_result_normalized[[i]][j,7] * weightwim +
+                jointprob_missing_test_result_normalized[[i]][j,8] * weightsig1 + jointprob_missing_test_result_normalized[[i]][j,9] * weightsig2
               
-              jointprob_matching_test_result_normalized[[i]][j,12] <-  jointprob_test_result[[i]][idxjointprob_test[i,j] , 11]  
-              jointprob_missing_test_result_normalized[[i]][j,12] <-  jointprob_test_result[[i]][idxjointprob_test[i,j] , 11]    
+              jointprob_matching_test_result_normalized[[i]][j,13] <-  jointprob_test_result[[i]][idxjointprob_test[i,j] , 13]  
+              jointprob_missing_test_result_normalized[[i]][j,13] <-  jointprob_test_result[[i]][idxjointprob_test[i,j] , 13]    
               
               
             }
@@ -2108,8 +2153,8 @@ for ( weightwim in seq(from=0, to=3, by=0.5)) {
       
       
       # performance
-      
-      ResultMisMatching_train <-  ResultMisMatching_train[,-9:-65]
+      ResultMisMatching_train <- ResultMisMatching_train_temp 
+      ResultMisMatching_train <-  ResultMisMatching_train[,-10:-65]
       ResultMisMatching_train <- cbind( ResultMisMatching_train, NA ,NA, NA , NA , NA,  NA ,NA, NA , NA , NA ,  NA , NA )
       
       
@@ -2120,40 +2165,32 @@ for ( weightwim in seq(from=0, to=3, by=0.5)) {
           
           if (!is.na(jointprob_matching_train_result[[i]][1,1])) {
             # wim only
-            if ( jointprob_matching_train_result[[i]][1,6] >  jointprob_missing_train_result[[i]][1,6] ) {
-              ResultMisMatching_train[i,9] <- ResultMisMatching_train[i,4] 
-            }
-            else {
-              ResultMisMatching_train[i,9] <-  999
-            }
-            
-            # sig diffsum only
-            if ( jointprob_matching_train_result[[i]][2,7] >  jointprob_missing_train_result[[i]][2,7] ) {
-              ResultMisMatching_train[i,10] <- ResultMisMatching_train[i,5] 
+            if ( jointprob_matching_train_result[[i]][1,7] >  jointprob_missing_train_result[[i]][1,7] ) {
+              ResultMisMatching_train[i,10] <- ResultMisMatching_train[i,4] 
             }
             else {
               ResultMisMatching_train[i,10] <-  999
             }
             
-            # sig feature only
-            if ( jointprob_matching_train_result[[i]][3,8] >  jointprob_missing_train_result[[i]][3,8] ) {
-              ResultMisMatching_train[i,11] <- ResultMisMatching_train[i,6] 
+            # sig diffsum only
+            if ( jointprob_matching_train_result[[i]][2,8] >  jointprob_missing_train_result[[i]][2,8] ) {
+              ResultMisMatching_train[i,11] <- ResultMisMatching_train[i,5] 
             }
             else {
               ResultMisMatching_train[i,11] <-  999
             }
             
-            # wim + sigdiffsum
-            if ( jointprob_matching_train_result[[i]][4,9] >  jointprob_missing_train_result[[i]][4,9] ) {
-              ResultMisMatching_train[i,12] <- ResultMisMatching_train[i,7] 
+            # sig feature only
+            if ( jointprob_matching_train_result[[i]][3,9] >  jointprob_missing_train_result[[i]][3,9] ) {
+              ResultMisMatching_train[i,12] <- ResultMisMatching_train[i,6] 
             }
             else {
               ResultMisMatching_train[i,12] <-  999
             }
             
-            # wim + sigfeature
-            if ( jointprob_matching_train_result[[i]][5,10] >  jointprob_missing_train_result[[i]][5,10] ) {
-              ResultMisMatching_train[i,13] <- ResultMisMatching_train[i,8] 
+            # wim + sigdiffsum
+            if ( jointprob_matching_train_result[[i]][4,10] >  jointprob_missing_train_result[[i]][4,10] ) {
+              ResultMisMatching_train[i,13] <- ResultMisMatching_train[i,7] 
             }
             else {
               ResultMisMatching_train[i,13] <-  999
@@ -2167,48 +2204,47 @@ for ( weightwim in seq(from=0, to=3, by=0.5)) {
               ResultMisMatching_train[i,14] <-  999
             }
             
-            
-            # normalization
-            # wim only
-            if ( jointprob_matching_train_result_normalized[[i]][1,6] >  jointprob_missing_train_result_normalized[[i]][1,6] ) {
-              ResultMisMatching_train[i,15] <- ResultMisMatching_train[i,4] 
+            # wim + sigfeature
+            if ( jointprob_matching_train_result[[i]][6,12] >  jointprob_missing_train_result[[i]][6,12] ) {
+              ResultMisMatching_train[i,15] <- ResultMisMatching_train[i,9] 
             }
             else {
               ResultMisMatching_train[i,15] <-  999
             }
             
-            # sig diffsum only
-            if ( jointprob_matching_train_result_normalized[[i]][2,7] >  jointprob_missing_train_result_normalized[[i]][2,7] ) {
-              ResultMisMatching_train[i,16] <- ResultMisMatching_train[i,5] 
+            
+            # normalization
+            # wim only
+            if ( jointprob_matching_train_result_normalized[[i]][1,7] >  jointprob_missing_train_result_normalized[[i]][1,7] ) {
+              ResultMisMatching_train[i,16] <- ResultMisMatching_train[i,4] 
             }
             else {
               ResultMisMatching_train[i,16] <-  999
             }
             
-            # sig feature only
-            if ( jointprob_matching_train_result_normalized[[i]][3,8] >  jointprob_missing_train_result_normalized[[i]][3,8] ) {
-              ResultMisMatching_train[i,17] <- ResultMisMatching_train[i,6] 
+            # sig diffsum only
+            if ( jointprob_matching_train_result_normalized[[i]][2,8] >  jointprob_missing_train_result_normalized[[i]][2,8] ) {
+              ResultMisMatching_train[i,17] <- ResultMisMatching_train[i,5] 
             }
             else {
               ResultMisMatching_train[i,17] <-  999
             }
             
-            # wim + sigdiffsum
-            if ( jointprob_matching_train_result_normalized[[i]][4,9] >  jointprob_missing_train_result_normalized[[i]][4,9] ) {
-              ResultMisMatching_train[i,18] <- ResultMisMatching_train[i,7] 
+            # sig feature only
+            if ( jointprob_matching_train_result_normalized[[i]][3,9] >  jointprob_missing_train_result_normalized[[i]][3,9] ) {
+              ResultMisMatching_train[i,18] <- ResultMisMatching_train[i,6] 
             }
             else {
               ResultMisMatching_train[i,18] <-  999
             }
             
-            # wim + sigfeature
-            if ( jointprob_matching_train_result_normalized[[i]][5,10] >  jointprob_missing_train_result_normalized[[i]][5,10] ) {
-              ResultMisMatching_train[i,19] <- ResultMisMatching_train[i,8] 
+            # wim + sigdiffsum
+            if ( jointprob_matching_train_result_normalized[[i]][4,10] >  jointprob_missing_train_result_normalized[[i]][4,10] ) {
+              ResultMisMatching_train[i,19] <- ResultMisMatching_train[i,7] 
             }
             else {
               ResultMisMatching_train[i,19] <-  999
             }
-            
             
             # wim + sigfeature
             if ( jointprob_matching_train_result_normalized[[i]][5,11] >  jointprob_missing_train_result_normalized[[i]][5,11] ) {
@@ -2218,10 +2254,19 @@ for ( weightwim in seq(from=0, to=3, by=0.5)) {
               ResultMisMatching_train[i,20] <-  999
             }
             
+            
+            # wim + sigfeature
+            if ( jointprob_matching_train_result_normalized[[i]][6,12] >  jointprob_missing_train_result_normalized[[i]][6,12] ) {
+              ResultMisMatching_train[i,21] <- ResultMisMatching_train[i,9] 
+            }
+            else {
+              ResultMisMatching_train[i,21] <-  999
+            }
+            
           }
           
           else{    
-            ResultMisMatching_train[i,9] <-  999
+         
             ResultMisMatching_train[i,10] <-  999
             ResultMisMatching_train[i,11] <-  999
             ResultMisMatching_train[i,12] <-  999
@@ -2233,11 +2278,12 @@ for ( weightwim in seq(from=0, to=3, by=0.5)) {
             ResultMisMatching_train[i,18] <-  999
             ResultMisMatching_train[i,19] <-  999
             ResultMisMatching_train[i,20] <-  999
+            ResultMisMatching_train[i,21] <-  999
           }
         }
         
         else{    
-          ResultMisMatching_train[i,9] <-  999
+        
           ResultMisMatching_train[i,10] <-  999
           ResultMisMatching_train[i,11] <-  999
           ResultMisMatching_train[i,12] <-  999
@@ -2249,11 +2295,12 @@ for ( weightwim in seq(from=0, to=3, by=0.5)) {
           ResultMisMatching_train[i,18] <-  999
           ResultMisMatching_train[i,19] <-  999
           ResultMisMatching_train[i,20] <-  999
+          ResultMisMatching_train[i,21] <-  999
         }
       }
       
-      
-      ResultMisMatching_test <-  ResultMisMatching_test[,-9:-65]
+      ResultMisMatching_test <-  ResultMisMatching_test_temp
+      ResultMisMatching_test <-  ResultMisMatching_test[,-10:-65]
       ResultMisMatching_test <- cbind( ResultMisMatching_test, NA ,NA, NA , NA , NA,  NA ,NA, NA , NA , NA ,  NA , NA )
       
       
@@ -2264,40 +2311,32 @@ for ( weightwim in seq(from=0, to=3, by=0.5)) {
           
           if (!is.na(jointprob_matching_test_result[[i]][1][1])) {
             # wim only
-            if ( jointprob_matching_test_result[[i]][1,6] >  jointprob_missing_test_result[[i]][1,6] ) {
-              ResultMisMatching_test[i,9] <- ResultMisMatching_test[i,4] 
-            }
-            else {
-              ResultMisMatching_test[i,9] <-  999
-            }
-            
-            # sig diffsum only
-            if ( jointprob_matching_test_result[[i]][2,7] >  jointprob_missing_test_result[[i]][2,7] ) {
-              ResultMisMatching_test[i,10] <- ResultMisMatching_test[i,5] 
+            if ( jointprob_matching_test_result[[i]][1,7] >  jointprob_missing_test_result[[i]][1,7] ) {
+              ResultMisMatching_test[i,10] <- ResultMisMatching_test[i,4] 
             }
             else {
               ResultMisMatching_test[i,10] <-  999
             }
             
-            # sig feature only
-            if ( jointprob_matching_test_result[[i]][3,8] >  jointprob_missing_test_result[[i]][3,8] ) {
-              ResultMisMatching_test[i,11] <- ResultMisMatching_test[i,6] 
+            # sig diffsum only
+            if ( jointprob_matching_test_result[[i]][2,8] >  jointprob_missing_test_result[[i]][2,8] ) {
+              ResultMisMatching_test[i,11] <- ResultMisMatching_test[i,5] 
             }
             else {
               ResultMisMatching_test[i,11] <-  999
             }
             
-            # wim + sigdiffsum
-            if ( jointprob_matching_test_result[[i]][4,9] >  jointprob_missing_test_result[[i]][4,9] ) {
-              ResultMisMatching_test[i,12] <- ResultMisMatching_test[i,7] 
+            # sig feature only
+            if ( jointprob_matching_test_result[[i]][3,9] >  jointprob_missing_test_result[[i]][3,9] ) {
+              ResultMisMatching_test[i,12] <- ResultMisMatching_test[i,6] 
             }
             else {
               ResultMisMatching_test[i,12] <-  999
             }
             
-            # wim + sigfeature
-            if ( jointprob_matching_test_result[[i]][5,10] >  jointprob_missing_test_result[[i]][5,10] ) {
-              ResultMisMatching_test[i,13] <- ResultMisMatching_test[i,8] 
+            # wim + sigdiffsum
+            if ( jointprob_matching_test_result[[i]][4,10] >  jointprob_missing_test_result[[i]][4,10] ) {
+              ResultMisMatching_test[i,13] <- ResultMisMatching_test[i,7] 
             }
             else {
               ResultMisMatching_test[i,13] <-  999
@@ -2311,48 +2350,47 @@ for ( weightwim in seq(from=0, to=3, by=0.5)) {
               ResultMisMatching_test[i,14] <-  999
             }
             
-            
-            # normalization
-            # wim only
-            if ( jointprob_matching_test_result_normalized[[i]][1,6] >  jointprob_missing_test_result_normalized[[i]][1,6] ) {
-              ResultMisMatching_test[i,15] <- ResultMisMatching_test[i,4] 
+            # wim + sigfeature
+            if ( jointprob_matching_test_result[[i]][6,12] >  jointprob_missing_test_result[[i]][6,12] ) {
+              ResultMisMatching_test[i,15] <- ResultMisMatching_test[i,9] 
             }
             else {
               ResultMisMatching_test[i,15] <-  999
             }
             
-            # sig diffsum only
-            if ( jointprob_matching_test_result_normalized[[i]][2,7] >  jointprob_missing_test_result_normalized[[i]][2,7] ) {
-              ResultMisMatching_test[i,16] <- ResultMisMatching_test[i,5] 
+            
+            # normalization
+            # wim only
+            if ( jointprob_matching_test_result_normalized[[i]][1,7] >  jointprob_missing_test_result_normalized[[i]][1,7] ) {
+              ResultMisMatching_test[i,16] <- ResultMisMatching_test[i,4] 
             }
             else {
               ResultMisMatching_test[i,16] <-  999
             }
             
-            # sig feature only
-            if ( jointprob_matching_test_result_normalized[[i]][3,8] >  jointprob_missing_test_result_normalized[[i]][3,8] ) {
-              ResultMisMatching_test[i,17] <- ResultMisMatching_test[i,6] 
+            # sig diffsum only
+            if ( jointprob_matching_test_result_normalized[[i]][2,8] >  jointprob_missing_test_result_normalized[[i]][2,8] ) {
+              ResultMisMatching_test[i,17] <- ResultMisMatching_test[i,5] 
             }
             else {
               ResultMisMatching_test[i,17] <-  999
             }
             
-            # wim + sigdiffsum
-            if ( jointprob_matching_test_result_normalized[[i]][4,9] >  jointprob_missing_test_result_normalized[[i]][4,9] ) {
-              ResultMisMatching_test[i,18] <- ResultMisMatching_test[i,7] 
+            # sig feature only
+            if ( jointprob_matching_test_result_normalized[[i]][3,9] >  jointprob_missing_test_result_normalized[[i]][3,9] ) {
+              ResultMisMatching_test[i,18] <- ResultMisMatching_test[i,6] 
             }
             else {
               ResultMisMatching_test[i,18] <-  999
             }
             
-            # wim + sigfeature
-            if ( jointprob_matching_test_result_normalized[[i]][5,10] >  jointprob_missing_test_result_normalized[[i]][5,10] ) {
-              ResultMisMatching_test[i,19] <- ResultMisMatching_test[i,8] 
+            # wim + sigdiffsum
+            if ( jointprob_matching_test_result_normalized[[i]][4,10] >  jointprob_missing_test_result_normalized[[i]][4,10] ) {
+              ResultMisMatching_test[i,19] <- ResultMisMatching_test[i,7] 
             }
             else {
               ResultMisMatching_test[i,19] <-  999
             }
-            
             
             # wim + sigfeature
             if ( jointprob_matching_test_result_normalized[[i]][5,11] >  jointprob_missing_test_result_normalized[[i]][5,11] ) {
@@ -2362,10 +2400,19 @@ for ( weightwim in seq(from=0, to=3, by=0.5)) {
               ResultMisMatching_test[i,20] <-  999
             }
             
+            
+            # wim + sigfeature
+            if ( jointprob_matching_test_result_normalized[[i]][6,12] >  jointprob_missing_test_result_normalized[[i]][6,12] ) {
+              ResultMisMatching_test[i,21] <- ResultMisMatching_test[i,9] 
+            }
+            else {
+              ResultMisMatching_test[i,21] <-  999
+            }
+            
           }
           
           else{    
-            ResultMisMatching_test[i,9] <-  999
+          
             ResultMisMatching_test[i,10] <-  999
             ResultMisMatching_test[i,11] <-  999
             ResultMisMatching_test[i,12] <-  999
@@ -2377,11 +2424,12 @@ for ( weightwim in seq(from=0, to=3, by=0.5)) {
             ResultMisMatching_test[i,18] <-  999
             ResultMisMatching_test[i,19] <-  999
             ResultMisMatching_test[i,20] <-  999
+            ResultMisMatching_test[i,21] <-  999
           }
         }
         
         else{    
-          ResultMisMatching_test[i,9] <-  999
+        
           ResultMisMatching_test[i,10] <-  999
           ResultMisMatching_test[i,11] <-  999
           ResultMisMatching_test[i,12] <-  999
@@ -2393,9 +2441,409 @@ for ( weightwim in seq(from=0, to=3, by=0.5)) {
           ResultMisMatching_test[i,18] <-  999
           ResultMisMatching_test[i,19] <-  999
           ResultMisMatching_test[i,20] <-  999
+          ResultMisMatching_test[i,21] <-  999
         }
       }
       
+      # remove duplicate
+remove <- c(999)
+
+      
+      for (i in 1:length(ResultMisMatching_train[,1]) ){
+        
+        if ( as.numeric ( ResultMisMatching_train[i,1] ) == 9 ) { 
+          
+          
+          if (!ResultMisMatching_train[i,10] == 999) {
+              duplicatenumbers_temp <-  unique(ResultMisMatching_train[1:i,10] [ duplicated(ResultMisMatching_train[1:i,10] )])         
+              duplicatenumbers <-duplicatenumbers_temp [! duplicatenumbers_temp %in% remove]
+              duplicateindex <- which( ResultMisMatching_train[1:i,10] %in%   duplicatenumbers ) 
+              
+                if (length(duplicateindex) > 0) {           
+                  if (jointprob_matching_train_result[[ duplicateindex[1] ]][1,7] > jointprob_matching_train_result[[ duplicateindex[2] ]][1,7]){
+                    ResultMisMatching_train[duplicateindex[2], 10] <- 999
+                  }
+                  else{
+                    ResultMisMatching_train[duplicateindex[1], 10] <- 999
+                  }
+                }
+          }
+          
+          if (!ResultMisMatching_train[i,11] == 999) {
+            duplicatenumbers_temp <-  unique(ResultMisMatching_train[1:i,11] [ duplicated(ResultMisMatching_train[1:i,11] )])         
+            duplicatenumbers <-duplicatenumbers_temp [! duplicatenumbers_temp %in% remove]
+            duplicateindex <-  which( ResultMisMatching_train[1:i,11] %in%   duplicatenumbers ) 
+            
+            if (length(duplicateindex) > 0) {           
+              if (jointprob_matching_train_result[[ duplicateindex[1] ]][2,8] > jointprob_matching_train_result[[ duplicateindex[2] ]][2,8]){
+                ResultMisMatching_train[duplicateindex[2], 11] <- 999
+              }
+              else{
+                ResultMisMatching_train[duplicateindex[1], 11] <- 999
+              }
+            }
+          }
+          
+          
+          if (!ResultMisMatching_train[i,12] == 999) {
+            duplicatenumbers_temp <-  unique(ResultMisMatching_train[1:i,12] [ duplicated(ResultMisMatching_train[1:i,12] )])         
+            duplicatenumbers <-duplicatenumbers_temp [! duplicatenumbers_temp %in% remove]
+            duplicateindex <- which( ResultMisMatching_train[1:i,12] %in%   duplicatenumbers ) 
+            
+            if (length(duplicateindex) > 0) {           
+              if (jointprob_matching_train_result[[ duplicateindex[1] ]][3,9] > jointprob_matching_train_result[[ duplicateindex[2] ]][3,9]){
+                ResultMisMatching_train[duplicateindex[2], 12] <- 999
+              }
+              else{
+                ResultMisMatching_train[duplicateindex[1], 12] <- 999
+              }
+            }
+          }
+          
+          if (!ResultMisMatching_train[i,13] == 999) {
+            duplicatenumbers_temp <-  unique(ResultMisMatching_train[1:i,13] [ duplicated(ResultMisMatching_train[1:i,13] )])         
+            duplicatenumbers <-duplicatenumbers_temp [! duplicatenumbers_temp %in% remove]
+            duplicateindex <- which( ResultMisMatching_train[1:i,13] %in%   duplicatenumbers ) 
+            
+            if (length(duplicateindex) > 0) {           
+              if (jointprob_matching_train_result[[ duplicateindex[1] ]][4,10] > jointprob_matching_train_result[[ duplicateindex[2] ]][4,10]){
+                ResultMisMatching_train[duplicateindex[2], 13] <- 999
+              }
+              else{
+                ResultMisMatching_train[duplicateindex[1], 13] <- 999
+              }
+            }
+          }
+          
+          if (!ResultMisMatching_train[i,14] == 999) {
+            duplicatenumbers_temp <-  unique(ResultMisMatching_train[1:i,14] [ duplicated(ResultMisMatching_train[1:i,14] )])         
+            duplicatenumbers <-duplicatenumbers_temp [! duplicatenumbers_temp %in% remove]
+            duplicateindex <- which( ResultMisMatching_train[1:i,14] %in%   duplicatenumbers ) 
+            
+            if (length(duplicateindex) > 0) {           
+              if (jointprob_matching_train_result[[ duplicateindex[1] ]][5,11] > jointprob_matching_train_result[[ duplicateindex[2] ]][5,11]){
+                ResultMisMatching_train[duplicateindex[2], 14] <- 999
+              }
+              else{
+                ResultMisMatching_train[duplicateindex[1], 14] <- 999
+              }
+            }
+          }
+          
+          if (!ResultMisMatching_train[i,15] == 999) {
+            duplicatenumbers_temp <-  unique(ResultMisMatching_train[1:i,15] [ duplicated(ResultMisMatching_train[1:i,15] )])         
+            duplicatenumbers <-duplicatenumbers_temp [! duplicatenumbers_temp %in% remove]
+            duplicateindex <- which( ResultMisMatching_train[1:i,15] %in%   duplicatenumbers ) 
+            
+            if (length(duplicateindex) > 0) {           
+              if (jointprob_matching_train_result[[ duplicateindex[1] ]][6,12] > jointprob_matching_train_result[[ duplicateindex[2] ]][6,12]){
+                ResultMisMatching_train[duplicateindex[2], 15] <- 999
+              }
+              else{
+                ResultMisMatching_train[duplicateindex[1], 15] <- 999
+              }
+            }
+          }
+          
+          
+          if (!ResultMisMatching_train[i,16] == 999) {
+            duplicatenumbers_temp <-  unique(ResultMisMatching_train[1:i,16] [ duplicated(ResultMisMatching_train[1:i,16] )])         
+            duplicatenumbers <-duplicatenumbers_temp [! duplicatenumbers_temp %in% remove]
+            duplicateindex <- which( ResultMisMatching_train[1:i,16] %in%   duplicatenumbers ) 
+            
+            if (length(duplicateindex) > 0) {           
+              if (jointprob_matching_train_result_normalized[[ duplicateindex[1] ]][1,7] > jointprob_matching_train_result_normalized[[ duplicateindex[2] ]][1,7]){
+                ResultMisMatching_train[duplicateindex[2], 16] <- 999
+              }
+              else{
+                ResultMisMatching_train[duplicateindex[1], 16] <- 999
+              }
+            }
+          }
+          
+          
+          if (!ResultMisMatching_train[i,17] == 999) {
+            duplicatenumbers_temp <-  unique(ResultMisMatching_train[1:i,17] [ duplicated(ResultMisMatching_train[1:i,17] )])         
+            duplicatenumbers <-duplicatenumbers_temp [! duplicatenumbers_temp %in% remove]
+            duplicateindex <- which( ResultMisMatching_train[1:i,17] %in%   duplicatenumbers ) 
+            
+            if (length(duplicateindex) > 0) {           
+              if (jointprob_matching_train_result_normalized[[ duplicateindex[1] ]][2,8] > jointprob_matching_train_result_normalized[[ duplicateindex[2] ]][2,8]){
+                ResultMisMatching_train[duplicateindex[2], 17] <- 999
+              }
+              else{
+                ResultMisMatching_train[duplicateindex[1], 17] <- 999
+              }
+            }
+          }
+          
+          if (!ResultMisMatching_train[i,18] == 999) {
+            duplicatenumbers_temp <-  unique(ResultMisMatching_train[1:i,18] [ duplicated(ResultMisMatching_train[1:i,18] )])         
+            duplicatenumbers <-duplicatenumbers_temp [! duplicatenumbers_temp %in% remove]
+            duplicateindex <- which( ResultMisMatching_train[1:i,18] %in%   duplicatenumbers ) 
+            
+            if (length(duplicateindex) > 0) {           
+              if (jointprob_matching_train_result_normalized[[ duplicateindex[1] ]][3,9] > jointprob_matching_train_result_normalized[[ duplicateindex[2] ]][3,9]){
+                ResultMisMatching_train[duplicateindex[2], 18] <- 999
+              }
+              else{
+                ResultMisMatching_train[duplicateindex[1], 18] <- 999
+              }
+            }
+          }
+          
+          
+          
+          if (!ResultMisMatching_train[i,19] == 999) {
+            duplicatenumbers_temp <-  unique(ResultMisMatching_train[1:i,19] [ duplicated(ResultMisMatching_train[1:i,19] )])         
+            duplicatenumbers <-duplicatenumbers_temp [! duplicatenumbers_temp %in% remove]
+            duplicateindex <- which( ResultMisMatching_train[1:i,19] %in%   duplicatenumbers ) 
+            
+            if (length(duplicateindex) > 0) {           
+              if (jointprob_matching_train_result_normalized[[ duplicateindex[1] ]][4,10] > jointprob_matching_train_result_normalized[[ duplicateindex[2] ]][4,10]){
+                ResultMisMatching_train[duplicateindex[2], 19] <- 999
+              }
+              else{
+                ResultMisMatching_train[duplicateindex[1], 19] <- 999
+              }
+            }
+          }
+          
+          
+          if (!ResultMisMatching_train[i,20] == 999) {
+            duplicatenumbers_temp <-  unique(ResultMisMatching_train[1:i,20] [ duplicated(ResultMisMatching_train[1:i,20] )])         
+            duplicatenumbers <-duplicatenumbers_temp [! duplicatenumbers_temp %in% remove]
+            duplicateindex <- which( ResultMisMatching_train[1:i,20] %in%   duplicatenumbers ) 
+            
+            if (length(duplicateindex) > 0) {           
+              if (jointprob_matching_train_result_normalized[[ duplicateindex[1] ]][5,11] > jointprob_matching_train_result_normalized[[ duplicateindex[2] ]][5,11]){
+                ResultMisMatching_train[duplicateindex[2], 20] <- 999
+              }
+              else{
+                ResultMisMatching_train[duplicateindex[1], 20] <- 999
+              }
+            }
+          }
+          
+          if (!ResultMisMatching_train[i,21] == 999) {
+            duplicatenumbers_temp <-  unique(ResultMisMatching_train[1:i,21] [ duplicated(ResultMisMatching_train[1:i,21] )])         
+            duplicatenumbers <-duplicatenumbers_temp [! duplicatenumbers_temp %in% remove]
+            duplicateindex <- which( ResultMisMatching_train[1:i,21] %in%   duplicatenumbers ) 
+            
+            if (length(duplicateindex) > 0) {           
+              if (jointprob_matching_train_result_normalized[[ duplicateindex[1] ]][6,12] > jointprob_matching_train_result_normalized[[ duplicateindex[2] ]][6,12]){
+                ResultMisMatching_train[duplicateindex[2], 21] <- 999
+              }
+              else{
+                ResultMisMatching_train[duplicateindex[1], 21] <- 999
+              }
+            }
+          }
+          
+          
+        }
+      }
+
+
+
+
+for (i in 1:length(ResultMisMatching_test[,1]) ){
+  
+  if ( as.numeric ( ResultMisMatching_test[i,1] ) == 9 ) { 
+    
+    
+    if (!ResultMisMatching_test[i,10] == 999) {
+      duplicatenumbers_temp <-  unique(ResultMisMatching_test[1:i,10] [ duplicated(ResultMisMatching_test[1:i,10] )])         
+      duplicatenumbers <-duplicatenumbers_temp [! duplicatenumbers_temp %in% remove]
+      duplicateindex <- which( ResultMisMatching_test[1:i,10] %in%   duplicatenumbers ) 
+      
+      if (length(duplicateindex) > 0) {           
+        if (jointprob_matching_test_result[[ duplicateindex[1] ]][1,7] > jointprob_matching_test_result[[ duplicateindex[2] ]][1,7]){
+          ResultMisMatching_test[duplicateindex[2], 10] <- 999
+        }
+        else{
+          ResultMisMatching_test[duplicateindex[1], 10] <- 999
+        }
+      }
+    }
+    
+    if (!ResultMisMatching_test[i,11] == 999) {
+      duplicatenumbers_temp <-  unique(ResultMisMatching_test[1:i,11] [ duplicated(ResultMisMatching_test[1:i,11] )])         
+      duplicatenumbers <-duplicatenumbers_temp [! duplicatenumbers_temp %in% remove]
+      duplicateindex <-  which( ResultMisMatching_test[1:i,11] %in%   duplicatenumbers ) 
+      
+      if (length(duplicateindex) > 0) {           
+        if (jointprob_matching_test_result[[ duplicateindex[1] ]][2,8] > jointprob_matching_test_result[[ duplicateindex[2] ]][2,8]){
+          ResultMisMatching_test[duplicateindex[2], 11] <- 999
+        }
+        else{
+          ResultMisMatching_test[duplicateindex[1], 11] <- 999
+        }
+      }
+    }
+    
+    
+    if (!ResultMisMatching_test[i,12] == 999) {
+      duplicatenumbers_temp <-  unique(ResultMisMatching_test[1:i,12] [ duplicated(ResultMisMatching_test[1:i,12] )])         
+      duplicatenumbers <-duplicatenumbers_temp [! duplicatenumbers_temp %in% remove]
+      duplicateindex <- which( ResultMisMatching_test[1:i,12] %in%   duplicatenumbers ) 
+      
+      if (length(duplicateindex) > 0) {           
+        if (jointprob_matching_test_result[[ duplicateindex[1] ]][3,9] > jointprob_matching_test_result[[ duplicateindex[2] ]][3,9]){
+          ResultMisMatching_test[duplicateindex[2], 12] <- 999
+        }
+        else{
+          ResultMisMatching_test[duplicateindex[1], 12] <- 999
+        }
+      }
+    }
+    
+    if (!ResultMisMatching_test[i,13] == 999) {
+      duplicatenumbers_temp <-  unique(ResultMisMatching_test[1:i,13] [ duplicated(ResultMisMatching_test[1:i,13] )])         
+      duplicatenumbers <-duplicatenumbers_temp [! duplicatenumbers_temp %in% remove]
+      duplicateindex <- which( ResultMisMatching_test[1:i,13] %in%   duplicatenumbers ) 
+      
+      if (length(duplicateindex) > 0) {           
+        if (jointprob_matching_test_result[[ duplicateindex[1] ]][4,10] > jointprob_matching_test_result[[ duplicateindex[2] ]][4,10]){
+          ResultMisMatching_test[duplicateindex[2], 13] <- 999
+        }
+        else{
+          ResultMisMatching_test[duplicateindex[1], 13] <- 999
+        }
+      }
+    }
+    
+    if (!ResultMisMatching_test[i,14] == 999) {
+      duplicatenumbers_temp <-  unique(ResultMisMatching_test[1:i,14] [ duplicated(ResultMisMatching_test[1:i,14] )])         
+      duplicatenumbers <-duplicatenumbers_temp [! duplicatenumbers_temp %in% remove]
+      duplicateindex <- which( ResultMisMatching_test[1:i,14] %in%   duplicatenumbers ) 
+      
+      if (length(duplicateindex) > 0) {           
+        if (jointprob_matching_test_result[[ duplicateindex[1] ]][5,11] > jointprob_matching_test_result[[ duplicateindex[2] ]][5,11]){
+          ResultMisMatching_test[duplicateindex[2], 14] <- 999
+        }
+        else{
+          ResultMisMatching_test[duplicateindex[1], 14] <- 999
+        }
+      }
+    }
+    
+    if (!ResultMisMatching_test[i,15] == 999) {
+      duplicatenumbers_temp <-  unique(ResultMisMatching_test[1:i,15] [ duplicated(ResultMisMatching_test[1:i,15] )])         
+      duplicatenumbers <-duplicatenumbers_temp [! duplicatenumbers_temp %in% remove]
+      duplicateindex <- which( ResultMisMatching_test[1:i,15] %in%   duplicatenumbers ) 
+      
+      if (length(duplicateindex) > 0) {           
+        if (jointprob_matching_test_result[[ duplicateindex[1] ]][6,12] > jointprob_matching_test_result[[ duplicateindex[2] ]][6,12]){
+          ResultMisMatching_test[duplicateindex[2], 15] <- 999
+        }
+        else{
+          ResultMisMatching_test[duplicateindex[1], 15] <- 999
+        }
+      }
+    }
+    
+    
+    if (!ResultMisMatching_test[i,16] == 999) {
+      duplicatenumbers_temp <-  unique(ResultMisMatching_test[1:i,16] [ duplicated(ResultMisMatching_test[1:i,16] )])         
+      duplicatenumbers <-duplicatenumbers_temp [! duplicatenumbers_temp %in% remove]
+      duplicateindex <- which( ResultMisMatching_test[1:i,16] %in%   duplicatenumbers ) 
+      
+      if (length(duplicateindex) > 0) {           
+        if (jointprob_matching_test_result_normalized[[ duplicateindex[1] ]][1,7] > jointprob_matching_test_result_normalized[[ duplicateindex[2] ]][1,7]){
+          ResultMisMatching_test[duplicateindex[2], 16] <- 999
+        }
+        else{
+          ResultMisMatching_test[duplicateindex[1], 16] <- 999
+        }
+      }
+    }
+    
+    
+    if (!ResultMisMatching_test[i,17] == 999) {
+      duplicatenumbers_temp <-  unique(ResultMisMatching_test[1:i,17] [ duplicated(ResultMisMatching_test[1:i,17] )])         
+      duplicatenumbers <-duplicatenumbers_temp [! duplicatenumbers_temp %in% remove]
+      duplicateindex <- which( ResultMisMatching_test[1:i,17] %in%   duplicatenumbers ) 
+      
+      if (length(duplicateindex) > 0) {           
+        if (jointprob_matching_test_result_normalized[[ duplicateindex[1] ]][2,8] > jointprob_matching_test_result_normalized[[ duplicateindex[2] ]][2,8]){
+          ResultMisMatching_test[duplicateindex[2], 17] <- 999
+        }
+        else{
+          ResultMisMatching_test[duplicateindex[1], 17] <- 999
+        }
+      }
+    }
+    
+    if (!ResultMisMatching_test[i,18] == 999) {
+      duplicatenumbers_temp <-  unique(ResultMisMatching_test[1:i,18] [ duplicated(ResultMisMatching_test[1:i,18] )])         
+      duplicatenumbers <-duplicatenumbers_temp [! duplicatenumbers_temp %in% remove]
+      duplicateindex <- which( ResultMisMatching_test[1:i,18] %in%   duplicatenumbers ) 
+      
+      if (length(duplicateindex) > 0) {           
+        if (jointprob_matching_test_result_normalized[[ duplicateindex[1] ]][3,9] > jointprob_matching_test_result_normalized[[ duplicateindex[2] ]][3,9]){
+          ResultMisMatching_test[duplicateindex[2], 18] <- 999
+        }
+        else{
+          ResultMisMatching_test[duplicateindex[1], 18] <- 999
+        }
+      }
+    }
+    
+    
+    
+    if (!ResultMisMatching_test[i,19] == 999) {
+      duplicatenumbers_temp <-  unique(ResultMisMatching_test[1:i,19] [ duplicated(ResultMisMatching_test[1:i,19] )])         
+      duplicatenumbers <-duplicatenumbers_temp [! duplicatenumbers_temp %in% remove]
+      duplicateindex <- which( ResultMisMatching_test[1:i,19] %in%   duplicatenumbers ) 
+      
+      if (length(duplicateindex) > 0) {           
+        if (jointprob_matching_test_result_normalized[[ duplicateindex[1] ]][4,10] > jointprob_matching_test_result_normalized[[ duplicateindex[2] ]][4,10]){
+          ResultMisMatching_test[duplicateindex[2], 19] <- 999
+        }
+        else{
+          ResultMisMatching_test[duplicateindex[1], 19] <- 999
+        }
+      }
+    }
+    
+    
+    if (!ResultMisMatching_test[i,20] == 999) {
+      duplicatenumbers_temp <-  unique(ResultMisMatching_test[1:i,20] [ duplicated(ResultMisMatching_test[1:i,20] )])         
+      duplicatenumbers <-duplicatenumbers_temp [! duplicatenumbers_temp %in% remove]
+      duplicateindex <- which( ResultMisMatching_test[1:i,20] %in%   duplicatenumbers ) 
+      
+      if (length(duplicateindex) > 0) {           
+        if (jointprob_matching_test_result_normalized[[ duplicateindex[1] ]][5,11] > jointprob_matching_test_result_normalized[[ duplicateindex[2] ]][5,11]){
+          ResultMisMatching_test[duplicateindex[2], 20] <- 999
+        }
+        else{
+          ResultMisMatching_test[duplicateindex[1], 20] <- 999
+        }
+      }
+    }
+    
+    if (!ResultMisMatching_test[i,21] == 999) {
+      duplicatenumbers_temp <-  unique(ResultMisMatching_test[1:i,21] [ duplicated(ResultMisMatching_test[1:i,21] )])         
+      duplicatenumbers <-duplicatenumbers_temp [! duplicatenumbers_temp %in% remove]
+      duplicateindex <- which( ResultMisMatching_test[1:i,21] %in%   duplicatenumbers ) 
+      
+      if (length(duplicateindex) > 0) {           
+        if (jointprob_matching_test_result_normalized[[ duplicateindex[1] ]][6,12] > jointprob_matching_test_result_normalized[[ duplicateindex[2] ]][6,12]){
+          ResultMisMatching_test[duplicateindex[2], 21] <- 999
+        }
+        else{
+          ResultMisMatching_test[duplicateindex[1], 21] <- 999
+        }
+      }
+    }
+    
+    
+  }
+}
+
+
+         
       
       # non-normalized train
       
@@ -2424,10 +2872,10 @@ for ( weightwim in seq(from=0, to=3, by=0.5)) {
         SCMR_train[i] <- CMVeh_train[i] / MVeh_train[i]
         SER_train[i] <- MMVeh_train[i] / Veh_train[1]
         
-        ResultMissing_train[i,] <- data.frame( matching_obj_train[1], missing_obj_train[1],              
+        ResultMissing_train <- rbind(  ResultMissing_train  , c ( i,weightwim, weightsig1, weightsig2,matching_obj_train[1], missing_obj_train[1],              
                                                matching_NN_train[[i]],  missing_NN_train[[i]],
                                                CMVeh_train[[i]], CVeh_train[[1]], MVeh_train[[i]],
-                                               SIMR_train[[i]], SCMR_train[[i]], MMVeh_train[[i]], Veh_train[[1]], SER_train[[i]] )
+                                               SIMR_train[[i]], SCMR_train[[i]], MMVeh_train[[i]], Veh_train[[1]], SER_train[[i]] ))
         
       }
       
@@ -2457,35 +2905,40 @@ for ( weightwim in seq(from=0, to=3, by=0.5)) {
         SCMR_test[i] <- CMVeh_test[i] / MVeh_test[i]
         SER_test[i] <- MMVeh_test[i] / Veh_test[1]
         
-        ResultMissing_test[i,] <- data.frame( matching_obj_test[1], missing_obj_test[1],              
+        ResultMissing_test <- rbind(ResultMissing_test, c(i,weightwim, weightsig1, weightsig2, matching_obj_test[1], missing_obj_test[1],              
                                               matching_NN_test[[i]],  missing_NN_test[[i]],
                                               CMVeh_test[[i]], CVeh_test[[1]], MVeh_test[[i]],
-                                              SIMR_test[[i]], SCMR_test[[i]], MMVeh_test[[i]], Veh_test[[1]], SER_test[[i]] )
+                                              SIMR_test[[i]], SCMR_test[[i]], MMVeh_test[[i]], Veh_test[[1]], SER_test[[i]] ) )
         
       }
+    
       
-      
-      w <- w+1
-      ResultMissing_train_weight_1 <- cbind (weightwim, weightsig1, weightsig2, ResultMissing_train[6,] )
-      ResultMissing_test_weight_1 <- cbind (weightwim, weightsig1, weightsig2, ResultMissing_test[6,] )
-      ResultMissing_train_all_1 <-  rbind(ResultMissing_train_all_1 , ResultMissing_train_weight_1 )
-      ResultMissing_test_all_1 <-  rbind(ResultMissing_test_all_1 , ResultMissing_test_weight_1 )
-      
-      ResultMissing_train_weight_2 <- cbind (weightwim, weightsig1, weightsig2, ResultMissing_train[12,] )
-      ResultMissing_test_weight_2 <- cbind (weightwim, weightsig1, weightsig2, ResultMissing_test[12,] )
-      ResultMissing_train_all_2 <-  rbind(ResultMissing_train_all_2 , ResultMissing_train_weight_2 )
-      ResultMissing_test_all_2 <-  rbind(ResultMissing_test_all_2 , ResultMissing_test_weight_2 )
-      
-      ResultMissing_train_weight_1 <- data.frame()
-      ResultMissing_test_weight_1 <- data.frame()
-      ResultMissing_train_weight_2 <- data.frame()
-      ResultMissing_test_weight_2 <- data.frame()
+#       w <- w+1
+#       ResultMissing_train_weight_1 <- cbind (weightwim, weightsig1, weightsig2, ResultMissing_train[6,] )
+#       ResultMissing_test_weight_1 <- cbind (weightwim, weightsig1, weightsig2, ResultMissing_test[6,] )
+#       ResultMissing_train_all_1 <-  rbind(ResultMissing_train_all_1 , ResultMissing_train_weight_1 )
+#       ResultMissing_test_all_1 <-  rbind(ResultMissing_test_all_1 , ResultMissing_test_weight_1 )
+#       
+#       ResultMissing_train_weight_2 <- cbind (weightwim, weightsig1, weightsig2, ResultMissing_train[12,] )
+#       ResultMissing_test_weight_2 <- cbind (weightwim, weightsig1, weightsig2, ResultMissing_test[12,] )
+#       ResultMissing_train_all_2 <-  rbind(ResultMissing_train_all_2 , ResultMissing_train_weight_2 )
+#       ResultMissing_test_all_2 <-  rbind(ResultMissing_test_all_2 , ResultMissing_test_weight_2 )
+#       
+#       ResultMissing_train_weight_1 <- data.frame()
+#       ResultMissing_test_weight_1 <- data.frame()
+#       ResultMissing_train_weight_2 <- data.frame()
+#       ResultMissing_test_weight_2 <- data.frame()
     }}}
 
-save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Missing_05152014")
+save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Missing_05182015")
 ### end
 rm(TestSample)
-TestSample <- cbind(ResultMisMatching_test[,1],ResultMisMatching_test[,2],ResultMisMatching_test[,15:20] )
-View(TestSample)
-View(ResultMissing_test_all_1)
-write.table(ResultMissing_train_all , "./ResultMissing_train_all_v2 .txt", sep="\t",row.names=FALSE)
+TestSample <- cbind(ResultMisMatching_test[,1],ResultMisMatching_test[,2],ResultMisMatching_test[,3],
+                    ResultMisMatching_test[,14] , ResultMisMatching_test[,20] )
+TrainSample <- cbind(ResultMisMatching_train[,1],ResultMisMatching_train[,2],ResultMisMatching_train[,3],
+                    ResultMisMatching_train[,14] , ResultMisMatching_train[,20] )
+
+View(TrainSample)
+View(ResultMissing_test_all_2)
+write.table(ResultMissing_train , "./ResultMissing_train.txt", sep="\t",row.names=FALSE)
+write.table(ResultMissing_test , "./ResultMissing_test.txt", sep="\t",row.names=FALSE)
