@@ -16,7 +16,7 @@ Upplot <- f.drawUpsignature (n1,n2)
 
 
 q=16
-Downsigid <- 541357774379513
+Downsigid <- 531357774353987
 # Downsigid <- matchingonly[q,4]
 Downplot <- f.Downdraw (Downsigid)
 

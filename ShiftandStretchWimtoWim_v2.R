@@ -55,8 +55,8 @@ candi_magdif <- list()
 a_basemagdif <- list()
 
 candidate <- list()
-
-
+sigtemp <- list()
+sigfeature <- list()
 
 
 # swift_coeff = seq (-0.20, 0.20, by=0.01)
@@ -169,13 +169,13 @@ for (w in 1:length(Downheader_ID)){
 }
 
 
-save(candidate, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/candidate_04272015.RData")
-save(a_magdif, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/a_magdif_04272015.RData")
-save(a_basemagdif, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/a_basemagdif_04272015.RData")
-save(sigfeature, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/sigfeature_04272015.RData")
+save(candidate, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/candidate_06232015.RData")
+save(a_magdif, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/a_magdif_06232015.RData")
+save(a_basemagdif, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/a_basemagdif_06232015.RData")
+save(sigfeature, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/sigfeature_06232015.RData")
 #write.table(candi_1[[1]], "./ProcessedData/TestCode/candi1.txt", sep="\t")
 
-save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/shiftandstretch_Jan0910_04272015.RData")
+save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/shiftandstretch_Jan0910_06232015.RData")
 
 ##############################################################end
 par(new=TRUE)

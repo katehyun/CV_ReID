@@ -107,7 +107,7 @@ Downheader = LC.Jan0910Header
 a <- length(Downheader[1,])
 
 for (j in 1: 31){
-  Downheader[,a+j] <- LCJan_v1[,5+j][match( Downheader$sigid, LCJan_v1[,3])] # numaxle
+  Downheader[,a+j] <- LCJan_v1[,5+j][match( Downheader$sigid, LCJan_v1[,3])] # link sig and wim
 }
 
 # down clean
@@ -196,9 +196,9 @@ matching <- matching[-which(!matching$LC %in% Downheader_new$sigid),]
 
 # look traffic condition
 buffertimewindow=120; # min (WIM-WIM case)
-bufferduration = 0.6; # 0.2 min
+bufferduration = 0.8; # 0.2 min
 # buffernumpnt = 800
-bufferlen = 12
+bufferlen = 20
 bufferaspacing12 = 8
 bufferaspacing23 = 5
 bufferaspacing34 = 5
@@ -209,24 +209,24 @@ bufferaspacing78 = 5
 bufferaspacing89 = 5
 buffergvw = 40
 
-bufferaweightl1 = 5
-bufferaweightr1 = 5
-bufferaweightl2 = 5
-bufferaweightr2 = 5
-bufferaweightl3 = 5
-bufferaweightr3 = 5
-bufferaweightl4 = 5
-bufferaweightr4 = 5
-bufferaweightl5 = 5
-bufferaweightr5 = 5
-bufferaweightl6 = 5
-bufferaweightr6 = 5
-bufferaweightl7 = 5
-bufferaweightr7 = 5
-bufferaweightl8 = 5
-bufferaweightr8 = 5
-bufferaweightl9 = 5
-bufferaweightr9 = 5
+bufferaweightl1 = 8
+bufferaweightr1 = 8
+bufferaweightl2 = 8
+bufferaweightr2 = 8
+bufferaweightl3 = 8
+bufferaweightr3 = 8
+bufferaweightl4 = 8
+bufferaweightr4 = 8
+bufferaweightl5 = 8
+bufferaweightr5 = 8
+bufferaweightl6 = 8
+bufferaweightr6 = 8
+bufferaweightl7 = 8
+bufferaweightr7 = 8
+bufferaweightl8 = 8
+bufferaweightr8 = 8
+bufferaweightl9 = 8
+bufferaweightr9 = 8
 
 # set buffer
 Downheader_ID=(Downheader_new$sigid)
@@ -456,7 +456,7 @@ for (j in 1: length(Downheader_ID)){
   Upsiglist[j] <- list(subset(Upheader_new$sigid,  Upheader_new$utc > lb[j] &  Upheader_new$utc <= settime[j]
                               & Upheader_new[,7] > ld[j] & Upheader_new[,7] < ud[j]
 #                               & Upheader_new[,8] > lp[j] & Upheader_new[,8] < up[j]
-                              & Upheader_new[,14] == Downheader_new[j,14] 
+                              & as.numeric(Upheader_new[,15]) == as.numeric(Downheader_new[j,15]) 
                               
                               & Upheader_new[,17] > ll[j] & Upheader_new[,17] < ul[j]
                               & Upheader_new[,18] > lg[j] & Upheader_new[,18] < ug[j]
@@ -596,7 +596,8 @@ save(Upsiglist, file="./ProcessedData/Jan0910/Upsiglist.RData")
 save(UpsigID, file="./ProcessedData/Jan0910/UpsigID.RData")
 save(DownsigID, file="./ProcessedData/Jan0910/DownsigID.RData")
 
-save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/04172015Jan0910.RData")  # for Jan 0910
+save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/06232015Jan0910.RData")  # for Jan 0910
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/06172015Jan0910.RData")
 #0925 : 50 features
 #0808 : 1000 features
 
