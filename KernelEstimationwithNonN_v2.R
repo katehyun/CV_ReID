@@ -1354,32 +1354,32 @@ print(f)
 
 
 
-SIGWttemp <- data.frame()
+SIGWttemp2 <- data.frame()
 
 for (j in 1:length(sig_mat_train)){
   
   for (i in 1: 50) { 
-    SIGWttemp[j,i] <-  Diff_sig_mat_train [[i]][j] 
+    SIGWttemp2[j,i] <-  Diff_sig_mat_train [[i]][j] 
   }
-  SIGWttemp[j,i+1] <- "1"
+  SIGWttemp2[j,i+1] <- "1"
   
 }
 
 for (jj in 1:length(sig_nonmat_train)){
   
   for (i in 1: 50) { 
-    SIGWttemp[j+jj,i] <-  Diff_sig_nonmat_train[[i]][jj] 
+    SIGWttemp2[j+jj,i] <-  Diff_sig_nonmat_train[[i]][jj] 
   }
-  SIGWttemp[j+jj,i+1] <- "2"
+  SIGWttemp2[j+jj,i+1] <- "2"
   
 }
 
 
-SIGWttemp <- na.omit(SIGWttemp)
-View(SIGWttemp)
+SIGWttemp2 <- na.omit(SIGWttemp2)
+View(SIGWttemp2)
 
-colnames(SIGWttemp)[51] <- c("sigidx")
-SIGIGweights <- information.gain(sigidx~., SIGWttemp)
+colnames(SIGWttemp2)[51] <- c("sigidx")
+SIGIGweights <- information.gain(sigidx~., SIGWttemp2)
 print(SIGIGweights)
 nIG <- sum(SIGIGweights > 0)
 subset <- cutoff.k(SIGIGweights, nIG)

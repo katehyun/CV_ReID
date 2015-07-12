@@ -1,5 +1,5 @@
 # find mismatching
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Mismatching_06182015")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Mismatching_06232015")
 rm(list=ls())
 
 load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Kernel_02112015")
@@ -87,10 +87,25 @@ load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Targe
 
 # feature weight v1 (entropy only)
 
-wimweight_su <- wimIGweights_su
-wimweight_tt <- wimIGweights_tt
-sigweight_su <- SIGIGweights_su 
-sigweight_tt <- SIGIGweights_tt
+th <- 1
+wimweight_tt <- vector()
+wimweight_tt [1:7] <- th  * wimIGweights_tt[[1]][1:7]
+wimweight_tt [8:11] <- th  * 0
+wimweight_tt [12:21] <- th  * wimIGweights_tt[[1]][8:17]
+wimweight_tt [22:29] <- th  * 0
+wimweight_tt [30] <- th  * wimIGweights_tt[[1]][18]
+wimweight_tt [31] <- 1
+
+wimweight_su <- vector()
+wimweight_su [1:7] <- th  * wimIGweights_su[[1]][1:7]
+wimweight_su [8:11] <- th  * 0
+wimweight_su [12:21] <- th  * wimIGweights_su[[1]][8:17]
+wimweight_su [22:29] <- th  * 0
+wimweight_su [30] <- th  * wimIGweights_su[[1]][18]
+wimweight_su [31] <- 1
+
+sigweight_su <- unlist(SIGIGweights_su) 
+sigweight_tt <- unlist(SIGIGweights_tt)
 
 
 # feature weight v2 (variance only)
@@ -810,7 +825,7 @@ ResultMismatching_test_su <- data.frame()
     
     # rm(ResultMisMatching_train, ResultMisMatching_train)
     ResultMisMatching_train_temp  <- data.frame()
-    ResultMisMatching_train_temp  <- data.frame()
+
     
     
     
@@ -822,29 +837,25 @@ ResultMismatching_test_su <- data.frame()
                                           UpFinalcandidates_train[,3] ,  UpFinalcandidates_train[,4] ,  
                                           UpFinalcandidates_train[,5] , UpFinalcandidates_train[,6] )
     
-    ResultMisMatching_train_temp <- cbind(Target_baseanalysis_Jan0910_table_train[,1],Target_baseanalysis_Jan0910_table_train[,6],
-                                          Target_baseanalysis_Jan0910_table_train[,4], 
-                                          UpFinalcandidates_train[,1] ,  UpFinalcandidates_train[,2] , 
-                                          UpFinalcandidates_train[,3] ,  UpFinalcandidates_train[,4] ,
-                                          UpFinalcandidates_train[,5] , UpFinalcandidates_train[,6])
+
     
     ResultMisMatching_train_temp[is.na ( ResultMisMatching_train_temp)]  <- c(999)
-    ResultMisMatching_train_temp[is.na ( ResultMisMatching_train_temp)]  <- c(999)
+
     
     ## TT
     
     ResultMisMatching_train_tt <- subset( ResultMisMatching_train_temp , ResultMisMatching_train_temp[,1] >= 8 )
-    ResultMisMatching_train_tt <- subset( ResultMisMatching_train_temp , ResultMisMatching_train_temp[,1] >= 8 )
+ 
     
     
     ## SU
     ResultMisMatching_train_su <- subset( ResultMisMatching_train_temp , ResultMisMatching_train_temp[,1] < 8 )
-    ResultMisMatching_train_su <- subset( ResultMisMatching_train_temp , ResultMisMatching_train_temp[,1] < 8 )
+
     
     
     ## ALL
     ResultMisMatching_train_all <- rbind(ResultMisMatching_train_tt , ResultMisMatching_train_su  )
-    ResultMisMatching_train_all <- rbind(ResultMisMatching_train_tt , ResultMisMatching_train_su  )
+
     
     
     # Train

@@ -1,3 +1,4 @@
+rm(list=ls())
 install.packages("RPostgreSQL")
 library( RPostgreSQL)
 
@@ -10,49 +11,50 @@ sigsite_down <- 46
 wimsite_up <- 75
 wimsite_down <- 46
   
-sigts_up_from <- "2015-05-10 00:00:000"
-sigts_up_to <- "2015-05-10 23:00:000"
+sigts_up_from <- "2015-06-17 00:00:000"
+sigts_up_to <- "2015-06-19 23:59:000"
 
-wimts_up_from <-    1431241200000
-wimts_up_to <-   1431324000000 
+wimts_up_from <-   1434524400000
+wimts_up_to <-   1434697200000
 
 
 SIG_Up <- dbGetQuery(con_v2, 
-      " SELECT signaturearchive_5_2015.id , signaturearchive_5_2015.detstaid, signaturearchive_5_2015.timestamp_full,
-      signaturearchive_5_2015.duration, signaturearchive_5_2015.rawsig
-  		FROM archive.signaturearchive_5_2015
-			where signaturearchive_5_2015.detstaid = 75
-      and timestamp_full >= '2015-05-20 00:00:000' and timestamp_full < '2015-05-21 00:00:000'
-			and signaturearchive_5_2015.duration > 0")
+      " SELECT signaturearchive_6_2015.id , signaturearchive_6_2015.detstaid,  signaturearchive_6_2015.timestamp_full,
+      signaturearchive_6_2015.duration, signaturearchive_6_2015.rawsig
+  		FROM archive.signaturearchive_6_2015		
+        where signaturearchive_6_2015.detstaid = 75
+      and timestamp_full >= '2015-06-17 00:00:000' and timestamp_full < '2015-06-19 23:59:000'
+			and signaturearchive_6_2015.duration > 0 and lane_dir=1")
 
 SIG_Down <- dbGetQuery(con_v2, 
-      " SELECT signaturearchive_5_2015.id , signaturearchive_5_2015.detstaid, signaturearchive_5_2015.timestamp_full,
-      signaturearchive_5_2015.duration, signaturearchive_5_2015.rawsig
-    	FROM archive.signaturearchive_5_2015
-			where signaturearchive_5_2015.detstaid = 46
-      and timestamp_full >= '2015-05-20 00:00:000' and timestamp_full < '2015-05-21 00:00:000'
-			and signaturearchive_5_2015.duration > 0")
+      " SELECT signaturearchive_6_2015.id , signaturearchive_6_2015.detstaid, signaturearchive_6_2015.timestamp_full,
+      signaturearchive_6_2015.duration, signaturearchive_6_2015.rawsig
+    	FROM archive.signaturearchive_6_2015
+			where signaturearchive_6_2015.detstaid = 46
+      and timestamp_full >= '2015-06-17 00:00:000' and timestamp_full < '2015-06-19 23:59:000'
+			and signaturearchive_6_2015.duration > 0 and lane_dir=1")
 
 
 
 WIM_Up <- dbGetQuery(con_v2, 
-     " SELECT wimarchive_5_2015.id , wimarchive_5_2015.site_no, wimarchive_5_2015.ts_fieldunit, wimarchive_5_2015.numaxles,
-      wimarchive_5_2015.speedkmh, wimarchive_5_2015.vehlencm, wimarchive_5_2015.axlespccm, wimarchive_5_2015.axlewtltkg, 
-      wimarchive_5_2015.axlewtrtkg
-  		FROM archive.wimarchive_5_2015
-			where wimarchive_5_2015.site_no = 46 
-      and wimarchive_5_2015.ts_fieldunit > 1431241200000 and wimarchive_5_2015.ts_fieldunit < 1431324000000 
-			and wimarchive_5_2015.vehlencm > 0")
+     " SELECT wimarchive_6_2015.id , wimarchive_6_2015.site_no, wimarchive_6_2015.ts_fieldunit, wimarchive_6_2015.numaxles,
+      wimarchive_6_2015.speedkmh, wimarchive_6_2015.vehlencm, wimarchive_6_2015.axlespccm, wimarchive_6_2015.axlewtltkg, 
+      wimarchive_6_2015.axlewtrtkg
+  		FROM archive.wimarchive_6_2015
+			where wimarchive_6_2015.site_no = 75 
+      and wimarchive_6_2015.ts_fieldunit >  1434524400000 and wimarchive_6_2015.ts_fieldunit <  1434697200000
+			and wimarchive_6_2015.vehlencm > 0 and lane<3")
 
 
 WIM_Down <- dbGetQuery(con_v2, 
-     " SELECT wimarchive_5_2015.id , wimarchive_5_2015.site_no, wimarchive_5_2015.ts_fieldunit, wimarchive_5_2015.numaxles,
-      wimarchive_5_2015.speedkmh, wimarchive_5_2015.vehlencm, wimarchive_5_2015.axlespccm, wimarchive_5_2015.axlewtltkg, 
-      wimarchive_5_2015.axlewtrtkg
-    	FROM archive.wimarchive_5_2015
-			where wimarchive_5_2015.site_no = 75 
-      and wimarchive_5_2015.ts_fieldunit > 1431241200000 and wimarchive_5_2015.ts_fieldunit < 1431324000000
-			and wimarchive_5_2015.vehlencm > 0")
+     " SELECT wimarchive_6_2015.id , wimarchive_6_2015.site_no, wimarchive_6_2015.ts_fieldunit, wimarchive_6_2015.numaxles,
+      wimarchive_6_2015.speedkmh, wimarchive_6_2015.vehlencm, wimarchive_6_2015.axlespccm, wimarchive_6_2015.axlewtltkg, 
+      wimarchive_6_2015.axlewtrtkg
+    	FROM archive.wimarchive_6_2015
+			where wimarchive_6_2015.site_no = 46 
+      and wimarchive_6_2015.ts_fieldunit > 1434524400000 and wimarchive_6_2015.ts_fieldunit <  1434697200000
+			and wimarchive_6_2015.vehlencm > 0 and lane>=3")
+
 
 minid <- sort(WIM_Up$id)[1]
 print(minid)
@@ -62,5 +64,6 @@ print(maxid)
 WIM_SIG_pair <- dbGetQuery(con_v2, 
       " SELECT * 
       FROM public.wim_sig_pairs
-			where wim_id > 13204143 and wim_id <  13449592  ")
+			where wim_id >  21714093 and wim_id < 22181514  ")
 
+# WIM_SIG_pair <- WIM_SIG_pair[order(WIM_SIG_pair[,1]),] 

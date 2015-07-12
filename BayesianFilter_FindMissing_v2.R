@@ -1,5 +1,7 @@
 load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Missing_06012015")
 
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Mismatching_06232015")
+
 load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/wimIGweights_su.RData")
 load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/wimIGweights_tt.RData")
 load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/wimfeatidx_su.RData")
@@ -10,11 +12,26 @@ load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/sigfe
 load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/sigfeatidx_tt.RData")
 
 # feature weight v1 (entropy only)
-wimweight_su <- wimIGweights_su
-wimweight_tt <- wimIGweights_tt
-sigweight_su <- SIGIGweights_su 
-sigweight_tt <- SIGIGweights_tt
 
+th <- 1
+wimweight_tt <- vector()
+wimweight_tt [1:7] <- th  * wimIGweights_tt[[1]][1:7]
+wimweight_tt [8:11] <- th  * 0
+wimweight_tt [12:21] <- th  * wimIGweights_tt[[1]][8:17]
+wimweight_tt [22:29] <- th  * 0
+wimweight_tt [30] <- th  * wimIGweights_tt[[1]][18]
+wimweight_tt [31] <- 1
+
+wimweight_su <- vector()
+wimweight_su [1:7] <- th  * wimIGweights_su[[1]][1:7]
+wimweight_su [8:11] <- th  * 0
+wimweight_su [12:21] <- th  * wimIGweights_su[[1]][8:17]
+wimweight_su [22:29] <- th  * 0
+wimweight_su [30] <- th  * wimIGweights_su[[1]][18]
+wimweight_su [31] <- 1
+
+sigweight_su <- unlist(SIGIGweights_su) 
+sigweight_tt <- unlist(SIGIGweights_tt)
 
 # feature weight v2 (variance only)
 wimweight_su <- wimfeatidx_su
@@ -74,6 +91,46 @@ wimweightV2_su [30] <- th  * wimIGweights_su[[1]][18]
 wimweightV2_su [31] <- 1
 
 wimweight_su <- wimfeatidx_su * wimweightV2_su
+
+
+# feature weight v4 ( entropy  + variance for both wim and sig)
+
+sigweight_su <- sigfeatidx_su
+sigweight_tt <- sigfeatidx_tt
+
+sigfeatidx_tt[sigfeatidx_tt==4] <- 0
+sigweight_tt  <- as.vector ( as.matrix (sigfeatidx_tt * SIGIGweights_tt ))
+
+wimfeatidx_tt[ wimfeatidx_tt == 4] <- 0
+
+th <- 1
+wimweightV2_tt <- vector()
+wimweightV2_tt [1:7] <- th  * wimIGweights_tt[[1]][1:7]
+wimweightV2_tt [8:11] <- th  * 0
+wimweightV2_tt [12:21] <- th  * wimIGweights_tt[[1]][8:17]
+wimweightV2_tt [22:29] <- th  * 0
+wimweightV2_tt [30] <- th  * wimIGweights_tt[[1]][18]
+wimweightV2_tt [31] <- 1
+
+wimweight_tt <- wimfeatidx_tt * wimweightV2_tt
+
+
+sigfeatidx_su[sigfeatidx_su==4] <- 0
+sigweight_su  <- as.vector ( as.matrix (sigfeatidx_su * SIGIGweights_su ))
+
+wimfeatidx_su[ wimfeatidx_su == 4] <- 0
+
+th <- 1
+wimweightV2_su <- vector()
+wimweightV2_su [1:7] <- th  * wimIGweights_su[[1]][1:7]
+wimweightV2_su [8:11] <- th  * 0
+wimweightV2_su [12:21] <- th  * wimIGweights_su[[1]][8:17]
+wimweightV2_su [22:29] <- th  * 0
+wimweightV2_su [30] <- th  * wimIGweights_su[[1]][18]
+wimweightV2_su [31] <- 1
+
+wimweight_su <- wimfeatidx_su * wimweightV2_su
+
 
 ############### start here ############
 buf_matching_sig <- 0.00001 #(original)
@@ -4244,114 +4301,114 @@ for (i in 1:12) {
 }}
 #     }}}
 # by class
-ResultMissing_train_class <- data.frame()
-ResultMissing_test_class <- data.frame()
-Class <- sort(unique( Downheader_new[,14]))
+# ResultMissing_train_class <- data.frame()
+# ResultMissing_test_class <- data.frame()
+# Class <- sort(unique( Downheader_new[,14]))
+# 
+# # classid = 5
+# for (classid in Class) {
+#     TargetTable_train_class <- subset( ResultMisMatching_train , ResultMisMatching_train[,1] == classid) 
+#     
+#     
+#     Target_obj_train_class   <- TargetTable_train_class [,2]
+#     
+#     missing_obj_train_class   <- length (Target_obj_train_class [Target_obj_train_class  == 999]) 
+#     matching_obj_train_class  <- length (Target_obj_train_class [Target_obj_train_class  != 999]) 
+#     
+#     
+#     CVeh_train_class  <- matching_obj_train_class [1]
+#     Veh_train_class  <- length(TargetTable_train_class [,1])
+#     
+#     matching_NN_train_class  <- vector()
+#     missing_NN_train_class  <- vector()
+#     CMVeh_train_class  <- vector()
+#     MVeh_train_class  <- vector()
+#     MMVeh_train_class  <- vector()
+#     SIMR_train_class  <- vector()
+#     SCMR_train_class  <- vector()
+#     SER_train_class  <- vector()
+#     
+#     
+#     for (i in 1:12) {
+#       CMVeh_train_class[i] <- sum ( as.numeric ((TargetTable_train_class [,2]) == as.numeric (TargetTable_train_class [,i+9])) &
+#                                       as.numeric (TargetTable_train_class [,2]) != 999)
+#       MVeh_train_class[i] <- sum(   (as.numeric( TargetTable_train_class[,i+9])) > 1000 ) 
+#       
+#       MMVeh_train_class[i] <- length(  subset(TargetTable_train_class[,1], as.numeric( Target_obj_train_class ) 
+#                                               !=  as.numeric( TargetTable_train_class[,i+9])   ))
+#       
+#       SIMR_train_class[i] <- CMVeh_train_class[i] / CVeh_train_class[1]
+#       SCMR_train_class[i] <- CMVeh_train_class[i] / MVeh_train_class[i]
+#       SER_train_class[i] <- MMVeh_train_class[i] / Veh_train_class[1]
+#       
+#       ResultMissing_train_class <- rbind(  ResultMissing_train_class  , c ( classid, i,weightwim, weightsig1, weightsig2,matching_obj_train_class[1], missing_obj_train_class[1],              
+#                                                                             CMVeh_train_class[[i]], CVeh_train_class[[1]], MVeh_train_class[[i]] ,
+#                                                                             SIMR_train_class[[i]], SCMR_train_class[[i]], MMVeh_train_class[[i]], Veh_train_class[[1]], SER_train_class[[i]] ))
+#       
+#     }
+#     
+#     
+#     TargetTable_test_class <- subset( ResultMisMatching_test , ResultMisMatching_test[,1] == classid) 
+#     
+#     
+#     Target_obj_test_class   <- TargetTable_test_class [,2]
+#     
+#     missing_obj_test_class   <- length (Target_obj_test_class [Target_obj_test_class  == 999]) 
+#     matching_obj_test_class  <- length (Target_obj_test_class [Target_obj_test_class  != 999]) 
+#     
+#     
+#     CVeh_test_class  <- matching_obj_test_class [1]
+#     Veh_test_class  <- length(TargetTable_test_class [,1])
+#     
+#     matching_NN_test_class  <- vector()
+#     missing_NN_test_class  <- vector()
+#     CMVeh_test_class  <- vector()
+#     MVeh_test_class  <- vector()
+#     MMVeh_test_class  <- vector()
+#     SIMR_test_class  <- vector()
+#     SCMR_test_class  <- vector()
+#     SER_test_class  <- vector()
+#     
+#     
+#     for (i in 1:12) {
+#       CMVeh_test_class[i] <- sum ( as.numeric ((TargetTable_test_class [,2]) == as.numeric (TargetTable_test_class [,i+9])) &
+#                                      as.numeric (TargetTable_test_class [,2]) != 999)
+#       MVeh_test_class[i] <- sum(   (as.numeric( TargetTable_test_class[,i+9])) > 1000 ) 
+#       
+#       MMVeh_test_class[i] <- length(  subset(TargetTable_test_class[,1], as.numeric( Target_obj_test_class ) 
+#                                              !=  as.numeric( TargetTable_test_class[,i+9])   ))
+#       
+#       SIMR_test_class[i] <- CMVeh_test_class[i] / CVeh_test_class[1]
+#       SCMR_test_class[i] <- CMVeh_test_class[i] / MVeh_test_class[i]
+#       SER_test_class[i] <- MMVeh_test_class[i] / Veh_test_class[1]
+#       
+#       ResultMissing_test_class <- rbind(  ResultMissing_test_class  , c ( classid, i,weightwim, weightsig1, weightsig2,matching_obj_test_class[1], missing_obj_test_class[1],              
+#                                                                           CMVeh_test_class[[i]], CVeh_test_class[[1]], MVeh_test_class[[i]] ,
+#                                                                           SIMR_test_class[[i]], SCMR_test_class[[i]], MMVeh_test_class[[i]], Veh_test_class[[1]], SER_test_class[[i]] ))
+#       
+#     }
+# }
 
-# classid = 5
-for (classid in Class) {
-    TargetTable_train_class <- subset( ResultMisMatching_train , ResultMisMatching_train[,1] == classid) 
-    
-    
-    Target_obj_train_class   <- TargetTable_train_class [,2]
-    
-    missing_obj_train_class   <- length (Target_obj_train_class [Target_obj_train_class  == 999]) 
-    matching_obj_train_class  <- length (Target_obj_train_class [Target_obj_train_class  != 999]) 
-    
-    
-    CVeh_train_class  <- matching_obj_train_class [1]
-    Veh_train_class  <- length(TargetTable_train_class [,1])
-    
-    matching_NN_train_class  <- vector()
-    missing_NN_train_class  <- vector()
-    CMVeh_train_class  <- vector()
-    MVeh_train_class  <- vector()
-    MMVeh_train_class  <- vector()
-    SIMR_train_class  <- vector()
-    SCMR_train_class  <- vector()
-    SER_train_class  <- vector()
-    
-    
-    for (i in 1:12) {
-      CMVeh_train_class[i] <- sum ( as.numeric ((TargetTable_train_class [,2]) == as.numeric (TargetTable_train_class [,i+9])) &
-                                      as.numeric (TargetTable_train_class [,2]) != 999)
-      MVeh_train_class[i] <- sum(   (as.numeric( TargetTable_train_class[,i+9])) > 1000 ) 
-      
-      MMVeh_train_class[i] <- length(  subset(TargetTable_train_class[,1], as.numeric( Target_obj_train_class ) 
-                                              !=  as.numeric( TargetTable_train_class[,i+9])   ))
-      
-      SIMR_train_class[i] <- CMVeh_train_class[i] / CVeh_train_class[1]
-      SCMR_train_class[i] <- CMVeh_train_class[i] / MVeh_train_class[i]
-      SER_train_class[i] <- MMVeh_train_class[i] / Veh_train_class[1]
-      
-      ResultMissing_train_class <- rbind(  ResultMissing_train_class  , c ( classid, i,weightwim, weightsig1, weightsig2,matching_obj_train_class[1], missing_obj_train_class[1],              
-                                                                            CMVeh_train_class[[i]], CVeh_train_class[[1]], MVeh_train_class[[i]] ,
-                                                                            SIMR_train_class[[i]], SCMR_train_class[[i]], MMVeh_train_class[[i]], Veh_train_class[[1]], SER_train_class[[i]] ))
-      
-    }
-    
-    
-    TargetTable_test_class <- subset( ResultMisMatching_test , ResultMisMatching_test[,1] == classid) 
-    
-    
-    Target_obj_test_class   <- TargetTable_test_class [,2]
-    
-    missing_obj_test_class   <- length (Target_obj_test_class [Target_obj_test_class  == 999]) 
-    matching_obj_test_class  <- length (Target_obj_test_class [Target_obj_test_class  != 999]) 
-    
-    
-    CVeh_test_class  <- matching_obj_test_class [1]
-    Veh_test_class  <- length(TargetTable_test_class [,1])
-    
-    matching_NN_test_class  <- vector()
-    missing_NN_test_class  <- vector()
-    CMVeh_test_class  <- vector()
-    MVeh_test_class  <- vector()
-    MMVeh_test_class  <- vector()
-    SIMR_test_class  <- vector()
-    SCMR_test_class  <- vector()
-    SER_test_class  <- vector()
-    
-    
-    for (i in 1:12) {
-      CMVeh_test_class[i] <- sum ( as.numeric ((TargetTable_test_class [,2]) == as.numeric (TargetTable_test_class [,i+9])) &
-                                     as.numeric (TargetTable_test_class [,2]) != 999)
-      MVeh_test_class[i] <- sum(   (as.numeric( TargetTable_test_class[,i+9])) > 1000 ) 
-      
-      MMVeh_test_class[i] <- length(  subset(TargetTable_test_class[,1], as.numeric( Target_obj_test_class ) 
-                                             !=  as.numeric( TargetTable_test_class[,i+9])   ))
-      
-      SIMR_test_class[i] <- CMVeh_test_class[i] / CVeh_test_class[1]
-      SCMR_test_class[i] <- CMVeh_test_class[i] / MVeh_test_class[i]
-      SER_test_class[i] <- MMVeh_test_class[i] / Veh_test_class[1]
-      
-      ResultMissing_test_class <- rbind(  ResultMissing_test_class  , c ( classid, i,weightwim, weightsig1, weightsig2,matching_obj_test_class[1], missing_obj_test_class[1],              
-                                                                          CMVeh_test_class[[i]], CVeh_test_class[[1]], MVeh_test_class[[i]] ,
-                                                                          SIMR_test_class[[i]], SCMR_test_class[[i]], MMVeh_test_class[[i]], Veh_test_class[[1]], SER_test_class[[i]] ))
-      
-    }
-}
 
 
-
-save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Missing_06232015")
+save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Missing_06232015_variancceonly")
 ### end
-Test_all <- cbind(TargetTable_test_all[,1],TargetTable_test_all[,2] , TargetTable_test_all[,3] , TargetTable_test_all[,15])
-Train_all <- cbind(TargetTable_train_all[,1],TargetTable_train_all[,2] , TargetTable_train_all[,3] , TargetTable_train_all[,15])
-
-
-rm(TestSample)
-TestSample <- cbind(ResultMisMatching_test[,1],ResultMisMatching_test[,2],ResultMisMatching_test[,3],
-                    ResultMisMatching_test[,14] , ResultMisMatching_test[,20] )
-TrainSample <- cbind(ResultMisMatching_train[,1],ResultMisMatching_train[,2],ResultMisMatching_train[,3],
-                    ResultMisMatching_train[,14] , ResultMisMatching_train[,20] )
-
-View(TrainSample)
-View(ResultMissing_test_all_2)
-setwd("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/")
-write.table(ResultMissing_train_all, "./ResultMissing_train_all.txt", sep="\t",row.names=FALSE)
-write.table(ResultMissing_test_all, "./ResultMissing_test_all.txt", sep="\t",row.names=FALSE)
-write.table(ResultMissing_train_su, "./ResultMissing_train_su.txt", sep="\t",row.names=FALSE)
-write.table(ResultMissing_test_su, "./ResultMissing_test_su.txt", sep="\t",row.names=FALSE)
-write.table(ResultMissing_train_tt, "./ResultMissing_train_tt.txt", sep="\t",row.names=FALSE)
-write.table(ResultMissing_test_tt, "./ResultMissing_test_tt.txt", sep="\t",row.names=FALSE)
+# Test_all <- cbind(TargetTable_test_all[,1],TargetTable_test_all[,2] , TargetTable_test_all[,3] , TargetTable_test_all[,15])
+# Train_all <- cbind(TargetTable_train_all[,1],TargetTable_train_all[,2] , TargetTable_train_all[,3] , TargetTable_train_all[,15])
+# 
+# 
+# rm(TestSample)
+# TestSample <- cbind(ResultMisMatching_test[,1],ResultMisMatching_test[,2],ResultMisMatching_test[,3],
+#                     ResultMisMatching_test[,14] , ResultMisMatching_test[,20] )
+# TrainSample <- cbind(ResultMisMatching_train[,1],ResultMisMatching_train[,2],ResultMisMatching_train[,3],
+#                     ResultMisMatching_train[,14] , ResultMisMatching_train[,20] )
+# 
+# View(TrainSample)
+# View(ResultMissing_test_all_2)
+# setwd("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/")
+# write.table(ResultMissing_train_all, "./ResultMissing_train_all.txt", sep="\t",row.names=FALSE)
+# write.table(ResultMissing_test_all, "./ResultMissing_test_all.txt", sep="\t",row.names=FALSE)
+# write.table(ResultMissing_train_su, "./ResultMissing_train_su.txt", sep="\t",row.names=FALSE)
+# write.table(ResultMissing_test_su, "./ResultMissing_test_su.txt", sep="\t",row.names=FALSE)
+# write.table(ResultMissing_train_tt, "./ResultMissing_train_tt.txt", sep="\t",row.names=FALSE)
+# write.table(ResultMissing_test_tt, "./ResultMissing_test_tt.txt", sep="\t",row.names=FALSE)

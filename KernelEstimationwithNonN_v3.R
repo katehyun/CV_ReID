@@ -2122,6 +2122,7 @@ ggplot() +
 
 
 #plot b = parametric , Gaussian fitting data
+i=2
 b_mat_tt <- data.frame(diffseq_mat_c_tt[[i]], 
                     normal_mat_c_tt[[i]]  * multiplier_hist_mat_c_tt[[i]][ which.min(is.na( multiplier_hist_mat_c_tt[[i]] ) ) ]  )
 b_nonmat_tt <- data.frame( diffseq_nonmat_c_tt[[i]], 
@@ -2190,16 +2191,16 @@ head(b_mat_su)
 
 # plot histogram
 k <- 19
-plot( hist_nonmat_c[[k]], col = "red", 
-      xlim = c(min ( round_any (min(Diff_mat_train_c[[k]]) , interval[k], f= floor)  , 
-                     round_any (min(Diff_nonmat_train_c[[k]]) , interval[k], f= floor) ) ,
-               max ( round_any (max(Diff_mat_train_c[[k]]) , interval[k], f= ceiling) ,
-                     round_any (max(Diff_nonmat_train_c[[k]]) , interval[k], f= ceiling) )),
-      ylim= c(0,max(hist_mat_c[[k]]$count )),
+plot( hist_nonmat_c_tt[[k]], col = "red", 
+      xlim = c(min ( round_any (min(Diff_mat_train_c_tt[[k]]) , interval[k], f= floor)  , 
+                     round_any (min(Diff_nonmat_train_c_tt[[k]]) , interval[k], f= floor) ) ,
+               max ( round_any (max(Diff_mat_train_c_tt[[k]]) , interval[k], f= ceiling) ,
+                     round_any (max(Diff_nonmat_train_c_tt[[k]]) , interval[k], f= ceiling) )),
+      ylim= c(0,max(hist_mat_c_tt[[k]]$count )),
       freq=TRUE,
       xlab = 'GVW Difference', ylab = 'Density', main = 'Histogram of GVW Difference - Nonnormalized data')
 
-plot( hist_mat_c[[k]], col = rgb(0,1,0,0.5), freq=TRUE, add=T)
+plot( hist_mat_c_tt[[k]], col = rgb(0,1,0,0.5), freq=TRUE, add=T)
 
 #normalized
 k <- 19
@@ -2416,5 +2417,6 @@ plot( hist_mat_c_sig_tt[[k]], col = rgb(0,1,0,0.5), freq=TRUE, add=T)
 
 # http://stackoverflow.com/questions/20078107/overlay-normal-curve-to-histogram-in-r
 save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Kernel_06232015")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Kernel_06232015")
 #############################################################################################
 # end
