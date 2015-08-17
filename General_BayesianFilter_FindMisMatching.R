@@ -1,3 +1,5 @@
+rm(list=ls())
+options(scipen=999) 
 
 load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/wimIGweights_su.RData")
 load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/wimIGweights_tt.RData")
@@ -57,17 +59,28 @@ load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/max_t
 load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/min_train_nonmat_su.RData")
 load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/min_train_nonmat_tt.RData")
 
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/Downobjout.RData ")
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/a_magdif.RData ")
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/a_basemagdif.RData ")
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/Upheader_new.RData")
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April20150/Downheader_new.RData")
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/candidate.RData")
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/Upsiglist.RData")
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/SOLCFHWAClass.RData" )
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/sigfeature.RData")
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/Target_baseanalysis_table.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Downobjout_set1v2.RData ")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/a_magdif_set1v2.RData ")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/a_basemagdif_set1v2.RData ")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Upheader_new_set1v2.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Downheader_new_set1v2.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/candidate_set1v2.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Upsiglist_set1v2.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/FHWAClass_set1v2.RData" )
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/sigfeature_set1v2.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Target_baseanalysis_table_set1v2.RData")
 
+
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Downobjout_set2v2.RData ")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/a_magdif_set2v2.RData ")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/a_basemagdif_set2v2.RData ")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Upheader_new_set2v2.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Downheader_new_set2v2.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/candidate_set2v2.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Upsiglist_set2v2.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/FHWAClass_set2v2.RData" )
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/sigfeature_set2v2.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Target_baseanalysis_table_set2v2.RData")
 
 # feature weight
 sigweight_su <- sigfeatidx_su
@@ -115,7 +128,7 @@ weightsig2 <- 1
 thresholdForDif <- 2.5
 buf <- 0.001 
 bufsig <- 0.000000000001
-utcbd <- 1357804800000
+# utcbd <- 1357804800000
 sigfeatlen <- 50
 wimfeatlen <- 31
 
@@ -214,10 +227,10 @@ classallidxprob <- c(1:7, 12:21, 30:31)
 # Downtarget_attributes_tt <- subset ( Downtarget_attributes, Downtarget_attributes$FHWAclass >= 8  )
 # Downtarget_attributes_su <- subset ( Downtarget_attributes, Downtarget_attributes$FHWAclass < 8  )
 
-
-weightwim <- 1
-weightsig1 <- 0
-weightsig2 <- 2
+# 
+# weightwim <- 1
+# weightsig1 <- 0
+# weightsig2 <- 2
 
 ResultMismatching_all <- data.frame()
 ResultMismatching_tt <- data.frame()
@@ -542,4 +555,7 @@ ResultMisMatching_su <- subset( MisMatching_temp , MisMatching_temp[,1] < 8 )
 ResultMisMatching_all <- rbind( ResultMisMatching_tt , ResultMisMatching_su  )
 
 
-save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/Mismatching_07062015")
+save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Mismatching_07132015_set1v2")
+save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Mismatching_07132015_set2v2")
+
+

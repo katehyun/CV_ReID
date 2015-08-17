@@ -885,8 +885,12 @@ for (i in 1:length(Upcandidates_attribute_missing)){
   
   
   else{
+    for (j in 1 : length(Upcandidates_attribute_missing[[i]][,1] )){
+      for (k in 1 : length(Upcandidates_attribute_missing[[i]] )){
     jointprob_matching_normalized_temp[j,k]  <- NA
     jointprob_missing_normalized_temp[j,k]  <- NA
+      }
+    }
   }
   
   
@@ -922,8 +926,12 @@ for (i in 1:length(Upcandidates_attribute_missing)){
   
   
   else{
+    for (j in 1 : length(Upcandidates_attribute_missing[[i]][,1] )){
+      for (k in 1 : length(Upcandidates_attribute_missing_sig[[i]] )){
     jointprob_matching_sig_normalized_temp[j,k]  <- NA
     jointprob_missing_sig_normalized_temp[j,k]  <- NA
+      }
+    }
   }
   
   
@@ -1684,8 +1692,8 @@ colnames(ResultMisMatching_a) <- c( "ts", "FHWAclass" , "a_magdif" , "DownID" ,
 
 options(scipen=999) 
 
-len = 2 * 24 #3 days * 24 hrs
-ts <- 1434524400000  # milisecond
+len = 3 * 24 #3 days * 24 hrs
+ts <-1434524400000    #1434956400000 #1434524400000  # milisecond
 mintoms <- 60000 #min to milisecond (1min = 60000ms)
 tsseq  <- vector()
 for ( i in 0 : len ){
@@ -1699,7 +1707,7 @@ for ( i in 0 : len ){
 #            ts + 18*60*mintoms, ts + 19*60*mintoms, ts + 20*60*mintoms, ts + 21*60*mintoms, ts + 22*60*mintoms, ts + 23*60*mintoms,
 #            ts + 24*60*mintoms)
 
-col <- 16
+col <- 22 #22 16
 
 Total_len_all <- data.frame()
 Matched_len_all <- data.frame()
@@ -1739,21 +1747,24 @@ for ( i in 1: (length(tsseq)-1)){
 
 }
 
-
-Matched_rate_all_byday <- data.frame()
-Matched_rate_all_byday[,1] <-  Matched_rate_all[1:24,]
-Matched_rate_all_byday[,2] <-  Matched_rate_all[25:48,]
+save(ResultMisMatching_a, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/ResultMisMatching_a_set1v2.RData")
 
 
-Matched_rate_su_byday[,1] <-  Matched_rate_su[1:24,]
-Matched_rate_su_byday[,2] <-  Matched_rate_su[25:48,]
+# save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Missing_07172015_set1v2")
+save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Missing_07172015_set2v2")
+# load(("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/Mismatching_07072015"))
+load(("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Missing_07172015_set1v2"))
 
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/ResultMisMatching_a_set1v2.RData")
 
-Matched_rate_tt_byday[,1] <-  Matched_rate_tt[1:24,]
-Matched_rate_tt_byday[,2] <-  Matched_rate_tt[25:48,]
+#figure
 
+reidrate_tt <-  Matched_rate_tt[49:72,]
+reidrate_su <-  Matched_rate_su[49:72,]
 
-
-
-save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/Missing_07072015")
-load(("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/Missing_07062015"))
+down3rdday <- subset ( Downheader_new, Downheader_new$ts_fieldunit > 1434697200000)
+down3rdday_TT <- subset( down3rdday, down3rdday$FHWAclass>=8)
+down3rdday_SU <- subset( down3rdday, down3rdday$FHWAclass<8)
+up3rdday <- subset ( Upheader_new, Upheader_new$ts_fieldunit > 1434697200000)
+up3rdday_TT <- subset( up3rdday, up3rdday$FHWAclass>=8)
+up3rdday_SU <- subset( up3rdday, up3rdday$FHWAclass<8)

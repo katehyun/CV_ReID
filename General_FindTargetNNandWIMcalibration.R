@@ -4,18 +4,28 @@ rm(list=ls())
 # library(pnn)
 setwd("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid") 
 options(scipen=999) 
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/shiftandstretch_06242015.RData")
+# load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/shiftandstretch_06242015.RData")
+# load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/shiftandstretch_07132015.RData")
 
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/Upobjout.RData ")
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/Downobjout.RData ")
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/a_magdif.RData ")
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/a_basemagdif.RData ")
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/Upheader_new.RData")
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/Downheader_new.RData")
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/candidate.RData")
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/Upsiglist.RData")
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/WIM_SIG_pair.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Upobjout_set1v2.RData ")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Downobjout_set1v2.RData ")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/a_magdif_set1v2.RData ")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/a_basemagdif_set1v2.RData ")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Upheader_new_set1v2.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Downheader_new_set1v2.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/candidate_set1v2.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Upsiglist_set1v2.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/WIM_SIG_pair_set1v2.RData")
 
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Upobjout_set2v2.RData ")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Downobjout_set2v2.RData ")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/a_magdif_set2v2.RData ")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/a_basemagdif_set2v2.RData ")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Upheader_new_set2v2.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Downheader_new_set2v2.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/candidate_set2v2.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Upsiglist_set2v2.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/WIM_SIG_pair_set2v2.RData")
 
 ############################################################# do not run when loading RData
 ### target 1 & 2 :  base and after shift and stretch
@@ -258,6 +268,11 @@ for (i in 1: length( Upheader_new[,1]) ){
 
 Upheader_new <- Upheader_new_cl
 
-save(Upheader_new,  file= "C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/Upheader_new.RData"  )
-save(Target_baseanalysis_table, file= "C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/Target_baseanalysis_table.RData")
-save(FHWAClass,file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/FHWAClass.RData" )
+save(Upheader_new,  file= "C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Upheader_new_set1v2.RData"  )
+save(Target_baseanalysis_table, file= "C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Target_baseanalysis_table_set1v2.RData")
+save(FHWAClass,file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/FHWAClass_set1v2.RData" )
+
+
+save(Upheader_new,  file= "C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Upheader_new_set2v2.RData"  )
+save(Target_baseanalysis_table, file= "C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/Target_baseanalysis_table_set2v2.RData")
+save(FHWAClass,file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/FHWAClass_set2v2.RData" )

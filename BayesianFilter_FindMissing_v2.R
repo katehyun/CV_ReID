@@ -4392,6 +4392,15 @@ for (i in 1:12) {
 
 
 save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Missing_06232015_variancceonly")
+
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Missing_06232015")
+
+
+
+downall_TT <- subset( Downheader_new,  Downheader_new[,14]>=8)
+downall_SU <- subset( Downheader_new,  Downheader_new[,14]<8)
+upall_TT <- subset( Upheader_new,  Upheader_new[,14]>=8)
+upall_SU <- subset( Upheader_new,  Upheader_new[,14]<8)
 ### end
 # Test_all <- cbind(TargetTable_test_all[,1],TargetTable_test_all[,2] , TargetTable_test_all[,3] , TargetTable_test_all[,15])
 # Train_all <- cbind(TargetTable_train_all[,1],TargetTable_train_all[,2] , TargetTable_train_all[,3] , TargetTable_train_all[,15])

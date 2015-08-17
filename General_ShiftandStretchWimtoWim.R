@@ -1,6 +1,8 @@
 
 rm(list=ls())
-
+# load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/07132015.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/07162015_set1_v2.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/07162015_set2_v2.RData")
 #### loading functionbook
 load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/Upsiglist.RData")
 load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/Upheader_new.RData")
@@ -26,8 +28,9 @@ time <- f.round(time, no_round) # added
 
 
 
-swift_coeff = seq (-0.10, 0.10, by=0.01)
-stret_coeff = seq ( 0.80, 1.20, by=0.1)
+# swift_coeff = seq (-0.10, 0.10, by=0.01)
+swift_coeff = seq (-0.10, 0.10, by=0.1)
+stret_coeff = seq ( 0.90, 1.10, by=0.1)
 
 
 
@@ -47,13 +50,13 @@ a_basemagdif <- list()
 candidate <- list()
 sigtemp <- list()
 sigfeature <- list()
-
+aa <- list()
 
 
 
 Upheader_ID <- Upheader_new$sig_id
 Downheader_ID <- Downheader_new$sig_id
-aa <- list()
+
 
 #Down
 
@@ -112,7 +115,7 @@ for (w in 1:length(Downheader_ID)){
       min_swiftmagdif = swift_h$mv
       min_stretmagdif = stret_h$mv
       
-      if (abs ( min_swiftmagdif - min_stretmagdif ) < 3 ){
+      if (abs ( min_swiftmagdif - min_stretmagdif ) < 20 ){
         
         stret <- stret_h$matrix
     
@@ -120,7 +123,7 @@ for (w in 1:length(Downheader_ID)){
       
       else {
         
-        while (abs(min_swiftmagdif - min_stretmagdif)  >= 2) {
+        while (abs(min_swiftmagdif - min_stretmagdif)  >= 20) {
           
           
           swift_h <- f.swift_horizontal (stret_h$matrix, splineDown, swift_coeff, length(time) , no_round)
@@ -158,13 +161,13 @@ for (w in 1:length(Downheader_ID)){
 }
 
 
-save(candidate, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/candidate.RData")
-save(a_magdif, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/a_magdif.RData")
-save(a_basemagdif, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/a_basemagdif.RData")
-save(sigfeature, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/sigfeature.RData")
+save(candidate, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/candidate_set2v2.RData")
+save(a_magdif, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/a_magdif_set2v2.RData")
+save(a_basemagdif, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/a_basemagdif_set2v2.RData")
+save(sigfeature, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/sigfeature_set2v2.RData")
 
 
-save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/shiftandstretch_07032015.RData")
-load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/shiftandstretch_07032015.RData")
+save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/shiftandstretch_07162015_set2v2.RData")
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/shiftandstretch_07162015_set2v2.RData")
 ##############################################################end
 par(new=TRUE)

@@ -1348,36 +1348,36 @@ WIM_SIG_pair <- WIM_SIG_pair
 
 
 buffertimewindow=120
-bufferduration = 0.8
-bufferlen = 800
-bufferaspacing12 = 8
-bufferaspacing23 = 5
-bufferaspacing34 = 5
-bufferaspacing45 = 6
-bufferaspacing56 = 5
-bufferaspacing67 = 5
-bufferaspacing78 = 5
-bufferaspacing89 = 5
-buffergvw = 40
+bufferduration = 0.2
+bufferlen = 200
+bufferaspacing12 = 5
+bufferaspacing23 = 3
+bufferaspacing34 = 3
+bufferaspacing45 = 4
+bufferaspacing56 = 3
+bufferaspacing67 = 3
+bufferaspacing78 = 3
+bufferaspacing89 = 3
+buffergvw = 10
 
-bufferaweightl1 = 8
-bufferaweightr1 = 8
-bufferaweightl2 = 8
-bufferaweightr2 = 8
-bufferaweightl3 = 8
-bufferaweightr3 = 8
-bufferaweightl4 = 8
-bufferaweightr4 = 8
-bufferaweightl5 = 8
-bufferaweightr5 = 8
-bufferaweightl6 = 8
-bufferaweightr6 = 8
-bufferaweightl7 = 8
-bufferaweightr7 = 8
-bufferaweightl8 = 8
-bufferaweightr8 = 8
-bufferaweightl9 = 8
-bufferaweightr9 = 8
+bufferaweightl1 = 4
+bufferaweightr1 = 4
+bufferaweightl2 = 4
+bufferaweightr2 = 4
+bufferaweightl3 = 4
+bufferaweightr3 = 4
+bufferaweightl4 = 4
+bufferaweightr4 = 4
+bufferaweightl5 = 4
+bufferaweightr5 = 4
+bufferaweightl6 = 4
+bufferaweightr6 = 4
+bufferaweightl7 = 4
+bufferaweightr7 = 4
+bufferaweightl8 = 4
+bufferaweightr8 = 4
+bufferaweightl9 = 4
+bufferaweightr9 = 4
 
 
 # set buffer
@@ -1687,15 +1687,15 @@ for (i in 1: length(sigtemp_Up)){
 
 
 setwd("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid") 
-save(Upheader_new, file="./ProcessedData/General_April2015/Upheader_new.RData")
-save(Downheader_new, file="./ProcessedData/General_April2015/Downheader_new.RData")
-save(Upsiglist, file="./ProcessedData/General_April2015/Upsiglist.RData")
-save(UpsigID, file="./ProcessedData/General_April2015/UpsigID.RData")
-save(DownsigID, file="./ProcessedData/General_April2015/DownsigID.RData")
+save(Upheader_new, file="./ProcessedData/General_2015/Upheader_new_set2v2.RData")
+save(Downheader_new, file="./ProcessedData/General_2015/Downheader_new_set2v2.RData")
+save(Upsiglist, file="./ProcessedData/General_2015/Upsiglist_set2v2.RData")
+save(UpsigID, file="./ProcessedData/General_2015/UpsigID_set2v2.RData")
+save(DownsigID, file="./ProcessedData/General_2015/DownsigID_set2v2.RData")
 
-save(Upobjout, file="./ProcessedData/General_April2015/Upobjout.RData")
-save(Downobjout, file="./ProcessedData/General_April2015/Downobjout.RData")
-save(WIM_SIG_pair, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/WIM_SIG_pair.RData")
+save(Upobjout, file="./ProcessedData/General_2015/Upobjout_set2v2.RData")
+save(Downobjout, file="./ProcessedData/General_2015/Downobjout_set2v2.RData")
+save(WIM_SIG_pair, file="C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/WIM_SIG_pair_set2v2.RData")
 
 rm(la12, la23, la34, la45, lb, ld, lg, ll, lp, lwl1, lwl2, lwl3, lwl4, lwl5, lwr1, lwr2, lwr3, lwr4, lwr5,
    ua12, ua23, ua34, ua45, ud, ug, ul, up, uw1l, uw1r, uw2l, uw2r, uw3l, uw3r, uw4l, uw4r, uw5l, uw5r, 
@@ -1720,6 +1720,7 @@ rm(bufferaspacing56,bufferaspacing67, bufferaspacing78, bufferaspacing89)
 rm( bufferaweightl6, bufferaweightl7, bufferaweightl8, bufferaweightl9,
     bufferaweightr6, bufferaweightr7, bufferaweightr8, bufferaweightr9)
 
-rm(x,y,i,j, len, splineUp, inUpsig, inDownsig)
+rm(x,y,i,j, len, splineUp, inUpsig, inDownsig, Downheader, Upheader,axlewtltkgtemp, axlewtrtkgtemp, axlespcmtemp )
 
-save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_April2015/07032015.RData")
+
+save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/General_2015/07162015_set2_v2.RData")

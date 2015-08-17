@@ -1582,7 +1582,7 @@ ResultMismatching_test_su <- data.frame()
 
 # }}}
 save.image("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Mismatching_06232015")
-
+load("C:/Users/Kate Hyun/Dropbox/Kate/ReID/TruckReid/ProcessedData/Jan0910/Mismatching_06232015")
 ## end
 
 Upsiglist_train [[ which(Downtarget_attributes_train[,1] ==531357854438662 )  ]]
